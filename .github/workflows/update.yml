@@ -1,0 +1,72 @@
+name: Update data and deploy
+
+# Pulls fresh scores and lines from nflverse, re-checks the tiebreaker engine against every
+# season since 2002, rebuilds the site and publishes it. If validation fails, nothing ships.
+on:
+  push:
+    branches: [main]          # deploy on every code or pick-trade change
+  workflow_dispatch: {}       # "Run workflow" button for a manual refresh
+  schedule:
+    # Times are UTC. Game windows (US Central): Thu 7pm-11pm, Sun noon-11pm, Mon 7pm-11pm.
+    - cron: '*/30 0-5 * * 5'      # Thu night games (Fri 00:00-05:30 UTC)
+    - cron: '*/30 13-23 * * 0'    # Sunday: morning London games through evening
+    - cron: '*/30 0-5 * * 1'      # Sunday night game
+    - cron: '*/30 0-5 * * 2'      # Monday night game
+    - cron: '17 */6 * * *'        # every 6 hours otherwise: betting lines, schedule changes, Saturday games
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch latest games, scores and lines
+        run: node scripts/fetch-data.js
+
+      - name: Validate tiebreaker engine against every season since 2002
+        run: node scripts/validate.js
+
+      - name: Build site
+        env:
+          SITE_NAME: ${{ vars.SITE_NAME }}
+          SITE_URL: ${{ vars.SITE_URL }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: node scripts/build.js
+
+      - name: Save the refreshed data file to the repo
+        run: |
+          if ! git diff --quiet data/games.csv; then
+            git config user.name "clinch-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add data/games.csv
+            git commit -m "Data refresh $(date -u +'%Y-%m-%d %H:%M') UTC [skip ci]"
+            git push
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,21 @@
+{
+  "_readme": "First-round picks that have changed hands, keyed by draft year. Edit this file when a trade happens; the site rebuilds on the next run. 'from' is the team whose record sets the pick; 'to' is who owns it now.",
+  "2027": {
+    "traded": [
+      { "from": "IND", "to": "NYJ", "deal": "Sauce Gardner trade" },
+      { "from": "GB", "to": "DAL", "deal": "Micah Parsons trade" },
+      { "from": "LA", "to": "CLE", "deal": "Myles Garrett trade" },
+      { "from": "CHI", "to": "TEN", "deal": "Jeffery Simmons trade" },
+      { "from": "JAX", "to": "PHI", "deal": "Jordan Davis trade" }
+    ],
+    "conditional": [
+      {
+        "type": "earlier_of",
+        "teams": ["DAL", "GB"],
+        "earlierTo": "NYJ",
+        "laterTo": "DAL",
+        "deal": "Quinnen Williams trade: Jets get the earlier of the Cowboys' and Packers' picks"
+      }
+    ]
+  }
+}

@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clinch Playoff Machine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Night-game dark: deep navy surfaces, mint for "your side", coral for the other side.
+     Layout: one column on phones; on desktop, games on the left and live standings pinned right. */
+  --bg: #0f1422;
+  --surface: #182033;
+  --surface-2: #212b42;
+  --line: #2c3854;
+  --text: #eaf0fb;
+  --muted: #8693b0;
+  --accent: #35e3bf;
+  --accent-ink: #062a22;
+  --coral: #ff6f8e;
+  --gold: #ffc861;
+  --display: "Poppins", "Segoe UI", system-ui, sans-serif;
+  --body: "DM Sans", "Segoe UI", system-ui, sans-serif;
+  --r: 14px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--body); font-size: 15px; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+
+header.top { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.top-inner { max-width: 1180px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.brand { font-family: var(--display); font-weight: 800; font-size: 22px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+.brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+.season { color: var(--muted); font-size: 13px; }
+nav.tabs { margin-left: auto; display: flex; gap: 4px; background: var(--surface); padding: 4px; border-radius: 999px; }
+nav.tabs button { border: 0; background: transparent; white-space: nowrap; padding: 8px 16px; border-radius: 999px; font-weight: 700; color: var(--muted); }
+nav.tabs button[aria-selected="true"] { background: var(--surface-2); color: var(--text); }
+@media (max-width: 480px) { nav.tabs { width: 100%; justify-content: space-between; margin-left: 0; } nav.tabs button { padding: 8px 12px; } }
+
+main { max-width: 1180px; margin: 0 auto; padding: 16px; }
+.teams { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 12px; scrollbar-width: thin; }
+.chip { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 2px solid transparent; font-family: var(--display); font-weight: 700; font-size: 12px; background: var(--c); color: var(--ci); opacity: .55; transition: opacity .15s, transform .15s; }
+.chip:hover { opacity: .9; }
+.chip[aria-pressed="true"] { opacity: 1; border-color: var(--text); transform: scale(1.08); }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+.grid > * { min-width: 0; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.sticky { position: sticky; top: 76px; }
+@media (max-width: 900px) { .sticky { position: static; } }
+
+.hero { padding: 18px; display: grid; gap: 14px; border-left: 4px solid var(--tc, var(--accent)); }
+.hero-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.hero-head .chip { opacity: 1; width: 52px; height: 52px; font-size: 14px; }
+.hero-name { font-family: var(--display); font-weight: 800; font-size: 24px; line-height: 1.1; }
+.hero-sub { color: var(--muted); font-size: 13px; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 520px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stat { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+.stat .k { color: var(--muted); font-size: 12px; }
+.stat .v { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1.15; }
+.stat .d { font-size: 12px; font-weight: 700; }
+.up { color: var(--accent); } .down { color: var(--coral); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--surface-2); padding: 8px 12px; border-radius: 999px; font-weight: 700; font-size: 13px; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+.section-head { display: flex; align-items: center; gap: 10px; margin: 18px 0 10px; flex-wrap: wrap; }
+.section-head h2 { font-family: var(--display); font-size: 17px; margin: 0; }
+.seg { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); padding: 3px; border-radius: 999px; overflow-x: auto; max-width: 100%; }
+.seg button { border: 0; background: transparent; padding: 6px 11px; border-radius: 999px; font-weight: 700; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--text); }
+.hint { color: var(--muted); font-size: 13px; }
+
+.games { display: grid; gap: 10px; }
+.games.two { grid-template-columns: repeat(auto-fill, minmax(352px, 1fr)); }
+.game { padding: 10px; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; }
+.game.mine { border-color: color-mix(in srgb, var(--tc) 70%, var(--line)); }
+.gmeta { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+.root { font-weight: 700; color: var(--gold); }
+.side { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 10px; border: 2px solid var(--line); background: var(--surface-2); text-align: left; min-width: 0; }
+.side.home { flex-direction: row-reverse; text-align: right; }
+.side .chip { opacity: 1; width: 36px; height: 36px; font-size: 11px; pointer-events: none; }
+.side > span:not(.chip) { min-width: 0; flex: 1; }
+.side > .chip { flex: none; }
+.side .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; letter-spacing: -0.1px; }
+.game .side { padding: 8px; gap: 8px; }
+.game .side .chip { width: 32px; height: 32px; font-size: 10px; }
+.game .mid { gap: 3px; }
+.game .tie { font-size: 10px; padding: 1px 6px; }
+.game { gap: 6px; }
+@media (max-width: 520px) { .side .nm { font-size: 13px; } .game .side { padding: 7px; gap: 6px; } .game .side .chip { width: 28px; height: 28px; font-size: 9px; } .game { padding: 8px; } }
+.side .pr { font-size: 12px; color: var(--muted); }
+.wknav { margin-left: auto; display: flex; gap: 6px; }
+.side .ln { font-weight: 700; color: var(--text); opacity: .75; margin-left: 2px; }
+.side[data-state="win"] .ln { color: var(--accent); opacity: 1; }
+.side[data-state="win"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); }
+.side[data-state="win"] .pr { color: var(--accent); font-weight: 700; }
+.side[data-state="loss"] { opacity: .45; }
+.mid { display: grid; gap: 4px; justify-items: center; }
+.at { font-family: var(--display); font-weight: 700; color: var(--muted); font-size: 13px; }
+.tie { border: 1px solid var(--line); background: transparent; border-radius: 999px; font-size: 11px; padding: 2px 8px; color: var(--muted); }
+.tie[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
+.empty { padding: 24px; text-align: center; color: var(--muted); }
+
+.stand { padding: 14px; }
+.stand h3 { font-family: var(--display); font-size: 15px; margin: 0; }
+.stand-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.stand-head { flex-wrap: wrap; }
+.stand-head .seg.mini:first-of-type { margin-left: auto; }
+.seg.mini button { padding: 4px 9px; font-size: 12px; }
+.dblocks { display: grid; gap: 14px; }
+table.dtable { width: 100%; border-collapse: collapse; table-layout: auto; font-size: 13px; }
+.dtable th { font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); text-align: right; padding: 0 4px 4px; white-space: nowrap; }
+.dtable th:first-child { text-align: left; padding-left: 6px; }
+.dtable td { padding: 4px; white-space: nowrap; }
+.dtable td.sd { width: 14px; font-family: var(--display); font-weight: 800; color: var(--muted); text-align: center; padding-left: 6px; }
+.dtable td.ch { width: 26px; padding: 3px 2px; }
+.dtable td.ch .chip { opacity: 1; width: 26px; height: 26px; font-size: 9px; }
+.dtable td.rn { max-width: 0; width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.dtable td.num { text-align: right; font-variant-numeric: tabular-nums; font-size: 12px; }
+.dtable td.sub { color: var(--muted); }
+.dtable td.od, .dtable th.od { text-align: right; padding-right: 6px; }
+.dtable tr.me td { background: color-mix(in srgb, var(--tc) 22%, var(--surface-2)); }
+.dtable tr.me td:first-child { border-radius: 8px 0 0 8px; } .dtable tr.me td:last-child { border-radius: 0 8px 8px 0; }
+.dtable tr.elim td { opacity: .5; }
+@media (max-width: 370px) { .dtable .cf { display: none; } }
+.rows { display: grid; gap: 2px; }
+.row { display: grid; grid-template-columns: 22px 28px minmax(0, 1fr) auto 44px; gap: 8px; align-items: center; padding: 5px 6px; border-radius: 8px; }
+.row .rn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row.elim { opacity: .5; }
+.op { justify-self: end; font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; padding: 2px 6px; border-radius: 6px; min-width: 40px; text-align: center; color: var(--muted); background: var(--surface-2); }
+.op.hi { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.op.mid { color: #ffa24a; background: color-mix(in srgb, #ffa24a 14%, transparent); }
+.op.lo { color: var(--coral); background: color-mix(in srgb, var(--coral) 14%, transparent); }
+.op.out { color: var(--muted); background: transparent; border: 1px solid var(--line); }
+.row .chip { opacity: 1; width: 28px; height: 28px; font-size: 10px; }
+.row.me { background: color-mix(in srgb, var(--tc) 22%, var(--surface-2)); outline: 1px solid color-mix(in srgb, var(--tc) 60%, transparent); }
+.seed { font-family: var(--display); font-weight: 800; color: var(--muted); text-align: center; }
+.row .rec { color: var(--muted); font-size: 13px; }
+.cut { border-top: 1px dashed var(--line); margin: 6px 0; position: relative; }
+.cut span { position: absolute; right: 0; top: -9px; background: var(--surface); padding: 0 6px; font-size: 11px; color: var(--muted); }
+.tag { font-size: 10px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; padding: 2px 6px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+.tag.div { color: var(--accent); }
+
+table.t { width: 100%; border-collapse: collapse; }
+.t th { text-align: right; font-size: 12px; color: var(--muted); font-weight: 500; padding: 8px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.t th:first-child, .t td:first-child { text-align: left; }
+.t td { padding: 8px 6px; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); text-align: right; white-space: nowrap; }
+.t tr.me td { background: color-mix(in srgb, var(--tc) 18%, transparent); }
+.tn { display: flex; align-items: center; gap: 8px; }
+.tn .chip { opacity: 1; width: 28px; height: 28px; font-size: 10px; }
+.bar { display: inline-grid; grid-template-columns: 56px 40px; gap: 6px; align-items: center; }
+.bar i { display: block; height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.bar i b { display: block; height: 100%; background: var(--accent); }
+.scroll { overflow-x: auto; }
+.pad { padding: 12px 14px; }
+.foot { color: var(--muted); font-size: 12px; padding: 24px 0 8px; line-height: 1.6; max-width: 70ch; }
+.busy { opacity: .55; transition: opacity .2s; }
+/* all-games grid */
+.mx-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); }
+table.mx { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 12px; }
+.mx th { position: sticky; top: 0; background: var(--surface); color: var(--muted); font-weight: 700; padding: 8px 4px; border-bottom: 1px solid var(--line); white-space: nowrap; z-index: 1; }
+.mx th button { border: 0; background: transparent; color: var(--muted); font-weight: 700; padding: 2px 4px; border-radius: 6px; }
+.mx th button:hover { color: var(--text); background: var(--surface-2); }
+.mx td { padding: 3px; border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent); text-align: center; }
+.mx td.tm { position: sticky; left: 0; background: var(--surface); z-index: 1; text-align: left; padding: 4px 8px 4px 8px; white-space: nowrap; }
+.mx .tm-in { display: flex; align-items: center; gap: 8px; }
+.mx .tm .chip { opacity: 1; width: 26px; height: 26px; font-size: 9px; }
+.mx .tm .r { color: var(--muted); font-variant-numeric: tabular-nums; }
+.mx .tm .sd { font-family: var(--display); font-weight: 800; font-size: 11px; color: var(--accent); min-width: 16px; }
+.mx tr.divh td { background: var(--bg); color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; text-align: left; padding: 8px 10px 4px; position: static; }
+.mx tr.me td { background: color-mix(in srgb, var(--tc) 16%, var(--surface)); }
+.mx tr.me td.tm { box-shadow: inset 3px 0 0 var(--tc); }
+.cell { width: 100%; min-width: 50px; border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 4px 2px; display: grid; gap: 1px; line-height: 1.15; }
+.cell b { font-size: 12px; }
+.cell small { font-size: 10px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cell[data-s="W"] { background: color-mix(in srgb, var(--accent) 22%, var(--surface-2)); border-color: var(--accent); }
+.cell[data-s="W"] small { color: var(--accent); font-weight: 700; }
+.cell[data-s="L"] { background: color-mix(in srgb, var(--coral) 14%, var(--surface-2)); border-color: color-mix(in srgb, var(--coral) 60%, transparent); opacity: .7; }
+.cell[data-s="L"] small { color: var(--coral); font-weight: 700; }
+.cell[data-s="T"] { border-color: var(--gold); }
+.bye { color: var(--muted); font-size: 10px; letter-spacing: .5px; }
+.sos { font-variant-numeric: tabular-nums; font-weight: 700; }
+.sos.hard { color: var(--coral); } .sos.easy { color: var(--accent); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); align-items: center; }
+.legend i { display: inline-block; width: 14px; height: 10px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; }
+.src { font-size: 11px; font-weight: 700; color: var(--muted); }
+.src.ln { color: var(--gold); }
+.hero.slim { padding: 12px 14px; gap: 10px; }
+.hero.slim .hero-head .chip { width: 40px; height: 40px; font-size: 12px; }
+.hero.slim .hero-name { font-size: 19px; }
+.hero.slim .stat { padding: 8px 10px; }
+.hero.slim .stat .v { font-size: 20px; }
+.game.flipped { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.game.past .side .pr { font-family: var(--display); font-weight: 800; font-size: 15px; color: var(--text); }
+.game.past .side[data-state="loss"] .pr { color: var(--muted); }
+.whatif { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 14px; margin-bottom: 14px; border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, var(--surface)); }
+.whatif b { color: var(--gold); font-family: var(--display); }
+.whatif span { color: var(--text); font-size: 13px; flex: 1; min-width: 200px; }
+.weekbar .final { color: var(--accent); font-weight: 800; }
+.weekbar .picked { color: var(--muted); font-weight: 800; }
+.flipdot { color: var(--gold); font-size: 9px; vertical-align: 2px; }
+.tag.tbt { color: var(--gold); border: 0; cursor: pointer; font: inherit; font-size: 10px; font-weight: 700; letter-spacing: .4px; }
+.tag.tbt:hover { background: color-mix(in srgb, var(--gold) 20%, var(--surface-2)); }
+.tb-section { margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line); }
+.tb-section > .section-head { margin-top: 0; margin-bottom: 14px; }
+.tb-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; align-items: start; }
+.tb-section .tb-wrap { margin-top: 0; border-top: 0; padding-top: 0; }
+details.tb.flash { box-shadow: 0 0 0 2px var(--gold); transition: box-shadow .3s; }
+.tb-wrap { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 6px; }
+.tb-h { font-family: var(--display); font-weight: 700; font-size: 14px; display: flex; gap: 8px; align-items: baseline; }
+details.tb { background: var(--surface-2); border-radius: 10px; padding: 0; }
+details.tb summary { cursor: pointer; list-style: none; padding: 9px 10px; display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: baseline; font-size: 13px; }
+details.tb summary::-webkit-details-marker { display: none; }
+details.tb summary::before { content: '▸'; color: var(--muted); grid-row: 1; grid-column: 1; display: none; }
+.tb-title { font-weight: 700; color: var(--gold); white-space: nowrap; }
+.tb-who { color: var(--text); font-size: 12px; }
+.tb-res { font-weight: 800; color: var(--accent); font-size: 12px; }
+details.tb ol { margin: 0; padding: 0 10px 4px 28px; display: grid; gap: 6px; font-size: 12px; }
+details.tb li { color: var(--text); line-height: 1.4; }
+details.tb li b { display: block; font-weight: 700; }
+.tb-vals { display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 3px 0; }
+.tb-v { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; font-variant-numeric: tabular-nums; color: var(--muted); }
+.tb-v.best { color: var(--text); border-color: var(--accent); }
+.tb-out { color: var(--accent); font-weight: 700; }
+.tb-tied { color: var(--muted); }
+.tb-skip, .tb-note { color: var(--muted) !important; }
+.tb-skip b { display: inline !important; color: var(--muted); }
+.tb-final { padding: 2px 10px 10px 28px; font-weight: 700; font-size: 13px; color: var(--accent); }
+.btn.danger { color: var(--coral); border-color: color-mix(in srgb, var(--coral) 50%, var(--line)); }
+.btn.danger.solid { background: var(--coral); color: #2a0610; border-color: var(--coral); }
+.confirm { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 8px 6px 12px; border: 1px solid var(--coral); border-radius: 999px; background: color-mix(in srgb, var(--coral) 10%, var(--surface)); font-size: 13px; font-weight: 700; }
+.rside { cursor: default; }
+.imp { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); }
+.imp i { display: inline-block; width: 4px; height: 10px; border-radius: 2px; background: var(--line); }
+.imp i:nth-child(2) { height: 12px; } .imp i:nth-child(3) { height: 14px; margin-right: 5px; }
+.imp.l1 i:nth-child(1), .imp.l2 i:nth-child(-n+2), .imp.l3 i { background: var(--gold); }
+.imp.l3 { color: var(--gold); } .imp.l2 { color: var(--text); }
+.imp.none { font-weight: 700; text-transform: none; letter-spacing: 0; }
+.rgame .gmeta .swing { font-weight: 800; color: var(--gold); }
+.rgame.own { border-color: color-mix(in srgb, var(--tc) 70%, var(--line)); }
+.rgame.own .gmeta .swing { color: var(--text); }
+.side.rootme { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, var(--surface-2)); }
+.side.rootme .pr { color: var(--gold); font-weight: 700; }
+.meh { margin-top: 12px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+.meh b { color: var(--text); font-weight: 700; }
+.warn { color: var(--gold); font-weight: 700; }
+.t th.tm, .t td.tm { text-align: left; width: 40%; }
+.t .tn > span { text-align: left; line-height: 1.2; }
+.via { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
+.acct { margin-left: auto; }
+.acct + nav.tabs { margin-left: 0; }
+.acct .av { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 800; font-size: 12px; margin-right: 6px; vertical-align: -6px; }
+.modal-bg { position: fixed; inset: 0; background: rgba(5, 8, 16, .72); display: grid; place-items: center; z-index: 20; padding: 16px; }
+.modal-bg[hidden] { display: none; }
+.modal { width: min(420px, 100%); max-height: 85vh; overflow: auto; padding: 20px; display: grid; gap: 14px; }
+.modal h3 { font-family: var(--display); margin: 0; font-size: 19px; }
+.modal p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.modal input[type=text] { width: 100%; background: var(--surface-2); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 10px 12px; font: inherit; }
+.modal input[type=text]:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.modal .row-btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.oauth { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: #111; font-weight: 700; }
+.oauth.apple { background: #000; color: #fff; border-color: #333; }
+.oauth svg { width: 18px; height: 18px; }
+.scn { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); }
+.scn b { font-size: 14px; } .scn small { color: var(--muted); font-size: 12px; grid-column: 1; }
+.scn .acts { grid-row: 1 / 3; grid-column: 2; display: flex; gap: 6px; }
+.sharebox { display: flex; gap: 8px; } .sharebox input { flex: 1; }
+.viewing { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 14px; margin-bottom: 14px; border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); font-size: 13px; }
+.viewing b { color: var(--accent); font-family: var(--display); }
+.viewing span { flex: 1; min-width: 200px; }
+.toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 10px 16px; border-radius: 999px; display: none; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand"><span class="dot"></span><span id="brandName">clinch</span></div>
+    <div class="season" id="season"></div>
+    <button class="btn acct" id="acctBtn" data-act="account" hidden>Sign in</button>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="league">League</button>
+      <button role="tab" data-tab="team">My team</button>
+      <button role="tab" data-tab="odds">Odds</button>
+      <button role="tab" data-tab="draft">Draft</button>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="teams" id="teams" aria-label="Pick your team"></div>
+  <div id="view"></div>
+  <p class="foot">Scores and schedule from nflverse open data. Odds come from 10,000 simulated finishes of the season, using betting lines where posted and point-differential ratings elsewhere. Seeding and draft order follow the NFL's official tiebreaking procedures and are checked against every playoff field since 2002. Playoff-team draft slots (19–32) are projected by record. Not affiliated with the NFL.</p>
+</main>
+<div class="toast" id="toast"></div>
+<div class="modal-bg" id="modalBg" hidden><div class="modal card" role="dialog" aria-modal="true" aria-labelledby="modalTitle" id="modal"></div></div>
+
+<script type="module">
+/*__ENGINE__*/
+
+const RAW = /*__DATA__*/;
+const CONFIG = /*__CONFIG__*/;
+const DRAFT_YEAR = RAW.season + 1;
+// First-round picks that have changed hands (from data/pick_trades.json).
+const PICK_TRADES = Object.fromEntries((RAW.trades.traded || []).map((t) => [t.from, { to: t.to, deal: t.deal }]));
+const CONDITIONAL = RAW.trades.conditional || [];
+function pickOwners(draft) {
+  const owner = {};
+  for (const t of TEAMS) owner[t] = PICK_TRADES[t] ? PICK_TRADES[t].to : t;
+  for (const c of CONDITIONAL) {
+    if (c.type !== 'earlier_of') continue;
+    const [x, y] = c.teams;
+    const first = draft.indexOf(IDX[x]) < draft.indexOf(IDX[y]) ? x : y;
+    owner[first] = c.earlierTo; owner[first === x ? y : x] = c.laterTo;
+  }
+  return owner;
+}
+const condFor = (t) => CONDITIONAL.find((c) => c.teams.includes(t));
+const dealFor = (orig, owner) => { const c = condFor(orig); return c && owner === c.earlierTo ? c.deal : PICK_TRADES[orig] ? PICK_TRADES[orig].deal : ''; };
+// Who holds this team's own 1st-rounder? '' if the team still has it.
+const ownPickTo = (t) => {
+  const c = condFor(t);
+  if (c) {
+    const otherOwner = c.teams.find((x) => x !== t);
+    const base = PICK_TRADES[t] ? PICK_TRADES[t].to : t;
+    if (base === c.laterTo && t === c.laterTo) return `${c.earlierTo} if earlier than ${otherOwner}'s`;
+    return `${base} (${c.earlierTo} if it lands first)`;
+  }
+  return PICK_TRADES[t] ? PICK_TRADES[t].to : '';
+};
+const COLORS = {ARI:'#97233F',ATL:'#A71930',BAL:'#3b2a9e',BUF:'#1f4fbf',CAR:'#0085CA',CHI:'#C83803',CIN:'#FB4F14',CLE:'#FF3C00',DAL:'#2a6ad8',DEN:'#FB4F14',DET:'#0076B6',GB:'#2e7a4f',HOU:'#A71930',IND:'#2a62c9',JAX:'#00808f',KC:'#E31837',LA:'#2f5bd3',LAC:'#0080C6',LV:'#A5ACAF',MIA:'#008E97',MIN:'#7a4fc0',NE:'#c60c30',NO:'#D3BC8D',NYG:'#2846b8',NYJ:'#1f8a5f',PHI:'#0f7c83',PIT:'#FFB612',SEA:'#69BE28',SF:'#AA0000',TB:'#D50A0A',TEN:'#4B92DB',WAS:'#a03a3a'};
+const ink = (hex) => { const n = parseInt(hex.slice(1), 16); const r = n >> 16, g = (n >> 8) & 255, b = n & 255; return (0.299*r + 0.587*g + 0.114*b) > 165 ? '#111' : '#fff'; };
+const chip = (t, extra = '') => `<span class="chip" style="--c:${COLORS[t]};--ci:${ink(COLORS[t])}" ${extra}>${t}</span>`;
+const $ = (s) => document.querySelector(s);
+
+const rows = RAW.games.map((g) => ({ game_id: g[0], week: g[1], away_team: g[2], home_team: g[3], away_score: g[4] ?? '', home_score: g[5] ?? '', spread_line: g[6] ?? '', gameday: g[7], gametime: g[8] || '' }));
+const ctx = buildContext(rows);
+const G = ctx.games;
+G.forEach((g, k) => { g.k = k; g.day = rows[k].gameday; g.time = rows[k].gametime; });
+const unplayed = G.filter((g) => !g.played);
+const weeks = [...new Set(unplayed.map((g) => g.week))].sort((a, b) => a - b);
+const baseProbs = homeWinProbs(ctx);
+const fromLine = G.map((g) => !g.played && g.spread != null);
+const pctNow = (i) => { const w = ctx.games.reduce((s, g) => s + (g.played ? (g.h === i ? (g.fixed > 0 ? 1 : g.fixed === 0 ? 0.5 : 0) : g.a === i ? (g.fixed < 0 ? 1 : g.fixed === 0 ? 0.5 : 0) : 0) : 0), 0); const n = ctx.games.filter((g) => g.played && (g.h === i || g.a === i)).length; return n ? w / n : 0; };
+const PCT_NOW = TEAMS.map((_, i) => pctNow(i));
+// Remaining strength of schedule: average current win % of opponents still to play.
+const REM_SOS = TEAMS.map((_, i) => { const opp = unplayed.filter((g) => g.h === i || g.a === i).map((g) => (g.h === i ? g.a : g.h)); return opp.length ? opp.reduce((s, j) => s + PCT_NOW[j], 0) / opp.length : null; });
+const sosSorted = REM_SOS.filter((v) => v !== null).sort((a, b) => a - b);
+const sosClass = (v) => v === null ? '' : v >= sosSorted[Math.floor(sosSorted.length * 0.75)] ? 'hard' : v <= sosSorted[Math.floor(sosSorted.length * 0.25)] ? 'easy' : '';
+const sosFmt = (v) => v === null ? '–' : v.toFixed(3).replace(/^0/, '');
+const lastFinalWeek = Math.max(0, ...G.filter((g) => g.played).map((g) => g.week));
+
+const store = { get(k, d) { try { const v = localStorage.getItem('clinch:' + k); return v ? JSON.parse(v) : d; } catch { return d; } }, set(k, v) { try { localStorage.setItem('clinch:' + k, JSON.stringify(v)); } catch {} } };
+const validTab = (h) => ['league', 'team', 'odds', 'draft'].includes(h) ? h : 'league';
+const state = {
+  team: store.get('team', 'CHI'),
+  tab: validTab(location.hash.slice(1)),
+  view: (v => (v === 'root' ? 'root' : 'mine'))(store.get('view', 'mine')),
+  lview: store.get('lview', 'week'),
+  standView: store.get('standView', 'conf'),
+  lweek: null,
+  week: weeks[0],
+  picks: store.get('picks:' + RAW.season, {}),
+  flips: store.get('flips:' + RAW.season, {}),
+  oddsConf: null,
+};
+if (!TEAMS.includes(state.team)) state.team = 'CHI';
+// drop stale picks for games that are now final
+for (const k of Object.keys(state.picks)) if (!G[k] || G[k].played) delete state.picks[k];
+for (const k of Object.keys(state.flips)) if (!G[k] || !G[k].played || G[k].fixed === state.flips[k]) delete state.flips[k];
+const ALL_WEEKS = [...new Set(G.map((g) => g.week))].sort((a, b) => a - b);
+
+let baseOdds = null, pickOdds = null, rooting = {}, rootingWeek = null;
+
+const pct = (p) => p === null || p === undefined ? '–' : p >= 0.995 && p < 1 ? '>99%' : p > 0 && p < 0.005 ? '<1%' : Math.round(p * 100) + '%';
+const recStr = (R, i) => `${R.W[i]}-${R.L[i]}${R.T[i] ? '-' + R.T[i] : ''}`;
+const ord = (n) => n + (['th','st','nd','rd'][(n % 100 - 20) % 10] || ['th','st','nd','rd'][n % 100] || 'th');
+
+function outcomes() { return G.map((g, k) => (g.played ? (state.flips[k] ?? g.fixed) : state.picks[k] !== undefined ? state.picks[k] : null)); }
+const nFlips = () => Object.keys(state.flips).length;
+function hasPicks() { return Object.keys(state.picks).length > 0 || nFlips() > 0; }
+function allChoices() { return { ...state.picks, ...state.flips }; }
+function oddsFor(team, src) { return src ? src.find((o) => o.team === team) : null; }
+
+// ---------- rendering ----------
+function renderTeams() {
+  $('#teams').innerHTML = TEAMS.slice().sort().map((t) => `<button class="chip" style="--c:${COLORS[t]};--ci:${ink(COLORS[t])}" data-team="${t}" aria-pressed="${t === state.team}" title="${TEAM_NAMES[t]}">${t}</button>`).join('');
+}
+
+function heroCard(cur, slim = false) {
+  const t = state.team, i = IDX[t], R = cur.R;
+  const conf = CONF_OF[i];
+  const seedIdx = cur.seeds[conf].indexOf(i);
+  const seedTxt = seedIdx < 7 ? `#${seedIdx + 1} seed` : `${ord(seedIdx + 1)} in ${conf ? 'NFC' : 'AFC'}`;
+  const b = oddsFor(t, baseOdds), p = hasPicks() ? oddsFor(t, pickOdds) : null;
+  const show = p || b;
+  const delta = (k) => {
+    if (!p || !b) return '';
+    const d = Math.round((p[k] - b[k]) * 100);
+    return d === 0 ? '<div class="d hint">no change</div>' : `<div class="d ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d)} pts</div>`;
+  };
+  const remaining = unplayed.filter((g) => g.h === i || g.a === i).length;
+  return `<section class="card hero${slim ? ' slim' : ''}" style="--tc:${COLORS[t]}">
+    <div class="hero-head">${chip(t)}<div><div class="hero-name">${TEAM_NAMES[t]}</div>
+      <div class="hero-sub num">${recStr(R, i)}${hasPicks() ? ' with your picks' : ''} · ${seedTxt} · ${remaining} games left · remaining SOS <span class="sos ${sosClass(REM_SOS[i])}">${sosFmt(REM_SOS[i])}</span></div></div></div>
+    <div class="stats">
+      <div class="stat"><div class="k">Make playoffs</div><div class="v num">${show ? pct(show.playoffs) : '…'}</div>${delta('playoffs')}</div>
+      <div class="stat"><div class="k">Win division</div><div class="v num">${show ? pct(show.division) : '…'}</div>${delta('division')}</div>
+      <div class="stat"><div class="k">#1 seed</div><div class="v num">${show ? pct(show.bye) : '…'}</div>${delta('bye')}</div>
+      <div class="stat"><div class="k">${ownPickTo(t) && !(condFor(t) && condFor(t).laterTo === t) ? '1st-round pick traded' : 'Avg draft pick'}</div><div class="v num">${show ? show.avgPick.toFixed(1) : '…'}</div><div class="d hint">${ownPickTo(t) ? 'Owned by ' + ownPickTo(t) : show ? 'proj. ' + show.avgWins.toFixed(1) + ' wins' : ''}</div></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" data-act="winout">${t} win out</button>
+      <button class="btn" data-act="loseout">${t} lose out</button>
+      <button class="btn" data-act="favorites">Fill rest with favorites</button>
+      <button class="btn" data-act="reset">Clear all picks</button>
+      ${ACCOUNTS ? '<button class="btn" data-act="share">Share</button><button class="btn" data-act="save">Save</button>' : '<button class="btn" data-act="copy">Copy my scenario</button>'}
+    </div>
+  </section>`;
+}
+
+const kick = (t) => { if (!t) return ''; const [h, m] = t.split(':').map(Number); return ` ${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'} ET`; };
+// Spread shown next to the favored team only (e.g. -2.5); nothing when the odds come from the model.
+const lineTag = (g, side) => {
+  if (!fromLine[g.k]) return '';
+  if (g.spread === 0) return side === 'h' ? ' <span class="ln">PK</span>' : '';
+  const favHome = g.spread > 0;
+  return (side === 'h') === favHome ? ` <span class="ln">−${Math.abs(g.spread)}</span>` : '';
+};
+function gameCard(g) {
+  const flipped = g.played && state.flips[g.k] !== undefined;
+  const pick = g.played ? (state.flips[g.k] ?? g.fixed) : state.picks[g.k];
+  const p = baseProbs[g.k];
+  const a = TEAMS[g.a], h = TEAMS[g.h];
+  const st = (side) => pick === undefined ? '' : pick === 0 ? 'loss' : (pick === 1) === (side === 'h') ? 'win' : 'loss';
+  const mine = state.tab === 'team' && (g.h === IDX[state.team] || g.a === IDX[state.team]);
+  const root = '';
+  const d = new Date(g.day + 'T12:00:00');
+  const day = isNaN(d) ? '' : d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  if (g.played) {
+    const real = g.fixed > 0 ? h : g.fixed < 0 ? a : null;
+    const meta = flipped ? `<span class="root">DO-OVER · actually ${real ? real + ' won' : 'a tie'} ${Math.max(g.as, g.hs)}–${Math.min(g.as, g.hs)}</span>` : '<span>Final</span>';
+    return `<div class="card game past${mine ? ' mine' : ''}${flipped ? ' flipped' : ''}" style="--tc:${COLORS[state.team]}">
+    <div class="gmeta"><span>${state.tab === 'league' ? '' : `Week ${g.week} · `}${day}</span>${meta}</div>
+    <button class="side" data-g="${g.k}" data-pick="-1" data-state="${st('a')}" aria-label="${TEAM_NAMES[a]} win">${chip(a)}<span><div class="nm">${TEAM_NAMES[a]}</div><div class="pr num">${g.as}</div></span></button>
+    <div class="mid"><span class="at">@</span><button class="tie" data-g="${g.k}" data-pick="0" aria-pressed="${pick === 0}">tie</button></div>
+    <button class="side home" data-g="${g.k}" data-pick="1" data-state="${st('h')}" aria-label="${TEAM_NAMES[h]} win">${chip(h)}<span><div class="nm">${TEAM_NAMES[h]}</div><div class="pr num">${g.hs}</div></span></button>
+  </div>`;
+  }
+  return `<div class="card game${mine ? ' mine' : ''}" style="--tc:${COLORS[state.team]}">
+    <div class="gmeta"><span>${state.tab === 'league' ? '' : `Week ${g.week} · `}${day}${kick(g.time)}</span>${root}</div>
+    <button class="side" data-g="${g.k}" data-pick="-1" data-state="${st('a')}" aria-label="${TEAM_NAMES[a]} win">${chip(a)}<span><div class="nm">${TEAM_NAMES[a]}</div><div class="pr num">${pct(1 - p)}${lineTag(g, 'a')}</div></span></button>
+    <div class="mid"><span class="at">@</span><button class="tie" data-g="${g.k}" data-pick="0" aria-pressed="${pick === 0}">tie</button></div>
+    <button class="side home" data-g="${g.k}" data-pick="1" data-state="${st('h')}" aria-label="${TEAM_NAMES[h]} win">${chip(h)}<span><div class="nm">${TEAM_NAMES[h]}</div><div class="pr num">${pct(p)}${lineTag(g, 'h')}</div></span></button>
+  </div>`;
+}
+
+// Plain-English walk-through of every tiebreak that set this conference's order.
+function tiebreakGroups(cur, conf) {
+  const groups = new Map();
+  // division races below 1st place matter when they decide who represents a division in a wild-card tie
+  const droppedTeams = new Set();
+  for (const e of cur.trace || []) if (e.kind === 'divfilter' && e.label && e.label.conf === conf && e.label.type === 'seed' && e.label.seed <= 8) e.dropped.forEach((d) => droppedTeams.add(d));
+  for (const e of cur.trace || []) {
+    const L = e.label;
+    if (!L || L.conf !== conf) continue;
+    if (L.type === 'seed' && L.seed > 8) continue;
+    if (L.type === 'division' && L.place !== 1 && !L.tied.some((t) => droppedTeams.has(t))) continue;
+    if (!groups.has(L)) groups.set(L, []);
+    groups.get(L).push(e);
+  }
+  return [...groups.entries()];
+}
+const nm = (i) => TEAM_NAMES[TEAMS[i]];
+const listNames = (ids) => { const n = ids.map(nm); return n.length < 3 ? n.join(' and ') : n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1]; };
+function tiebreakHtml(cur, conf) {
+  const groups = tiebreakGroups(cur, conf);
+  if (!groups.length) return '';
+  const i0 = IDX[state.team];
+  const items = groups.map(([L, entries]) => {
+    const rec = recStr(cur.R, L.tied[0]);
+    const title = L.type === 'division' ? (L.place === 1 ? `${L.div} title` : `${L.div} ${ord(L.place)} place`) : L.seed === 8 ? 'First team out' : `#${L.seed} seed`;
+    const body = entries.map((e) => {
+      if (e.kind === 'divfilter') {
+        return e.dropped.map((d, k) => `<li class="tb-note">${nm(d)} rank behind the ${nm(e.keptOver[k])} in the ${DIV_NAMES[DIV_OF[d]]}, so only the ${nm(e.keptOver[k])} stay in this tiebreak.</li>`).join('');
+      }
+      const prev = entries[entries.indexOf(e) - 1];
+      const head = !prev ? '' : prev.kind === 'divfilter' ? `<li class="tb-note">That leaves ${listNames(e.teams)}.</li>` : `<li class="tb-note">Starting over with ${listNames(e.teams)}.</li>`;
+      return head + e.steps.map((st) => {
+        if (st.skipped) return `<li class="tb-skip"><b>${st.name}</b> doesn't apply: ${st.skipped}.</li>`;
+        const vals = st.rows.map((r) => `<span class="tb-v${r.best ? ' best' : ''}">${TEAMS[r.team]} ${r.text}</span>`).join('');
+        const out = st.result === 'decided' ? `<span class="tb-out">${nm(st.rows.find((r) => r.best).team)} win it</span>`
+          : st.result === 'trimmed' ? `<span class="tb-out">${listNames(st.rows.filter((r) => !r.best).map((r) => r.team))} drop out</span>`
+          : '<span class="tb-tied">still tied</span>';
+        return `<li class="${st.result === 'decided' ? 'tb-dec' : ''}"><b>${st.name}</b><span class="tb-vals">${vals}</span>${out}</li>`;
+      }).join('');
+    }).join('');
+    const last = [...entries].reverse().find((e) => e.winner !== undefined);
+    const w = last ? last.winner : null;
+    const result = w === null ? '' : L.type === 'division' ? (L.place === 1 ? `${nm(w)} win the ${L.div}` : `${nm(w)} finish ${ord(L.place)} in the ${L.div}`) : L.seed === 8 ? `${nm(w)} are first in line` : `${nm(w)} get the #${L.seed} seed`;
+    const mine = L.tied.includes(i0);
+    return `<details class="tb" data-tbteams="${L.tied.join(',')}"${mine ? ' open' : ''}><summary><span class="tb-title">${title}</span><span class="tb-who">${listNames(L.tied)} ${L.tied.length > 2 ? 'all' : 'both'} ${rec}</span>${w !== null ? `<span class="tb-res">${TEAMS[w]} ✓</span>` : ''}</summary><ol>${body}</ol>${result ? `<div class="tb-final">${result}.</div>` : ''}</details>`;
+  }).join('');
+  return `<div class="tb-wrap"><div class="tb-h">${conf ? 'NFC' : 'AFC'} <span class="hint">${groups.length} tiebreaker${groups.length > 1 ? 's' : ''}</span></div>${items}</div>`;
+}
+
+// Tiebreakers live under the games, out of the standings panel.
+function tiebreakSection(cur, confs) {
+  const parts = confs.map((c) => tiebreakHtml(cur, c)).filter(Boolean);
+  if (!parts.length) return '';
+  return `<section id="tiebreakers" class="tb-section"><div class="section-head"><h2>Tiebreakers</h2><span class="hint">Every tie, broken step by step with the NFL's official rules</span></div><div class="tb-cols">${parts.join('')}</div></section>`;
+}
+
+// Proven elimination (sound, slightly conservative): a team is out only if it can't win its
+// division AND at least 3 non-division-winners are already guaranteed more wins than its best case.
+function eliminatedSet(cur) {
+  const out = new Set();
+  const oc = outcomes();
+  const rem = new Array(TEAMS.length).fill(0);
+  G.forEach((g, k) => { if (oc[k] === null) { rem[g.h]++; rem[g.a]++; } });
+  const minW = TEAMS.map((_, i) => cur.R.W[i] + 0.5 * cur.R.T[i]);
+  const maxW = minW.map((w, i) => w + rem[i]);
+  if (rem.every((r) => r === 0)) { cur.seeds.forEach((l) => l.slice(7).forEach((t) => out.add(t))); return out; } // season fully decided
+  for (let t = 0; t < TEAMS.length; t++) {
+    const c = CONF_OF[t];
+    const ahead = [];
+    for (let j = 0; j < TEAMS.length; j++) if (j !== t && CONF_OF[j] === c && minW[j] > maxW[t]) ahead.push(j);
+    const cantWinDiv = ahead.some((j) => DIV_OF[j] === DIV_OF[t]);
+    if (!cantWinDiv) continue;
+    const perDiv = new Map();
+    for (const j of ahead) perDiv.set(DIV_OF[j], (perDiv.get(DIV_OF[j]) || 0) + 1);
+    let sureNonWinners = 0;
+    for (const n of perDiv.values()) sureNonWinners += Math.max(0, n - 1);
+    if (sureNonWinners >= 3) out.add(t);
+  }
+  return out;
+}
+
+function oddsPill(o, elim) {
+  if (elim) return '<span class="op out" title="Mathematically eliminated">OUT</span>';
+  if (!o) return '<span class="op">…</span>';
+  const p = o.playoffs;
+  const cls = p >= 0.67 ? 'hi' : p >= 0.2 ? 'mid' : 'lo';
+  return `<span class="op ${cls}" title="Playoff odds">${p === 0 ? '<1%' : pct(p)}</span>`;
+}
+
+function standingsCard(cur, conf, fixed = false) {
+  const i0 = IDX[state.team];
+  const list = cur.seeds[conf];
+  const winners = new Set(cur.divOrder.map((o) => o[0]));
+  const tbTeams = new Set(tiebreakGroups(cur, conf).flatMap(([L]) => L.tied));
+  const elim = eliminatedSet(cur);
+  const src = hasPicks() ? pickOdds : baseOdds;
+  const row = (i, k) => `<div class="row${i === i0 ? ' me' : ''}${elim.has(i) ? ' elim' : ''}" style="--tc:${COLORS[TEAMS[i]]}"><span class="seed">${k < 7 ? k + 1 : ''}</span>${chip(TEAMS[i])}<span class="rn">${TEAM_NAMES[TEAMS[i]]} ${winners.has(i) && k < 4 ? '<span class="tag div">div</span>' : ''}${tbTeams.has(i) ? ` <button class="tag tbt" data-tbgo="${i}" title="Placed by a tiebreaker. Tap to see why">TB</button>` : ''}</span><span class="rec num">${recStr(cur.R, i)}</span>${oddsPill(oddsFor(TEAMS[i], src), elim.has(i))}</div>`;
+  const viewSeg = `<div class="seg mini"><button data-sview="conf" aria-pressed="${state.standView !== 'div'}">Conference</button><button data-sview="div" aria-pressed="${state.standView === 'div'}">Division</button></div>`;
+  const confSeg = fixed ? '' : `<div class="seg mini"><button data-conf="0" aria-pressed="${conf === 0}">AFC</button><button data-conf="1" aria-pressed="${conf === 1}">NFC</button></div>`;
+  if (state.standView === 'div') {
+    const seedOf = new Map(list.slice(0, 7).map((t, k) => [t, k + 1]));
+    const R = cur.R;
+    const blocks = DIV_NAMES.map((dn, di) => ({ dn, di })).filter(({ di }) => (di < 4 ? 0 : 1) === conf).map(({ dn, di }) => {
+      const rowsHtml = cur.divOrder[di].map((i) => `<tr class="${i === i0 ? 'me' : ''}${elim.has(i) ? ' elim' : ''}" style="--tc:${COLORS[TEAMS[i]]}"><td class="sd">${seedOf.get(i) || ''}</td><td class="ch">${chip(TEAMS[i])}</td><td class="rn">${TEAM_NAMES[TEAMS[i]]}${tbTeams.has(i) ? ` <button class="tag tbt" data-tbgo="${i}" title="Placed by a tiebreaker. Tap to see why">TB</button>` : ''}</td><td class="num">${recStr(R, i)}</td><td class="num sub">${recStr({ W: R.dW, L: R.dL, T: R.dT }, i)}</td><td class="num sub cf">${recStr({ W: R.cW, L: R.cL, T: R.cT }, i)}</td><td class="od">${oddsPill(oddsFor(TEAMS[i], src), elim.has(i))}</td></tr>`).join('');
+      return `<table class="dtable"><thead><tr><th colspan="3">${dn.split(' ')[1]}</th><th>W-L</th><th>Div</th><th class="cf">Conf</th><th class="od">Odds</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
+    }).join('');
+    return `<section class="card stand">
+      <div class="stand-head"><h3>${conf ? 'NFC' : 'AFC'}</h3>${viewSeg}${confSeg}</div>
+      <div class="dblocks">${blocks}</div>
+    </section>`;
+  }
+  const hunt = list.slice(7).filter((i) => !elim.has(i));
+  const gone = list.slice(7).filter((i) => elim.has(i));
+  return `<section class="card stand">
+    <div class="stand-head"><h3>${conf ? 'NFC' : 'AFC'}</h3>${viewSeg}${confSeg}</div>
+    <div class="rows">${list.slice(0, 7).map(row).join('')}
+      ${hunt.length ? `<div class="cut"><span>in the hunt</span></div>${hunt.map((i) => row(i, 99)).join('')}` : ''}
+      ${gone.length ? `<div class="cut"><span>eliminated</span></div>${gone.map((i) => row(i, 99)).join('')}` : ''}
+    </div>
+  </section>`;
+}
+
+// The core screen: every remaining game, one row per team, one column per week.
+// A pick lives on the game, so choosing DEN in DEN's row flips LAC's cell to a loss automatically.
+function gridView(cur) {
+  const i0 = IDX[state.team];
+  const show = state.gridConf ?? 'all';
+  const byTeamWeek = new Map();
+  for (const g of unplayed) { byTeamWeek.set(g.h + ':' + g.week, g); byTeamWeek.set(g.a + ':' + g.week, g); }
+  const seedOf = new Map();
+  cur.seeds.forEach((list) => list.slice(0, 7).forEach((t, k) => seedOf.set(t, k + 1)));
+  const cell = (i, w) => {
+    const g = byTeamWeek.get(i + ':' + w);
+    if (!g) return '<td><span class="bye">BYE</span></td>';
+    const home = g.h === i, opp = TEAMS[home ? g.a : g.h];
+    const p = home ? baseProbs[g.k] : 1 - baseProbs[g.k];
+    const pk = state.picks[g.k];
+    const s = pk === undefined ? '' : pk === 0 ? 'T' : (pk === 1) === home ? 'W' : 'L';
+    const label = s === 'W' ? 'WIN' : s === 'L' ? 'LOSS' : s === 'T' ? 'TIE' : pct(p);
+    const tip = `${TEAM_NAMES[TEAMS[i]]} ${home ? 'vs' : 'at'} ${TEAM_NAMES[opp]}: ${pct(p)} to win (${fromLine[g.k] ? 'Vegas line' : 'model'})`;
+    return `<td><button class="cell" data-gc="${g.k}" data-home="${home ? 1 : 0}" data-s="${s}" title="${tip}"><b>${home ? '' : '@'}${opp}</b><small>${label}</small></button></td>`;
+  };
+  const body = DIV_NAMES.map((d, di) => {
+    if (show !== 'all' && (di < 4 ? 0 : 1) !== show) return '';
+    const members = cur.divOrder[di];
+    return `<tr class="divh"><td colspan="${weeks.length + 2}">${d}</td></tr>` + members.map((i) => {
+      const t = TEAMS[i];
+      return `<tr class="${i === i0 ? 'me' : ''}" style="--tc:${COLORS[t]}"><td class="tm"><span class="tm-in"><span class="sd">${seedOf.has(i) ? seedOf.get(i) : ''}</span>${chip(t)}<span>${t} <span class="r">${recStr(cur.R, i)}</span></span></span></td>${weeks.map((w) => cell(i, w)).join('')}<td><span class="sos ${sosClass(REM_SOS[i])}">${sosFmt(REM_SOS[i])}</span></td></tr>`;
+    }).join('');
+  }).join('');
+  return `<div class="legend"><span><i style="background:var(--accent)"></i>picked to win</span><span><i style="background:var(--coral)"></i>picked to lose</span><span>Tap once for a win, twice for a loss, three times to clear. Week headers fill in favorites.</span></div>
+    <div class="mx-wrap" style="margin-top:10px"><table class="mx"><thead><tr><th style="text-align:left;padding-left:10px">Team</th>${weeks.map((w) => `<th><button data-favweek="${w}" title="Pick the favorite in every open week ${w} game">Wk ${w}</button></th>`).join('')}<th title="Average current win % of remaining opponents">Rem. SOS</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+function clearAllHtml() {
+  const n = Object.keys(state.picks).length + nFlips();
+  if (!n) return '';
+  if (!state.confirmClear) return `<button class="btn danger" data-act="askclear">Clear all</button>`;
+  const parts = [];
+  if (Object.keys(state.picks).length) parts.push(`${Object.keys(state.picks).length} pick${Object.keys(state.picks).length > 1 ? 's' : ''}`);
+  if (nFlips()) parts.push(`${nFlips()} do-over${nFlips() > 1 ? 's' : ''}`);
+  return `<span class="confirm" role="alertdialog" aria-label="Confirm clear all">Clear ${parts.join(' and ')} across every week?
+    <button class="btn danger solid" data-act="resetall">Yes, clear all</button><button class="btn" data-act="cancelclear">Cancel</button></span>`;
+}
+
+function renderLeague(cur) {
+  const wk = state.lweek ?? weeks[0];
+  const lv = state.lview === 'grid' ? 'grid' : 'week';
+  const views = `<div class="seg"><button data-lview="week" aria-pressed="${lv === 'week'}">Week by week</button><button data-lview="grid" aria-pressed="${lv === 'grid'}">Season grid</button></div>`;
+  const sidebar = `<div class="sticky" style="display:grid;gap:12px">${standingsCard(cur, 0, true)}${standingsCard(cur, 1, true)}</div>`;
+  if (lv === 'grid') {
+    const gc = state.gridConf ?? 'all';
+    return `<div class="grid"><div>
+      <div class="section-head" style="margin-top:4px"><h2>Every remaining game</h2>${views}
+        <div class="seg"><button data-gconf="all" aria-pressed="${gc === 'all'}">All</button><button data-gconf="0" aria-pressed="${gc === 0}">AFC</button><button data-gconf="1" aria-pressed="${gc === 1}">NFC</button></div></div>
+      ${gridView(cur)}${tiebreakSection(cur, gc === 'all' ? [0, 1] : [gc])}</div>${sidebar}</div>`;
+  }
+  const past = wk <= lastFinalWeek && !weeks.includes(wk);
+  const list = G.filter((g) => g.week === wk).sort((x, y) => (x.day + x.time).localeCompare(y.day + y.time));
+  const open = list.filter((g) => !g.played);
+  const picked = open.filter((g) => state.picks[g.k] !== undefined).length;
+  const flippedHere = list.filter((g) => state.flips[g.k] !== undefined).length;
+  const wi = ALL_WEEKS.indexOf(wk);
+  const byes = TEAMS.filter((t, i) => !G.some((g) => g.week === wk && (g.h === i || g.a === i)));
+  return `<div class="grid"><div>
+    <div class="section-head" style="margin-top:4px"><h2>Week ${wk}</h2>${views}
+      <span class="wknav">${wi > 0 ? `<button class="btn" data-lweek="${ALL_WEEKS[wi - 1]}" aria-label="Previous week">← Wk ${ALL_WEEKS[wi - 1]}</button>` : ''}${wi < ALL_WEEKS.length - 1 ? `<button class="btn primary" data-lweek="${ALL_WEEKS[wi + 1]}" aria-label="Next week">Wk ${ALL_WEEKS[wi + 1]} →</button>` : ''}</span></div>
+    <div class="seg weekbar" style="margin-bottom:10px">${ALL_WEEKS.map((w) => { const n = G.filter((g) => g.week === w); const isPast = n.every((g) => g.played); const fl = n.some((g) => state.flips[g.k] !== undefined); const done = !isPast && n.filter((g) => !g.played).every((g) => state.picks[g.k] !== undefined); return `<button data-lweek="${w}" aria-pressed="${w === wk}" class="${isPast ? 'pastw' : ''}">Wk ${w}${fl ? ' <span class="flipdot" title="has a do-over">●</span>' : isPast ? ' <span class="final" title="final">✓</span>' : done ? ' <span class="picked" title="all games picked">✓</span>' : ''}</button>`; }).join('')}</div>
+    <div class="section-head" style="margin:4px 0 10px">
+      ${past
+        ? `<span class="hint num">Final scores · tap a loser for a do-over${flippedHere ? ` · ${flippedHere} do-over${flippedHere > 1 ? 's' : ''}` : ''}${byes.length ? ` · Bye: ${byes.join(', ')}` : ''}</span>${flippedHere ? '<button class="btn" data-weekact="real">Restore real results</button>' : ''}`
+        : `<span class="hint num">${picked} of ${open.length} games picked${byes.length ? ` · Bye: ${byes.join(', ')}` : ''}</span>
+      <button class="btn" data-weekact="fav">Favorites win</button>
+      <button class="btn" data-weekact="clear">Clear week</button>`}
+      ${clearAllHtml()}
+      ${ACCOUNTS ? `<button class="btn" data-act="share">Share</button><button class="btn" data-act="save">Save</button>` : ''}
+    </div>
+    <div class="games two">${list.map(gameCard).join('')}</div>
+    ${tiebreakSection(cur, [0, 1])}
+  </div>${sidebar}</div>`;
+}
+
+function renderScenarios(cur) {
+  const i0 = IDX[state.team];
+  const conf = state.oddsConf ?? CONF_OF[i0];
+  const views = `<div class="seg"><button data-view="mine" aria-pressed="${state.view === 'mine'}">${state.team} schedule</button><button data-view="root" aria-pressed="${state.view === 'root'}">Rooting guide</button></div>`;
+  let list;
+  if (state.view === 'mine') list = G.filter((g) => g.h === i0 || g.a === i0).sort((x, y) => x.week - y.week);
+  else list = unplayed.filter((g) => g.week === state.week);
+  const weekSeg = '';
+  const hint = state.view === 'mine' ? `Upcoming games: tap a team to pick the winner. Played games: tap the loser for a do-over.` : (rootingWeek === state.week ? `Gold tags show who ${state.team} fans should root for and how much it moves their playoff odds.` : `Working out who ${state.team} fans should root for…`);
+  return `<div class="grid">
+    <div>${heroCard(cur)}
+      <div class="section-head">${state.view === 'root' ? '' : '<h2>Pick the games</h2>'}${views}${weekSeg}</div>
+      ${state.view === 'mine' ? `<p class="hint">${hint}</p>` : ''}
+      ${state.view === 'mine' ? (() => {
+        const up = list.filter((g) => !g.played), done = list.filter((g) => g.played).reverse();
+        return `<div class="games">${up.length ? up.map(gameCard).join('') : '<div class="card empty">No games left on the schedule.</div>'}</div>
+        ${done.length ? `<div class="section-head"><h2>Played games</h2><span class="hint">Tap the team that lost for a do-over.</span></div><div class="games">${done.map(gameCard).join('')}</div>` : ''}`;
+      })() : rootingView()}
+      ${state.view === 'mine' ? tiebreakSection(cur, [conf]) : ''}
+    </div>
+    <div class="sticky">${standingsCard(cur, conf)}</div>
+  </div>`;
+}
+
+function renderOdds() {
+  const src = hasPicks() ? pickOdds : baseOdds;
+  if (!src) return `<div class="card empty">Running 10,000 seasons…</div>`;
+  const i0 = IDX[state.team];
+  const conf = state.oddsConf ?? CONF_OF[i0];
+  const cur = evaluate(ctx, outcomes());
+  const rowsHtml = src.filter((o) => CONF_OF[IDX[o.team]] === conf).sort((x, y) => y.playoffs - x.playoffs || y.avgWins - x.avgWins).map((o) => {
+    const i = IDX[o.team];
+    const bar = (v) => `<span class="bar"><i><b style="width:${Math.round(v * 100)}%"></b></i><span class="num">${pct(v)}</span></span>`;
+    return `<tr class="${i === i0 ? 'me' : ''}" style="--tc:${COLORS[o.team]}"><td><span class="tn">${chip(o.team)}${TEAM_NAMES[o.team]}</span></td><td class="num">${recStr(cur.R, i)}</td><td class="num">${o.avgWins.toFixed(1)}</td><td>${bar(o.playoffs)}</td><td class="num">${pct(o.division)}</td><td class="num">${pct(o.bye)}</td><td><span class="sos ${sosClass(REM_SOS[i])}">${sosFmt(REM_SOS[i])}</span></td></tr>`;
+  }).join('');
+  return `<div class="section-head"><h2>${conf ? 'NFC' : 'AFC'} playoff odds${hasPicks() ? ' with your picks' : ''}</h2>
+    <div class="seg"><button data-conf="0" aria-pressed="${conf === 0}">AFC</button><button data-conf="1" aria-pressed="${conf === 1}">NFC</button></div>
+    ${hasPicks() ? '<button class="btn" data-act="reset">Clear picks</button>' : ''}</div>
+    <div class="card scroll"><table class="t"><thead><tr><th>Team</th><th>Record</th><th>Proj. wins</th><th>Playoffs</th><th>Division</th><th>#1 seed</th><th title="Average current win % of remaining opponents">Rem. SOS</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
+}
+
+function renderDraft() {
+  const src = hasPicks() ? pickOdds : baseOdds;
+  const cur = evaluate(ctx, outcomes());
+  const i0 = IDX[state.team];
+  const owners = pickOwners(cur.draft);
+  const rowsHtml = cur.draft.map((i, k) => {
+    const o = oddsFor(TEAMS[i], src);
+    const orig = TEAMS[i], own = owners[orig], traded = own !== orig;
+    const mine = own === state.team || (orig === state.team && !traded);
+    return `<tr class="${mine ? 'me' : ''}" style="--tc:${COLORS[own]}"><td class="num">${k + 1}</td><td class="tm"><span class="tn">${chip(own)}<span>${TEAM_NAMES[own]}${traded ? `<span class="via" title="${dealFor(orig, own)}">via ${orig}</span>` : ''}</span></span></td><td class="num">${recStr(cur.R, i)}</td><td class="num">${cur.R.sos[i].toFixed(3).replace(/^0/, '')}</td><td class="num">${o ? o.avgPick.toFixed(1) : '…'}</td><td class="num">${o ? pct(o.pick1) : '…'}</td><td class="num">${o ? pct(o.top5) : '…'}</td></tr>`;
+  }).join('');
+  return `<div class="section-head"><h2>${DRAFT_YEAR} draft order if the season ended ${hasPicks() ? 'after your picks' : 'today'}</h2>${hasPicks() ? '<button class="btn" data-act="reset">Clear picks</button>' : ''}</div>
+    <p class="hint">Ties go to the team with the easier schedule (lower SOS). Picks 19–32 belong to playoff teams and are projected by record. Traded picks show the team that owns them now, with the original team after "via". Record, SOS and odds describe the original team, since its results set the pick.</p>
+    <div class="card scroll"><table class="t"><thead><tr><th>Pick</th><th class="tm">Team</th><th>Record</th><th>SOS</th><th>Avg pick</th><th>#1 pick</th><th>Top 5</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
+}
+
+function render() {
+  document.querySelectorAll('nav.tabs button').forEach((b) => b.setAttribute('aria-selected', b.dataset.tab === state.tab));
+  $('#teams').style.display = state.tab === 'league' ? 'none' : '';
+  renderTeams();
+  const cur = evaluate(ctx, outcomes(), { explain: true });
+  const banner = nFlips() ? `<div class="card whatif"><b>DO-OVER</b><span>${nFlips()} result${nFlips() > 1 ? 's' : ''} changed · standings, odds and draft use your version</span><button class="btn" data-act="resetflips">Back to real results</button></div>` : '';
+  const viewing = state.viewingShare ? `<div class="card viewing"><b>Shared scenario</b><span>You're looking at someone's picks${state.viewingShare.team ? ` for the ${TEAM_NAMES[state.viewingShare.team]}` : ''}. Change anything you like.</span><button class="btn" data-act="restoremine">Back to my picks</button></div>` : '';
+  $('#view').innerHTML = viewing + banner + (state.tab === 'league' ? renderLeague(cur) : state.tab === 'team' ? renderScenarios(cur) : state.tab === 'odds' ? renderOdds() : renderDraft());
+  $('#season').textContent = `${RAW.season} season · through Week ${lastFinalWeek}`;
+}
+
+// ---------- simulation scheduling ----------
+let simTimer = null, simToken = 0;
+function recomputePickOdds() {
+  clearTimeout(simTimer);
+  if (!hasPicks()) { pickOdds = null; render(); return; }
+  $('#view').classList.add('busy');
+  const token = ++simToken;
+  simTimer = setTimeout(() => {
+    const res = simulate(ctx, { sims: 5000, picks: allChoices() });
+    if (token !== simToken) return;
+    pickOdds = res;
+    $('#view').classList.remove('busy');
+    render();
+  }, 120);
+}
+
+// Rooting guide: based on the real season only (your picks and do-overs are ignored).
+// One simulation pass compares the team's outlook when each side of every game this week wins.
+let rootToken = 0;
+const rootCache = new Map();
+function computeRooting() {
+  const week = state.week, team = state.team, key = team + ':' + week;
+  if (rootCache.has(key)) { rooting = rootCache.get(key); rootingWeek = week; return; }
+  const token = ++rootToken;
+  rooting = null; rootingWeek = null;
+  setTimeout(() => {
+    if (token !== rootToken) return;
+    const i0 = IDX[team];
+    const games = unplayed.filter((g) => g.week === week).map((g) => g.k);
+    const res = simulate(ctx, { sims: 20000, seed: 777, track: { team: i0, games } });
+    const o = oddsFor(team, res);
+    const bases = [o.playoffs, o.division, o.bye, o.avgPick];
+    const auto = [0, 1, 2].reduce((bi, i) => (Math.abs(bases[i] - 0.5) < Math.abs(bases[bi] - 0.5) ? i : bi), 0);
+    const r = { week, team, bases, auto, tankDefault: o.playoffs < 0.1, games: games.map((k) => ({ k, home: res.track[k].home, away: res.track[k].away })) };
+    rootCache.set(key, r);
+    if (token !== rootToken) return;
+    rooting = r; rootingWeek = week;
+    if (state.tab === 'team' && state.view === 'root') render();
+  }, 20);
+}
+
+function rootingView() {
+  const i0 = IDX[state.team], t = state.team, C = CONF_OF[i0];
+  const weekSeg = `<div class="seg">${weeks.map((w) => `<button data-week="${w}" aria-pressed="${w === state.week}">Wk ${w}</button>`).join('')}</div>`;
+  if (!rooting || rootingWeek !== state.week || rooting.team !== t) {
+    setTimeout(computeRooting, 0);
+    if (rootCache.has(t + ':' + state.week)) setTimeout(render, 0);
+    return `${weekSeg}<div class="card empty" style="margin-top:12px">Running the Week ${state.week} numbers for the ${TEAM_NAMES[t]}…</div>`;
+  }
+  const R = rooting;
+  const tank = (state.rootMode ?? (R.tankDefault ? 'tank' : 'playoffs')) === 'tank';
+  const modeSeg = `<div class="seg"><button data-rmode="playoffs" aria-pressed="${!tank}">Playoff push</button><button data-rmode="tank" aria-pressed="${tank}">Tank watch</button></div>`;
+  // One playoff score covers everything: getting in counts most, winning the division and the #1 seed add to it.
+  const score = (v) => v[0] + 0.5 * v[1] + 0.5 * v[2];
+  const curPct = (i) => PCT_NOW[i];
+  const rows = R.games.map((x) => {
+    const g = G[x.k];
+    let swing, detail = '';
+    if (tank) {
+      swing = x.away[3] - x.home[3]; // positive: home win gives a better (lower) pick
+      if (Math.abs(swing) >= 0.05) detail = `${Math.abs(swing).toFixed(1)} picks`;
+    } else {
+      swing = score(x.home) - score(x.away);
+      // describe the biggest piece of the swing in plain terms
+      const parts = [['playoff odds', x.home[0] - x.away[0]], ['division odds', x.home[1] - x.away[1]], ['#1 seed odds', x.home[2] - x.away[2]]];
+      const [lab, dv] = parts.reduce((m, q) => (Math.abs(q[1]) > Math.abs(m[1]) ? q : m));
+      const d = Math.round(Math.abs(dv) * 100);
+      if (d >= 1) detail = `${d} pt${d > 1 ? 's' : ''} of ${lab}`;
+    }
+    const own = g.h === i0 || g.a === i0;
+    let rootHome, logic = '';
+    const hIn0 = CONF_OF[g.h] === C, aIn0 = CONF_OF[g.a] === C;
+    const noisy = tank ? Math.abs(swing) < 0.05 : Math.abs(swing) < (hIn0 || aIn0 ? 0.015 : 0.03);
+    if (own) rootHome = (g.h === i0) !== tank;
+    else if (!noisy) rootHome = swing > 0;
+    else if (tank) { rootHome = curPct(g.h) <= curPct(g.a); logic = 'The worse team winning keeps it behind you'; }
+    else {
+      const hIn = CONF_OF[g.h] === C, aIn = CONF_OF[g.a] === C;
+      if (hIn !== aIn) { rootHome = !hIn; logic = `${C ? 'NFC' : 'AFC'} rival loses to the ${C ? 'AFC' : 'NFC'}`; }
+      else if (hIn && aIn) { rootHome = curPct(g.h) <= curPct(g.a); logic = 'Better AFC/NFC rival takes a loss'.replace('AFC/NFC', C ? 'NFC' : 'AFC'); }
+      else rootHome = null;
+    }
+    const mag = Math.abs(swing);
+    const level = own ? 3 : tank ? (mag >= 1 ? 3 : mag >= 0.25 ? 2 : 1) : (mag >= 0.06 ? 3 : mag >= 0.02 ? 2 : 1);
+    if (rootHome === null) detail = '';
+    if (noisy) detail = '';
+    return { ...x, g, own, swing, rootHome, level, detail, logic };
+  });
+  const order = rows.filter((x) => !x.own).sort((a, b) => (a.rootHome === null) - (b.rootHome === null) || b.level - a.level || Math.abs(b.swing) - Math.abs(a.swing));
+  const own = rows.find((x) => x.own);
+  const LV = ['', 'Small', 'Medium', 'Big'];
+  const card = (x) => {
+    const g = x.g, a = TEAMS[g.a], h = TEAMS[g.h];
+    const side = (code) => {
+      const team = code === 1 ? h : a, me = x.rootHome !== null && (code === 1) === x.rootHome;
+      return `<div class="side rside${code === 1 ? ' home' : ''}${me ? ' rootme' : ''}">${chip(team)}<span><div class="nm">${TEAM_NAMES[team]}</div><div class="pr">${me ? 'Root for' : TEAM_NAMES[team] === TEAM_NAMES[t] ? '' : ''}</div></span></div>`;
+    };
+    const meter = x.rootHome === null ? '<span class="imp none">No effect</span>' : `<span class="imp l${x.level}" title="${x.detail || x.logic}"><i></i><i></i><i></i>${LV[x.level]}</span>`;
+    const why = x.own ? (tank ? 'A loss helps the draft pick' : 'Your game') : x.rootHome === null ? `Doesn't touch the ${C ? 'NFC' : 'AFC'} race` : x.detail || x.logic || '';
+    return `<div class="card game rgame${x.own ? ' own' : ''}" style="--tc:${COLORS[t]}">
+      <div class="gmeta"><span>${why}</span>${meter}</div>
+      ${side(-1)}<div class="mid"><span class="at">@</span></div>${side(1)}
+    </div>`;
+  };
+  const gone = ownPickTo(t);
+  const intro = tank
+    ? `Every Week ${state.week} result, ranked by how much it helps the ${TEAM_NAMES[t]}' draft position (projected pick ${R.bases[3].toFixed(1)}).${gone ? ` <b class="warn">Heads-up: the ${TEAM_NAMES[t]}' 1st-round pick is owned by ${gone}, so a better draft slot mostly helps them, not ${t}.</b>` : ''}`
+    : `Every Week ${state.week} result, ranked by how much it helps the ${TEAM_NAMES[t]}' playoff chances (${pct(R.bases[0])} to make it, ${pct(R.bases[1])} to win the division, ${pct(R.bases[2])} for the #1 seed).`;
+  return `${weekSeg}
+    <div class="section-head" style="margin:12px 0 4px">${modeSeg}</div>
+    <p class="hint">${intro} Based on the real standings, not your picks. Gold marks the side to root for.</p>
+    <div class="games">${own ? card(own) : ''}${order.map(card).join('')}</div>`;
+}
+
+// ---------- events ----------
+function savePicks() { store.set('picks:' + RAW.season, state.picks); store.set('flips:' + RAW.season, state.flips); }
+function setPick(k, o) {
+  if (G[k].played) {
+    // rewriting history: tapping the real result (or the current flip) restores what actually happened
+    if (o === G[k].fixed || state.flips[k] === o) delete state.flips[k]; else state.flips[k] = o;
+  } else if (state.picks[k] === o) delete state.picks[k]; else state.picks[k] = o;
+  savePicks(); render(); recomputePickOdds();
+  
+}
+function toast(msg) { const el = $('#toast'); el.textContent = msg; el.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => { el.style.display = 'none'; }, 1800); }
+
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (state.confirmClear && !['resetall', 'askclear'].includes(b.dataset.act)) state.confirmClear = false;
+  if (b.dataset.tbgo !== undefined) {
+    const t = b.dataset.tbgo;
+    const d = [...document.querySelectorAll('details.tb')].find((el) => el.dataset.tbteams.split(',').includes(t));
+    if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'center' }); d.classList.add('flash'); setTimeout(() => d.classList.remove('flash'), 1200); }
+    return;
+  }
+  if (b.dataset.rmode) { state.rootMode = b.dataset.rmode; render(); return; }
+  if (b.dataset.sview) { state.standView = b.dataset.sview; store.set('standView', state.standView); render(); return; }
+  if (b.dataset.tab) { state.tab = b.dataset.tab; location.hash = state.tab === 'league' ? '' : state.tab; render(); return; }
+  if (b.dataset.team) { state.rootMetric = null; state.rootMode = null; state.team = b.dataset.team; state.oddsConf = null; store.set('team', state.team); rootingWeek = null; render();  return; }
+  if (b.dataset.g !== undefined) { setPick(+b.dataset.g, +b.dataset.pick); return; }
+  if (b.dataset.gc !== undefined) {
+    // cycle from this row's point of view: open -> win -> loss -> open
+    const k = +b.dataset.gc, home = b.dataset.home === '1', cur = state.picks[k];
+    const win = home ? 1 : -1;
+    if (cur === undefined || cur === 0) state.picks[k] = win;
+    else if (cur === win) state.picks[k] = -win;
+    else delete state.picks[k];
+    savePicks(); render(); recomputePickOdds();
+    return;
+  }
+  if (b.dataset.favweek) {
+    for (const g of unplayed) if (g.week === +b.dataset.favweek && state.picks[g.k] === undefined) state.picks[g.k] = baseProbs[g.k] >= 0.5 ? 1 : -1;
+    savePicks(); render(); recomputePickOdds();
+    return;
+  }
+  if (b.dataset.gconf) { state.gridConf = b.dataset.gconf === 'all' ? 'all' : +b.dataset.gconf; render(); return; }
+  if (b.dataset.lweek) { state.lweek = +b.dataset.lweek; render(); window.scrollTo({ top: 0 }); return; }
+  if (b.dataset.lview) { state.lview = b.dataset.lview; store.set('lview', state.lview); render(); return; }
+  if (b.dataset.weekact) {
+    const wk = state.lweek ?? weeks[0];
+    if (b.dataset.weekact === 'real') for (const g of G) if (g.week === wk) delete state.flips[g.k];
+    for (const g of unplayed) if (g.week === wk) {
+      if (b.dataset.weekact === 'clear') delete state.picks[g.k];
+      else if (b.dataset.weekact === 'real') continue;
+      else if (state.picks[g.k] === undefined) state.picks[g.k] = baseProbs[g.k] >= 0.5 ? 1 : -1;
+    }
+    savePicks(); render(); recomputePickOdds(); return;
+  }
+  if (b.dataset.view) { state.view = b.dataset.view; store.set('view', state.view); render();  return; }
+  if (b.dataset.week) { state.week = +b.dataset.week; rootingWeek = null; render(); return; }
+  if (b.dataset.conf !== undefined) { state.oddsConf = +b.dataset.conf; render(); return; }
+  const act = b.dataset.act, i0 = IDX[state.team];
+  if (act === 'winout' || act === 'loseout') {
+    const win = act === 'winout';
+    for (const g of unplayed) if (g.h === i0 || g.a === i0) state.picks[g.k] = (g.h === i0) === win ? 1 : -1;
+  } else if (act === 'favorites') {
+    for (const g of unplayed) if (state.picks[g.k] === undefined) state.picks[g.k] = baseProbs[g.k] >= 0.5 ? 1 : -1;
+  } else if (act === 'reset') {
+    state.picks = {};
+  } else if (act === 'resetflips') {
+    state.flips = {};
+  } else if (act === 'resetall') {
+    state.picks = {}; state.flips = {}; state.confirmClear = false; toast('Cleared. Back to the real standings');
+  } else if (act === 'askclear' || act === 'cancelclear') {
+    state.confirmClear = act === 'askclear'; render(); return;
+  } else if (act === 'copy') {
+    const cur = evaluate(ctx, outcomes());
+    const c = CONF_OF[i0], s = cur.seeds[c].indexOf(i0);
+    const o = oddsFor(state.team, hasPicks() ? pickOdds : baseOdds);
+    const msg = `My ${TEAM_NAMES[state.team]} scenario: ${recStr(cur.R, i0)}, ${s < 7 ? '#' + (s + 1) + ' seed' : 'out of the playoffs'}${o ? `, ${pct(o.playoffs)} to make it` : ''}. Built on Clinch.`;
+    try { await navigator.clipboard.writeText(msg); toast('Copied to clipboard'); } catch { toast(msg); }
+    return;
+  } else return;
+  savePicks(); render(); recomputePickOdds();
+  
+});
+window.addEventListener('hashchange', () => { state.tab = validTab(location.hash.slice(1)); render(); });
+
+// ---------- accounts, saved scenarios, share links (Supabase) ----------
+// Everything here switches on only when SUPABASE_URL / SUPABASE_ANON_KEY are set at build time.
+const ACCOUNTS = !!(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
+let sb = null, user = null;
+const byId = Object.fromEntries(G.map((g, k) => [g.id, k]));
+const toIds = (m) => Object.fromEntries(Object.entries(m).map(([k, v]) => [G[k].id, v]));
+const fromIds = (m) => Object.fromEntries(Object.entries(m || {}).filter(([id]) => byId[id] !== undefined).map(([id, v]) => [byId[id], v]));
+const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+function openModal(html) { $('#modal').innerHTML = html; $('#modalBg').hidden = false; const f = $('#modal').querySelector('input, button'); if (f) f.focus(); }
+function closeModal() { $('#modalBg').hidden = true; $('#modal').innerHTML = ''; }
+$('#modalBg').addEventListener('click', (e) => { if (e.target.id === 'modalBg') closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#modalBg').hidden) closeModal(); });
+
+function loadSupabase() {
+  return new Promise((resolve, reject) => {
+    if (window.supabase) return resolve();
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
+    s.onload = resolve; s.onerror = () => reject(new Error('Could not load sign-in library'));
+    document.head.appendChild(s);
+  });
+}
+function paintAccount() {
+  const b = $('#acctBtn');
+  b.hidden = !ACCOUNTS;
+  if (!ACCOUNTS) return;
+  const name = user ? (user.user_metadata?.full_name || user.email || 'Account') : '';
+  b.innerHTML = user ? `<span class="av">${esc(name[0].toUpperCase())}</span>My scenarios` : 'Sign in';
+}
+async function initAccounts() {
+  if (!ACCOUNTS) return;
+  try {
+    await loadSupabase();
+    sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+    const { data } = await sb.auth.getSession();
+    user = data.session?.user || null;
+    sb.auth.onAuthStateChange((_e, session) => { user = session?.user || null; paintAccount(); });
+    paintAccount();
+    // finish whatever the user was doing before the sign-in redirect
+    const pending = store.get('pending', null);
+    if (pending && user) { store.set('pending', null); if (pending === 'save') saveDialog(); }
+    await openShareFromUrl();
+  } catch (err) { console.warn(err); }
+}
+
+const GOOGLE_SVG = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.1 1.4-4.9 2.3-8.2 2.3-6.2 0-11.5-4.1-13.4-9.8l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>';
+const APPLE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.1-1.2 2.9-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.5-1-2.4-3.9zM14 5.5c.7-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.5 2.8-1.3z"/></svg>';
+function signInDialog(reason) {
+  openModal(`<h3>Sign in to ${reason === 'save' ? 'save scenarios' : 'continue'}</h3>
+    <p>Keep your scenarios across devices. No password, no spam.</p>
+    <button class="oauth" data-act="oauth" data-provider="google">${GOOGLE_SVG}Continue with Google</button>
+    <button class="oauth apple" data-act="oauth" data-provider="apple">${APPLE_SVG}Continue with Apple</button>
+    <div class="row-btns"><button class="btn" data-act="close">Not now</button></div>`);
+}
+async function oauth(provider) {
+  const redirectTo = location.origin + location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '/');
+  const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo } });
+  if (error) toast('Sign-in failed: ' + error.message);
+}
+function saveDialog() {
+  if (!user) { store.set('pending', 'save'); return signInDialog('save'); }
+  if (!hasPicks()) return toast('Make a pick or a do-over first');
+  const n = Object.keys(state.picks).length, f = nFlips();
+  openModal(`<h3>Save this scenario</h3>
+    <p>${n} pick${n === 1 ? '' : 's'}${f ? ` and ${f} do-over${f === 1 ? '' : 's'}` : ''}, ${RAW.season} season.</p>
+    <label for="scnName" class="hint">Name</label>
+    <input type="text" id="scnName" maxlength="80" value="${esc(TEAM_NAMES[state.team] + ' scenario')}">
+    <div class="row-btns"><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="dosave">Save</button></div>`);
+}
+async function doSave() {
+  const name = ($('#scnName').value || '').trim() || 'My scenario';
+  const { error } = await sb.from('scenarios').insert({ season: RAW.season, name, team: state.team, picks: toIds(state.picks), flips: toIds(state.flips) });
+  if (error) return toast('Could not save: ' + error.message);
+  closeModal(); toast('Saved');
+}
+async function myScenarios() {
+  if (!user) return signInDialog('list');
+  openModal('<h3>My scenarios</h3><p>Loading…</p>');
+  const { data, error } = await sb.from('scenarios').select('id,name,team,picks,flips,updated_at').eq('season', RAW.season).order('updated_at', { ascending: false });
+  if (error) return openModal(`<h3>My scenarios</h3><p>Couldn't load them: ${esc(error.message)}</p><div class="row-btns"><button class="btn" data-act="close">Close</button></div>`);
+  myScenarios.cache = data;
+  const list = data.length ? data.map((r) => `<div class="scn"><b>${esc(r.name)}</b><small>${r.team ? esc(TEAM_NAMES[r.team] || r.team) + ' · ' : ''}${Object.keys(r.picks).length} picks${Object.keys(r.flips).length ? ', ' + Object.keys(r.flips).length + ' do-overs' : ''} · ${new Date(r.updated_at).toLocaleDateString()}</small><span class="acts"><button class="btn primary" data-act="loadscn" data-id="${r.id}">Load</button><button class="btn danger" data-act="delscn" data-id="${r.id}" aria-label="Delete ${esc(r.name)}">✕</button></span></div>`).join('') : '<p>No saved scenarios yet. Make some picks and tap Save.</p>';
+  openModal(`<h3>My scenarios</h3>${list}<div class="row-btns"><button class="btn" data-act="signout">Sign out</button><button class="btn" data-act="close">Close</button></div>`);
+}
+function applyScenario(r, viaShare) {
+  if (viaShare) store.set('picks:backup', { picks: state.picks, flips: state.flips, team: state.team });
+  state.picks = fromIds(r.picks); state.flips = fromIds(r.flips);
+  for (const k of Object.keys(state.picks)) if (G[k].played) delete state.picks[k];
+  for (const k of Object.keys(state.flips)) if (!G[k].played || G[k].fixed === state.flips[k]) delete state.flips[k];
+  if (r.team && TEAMS.includes(r.team)) state.team = r.team;
+  savePicks(); render(); recomputePickOdds();
+}
+const slugify = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]).join('');
+async function share() {
+  if (!hasPicks()) return toast('Make a pick or a do-over first');
+  const slug = slugify();
+  const { error } = await sb.from('shares').insert({ slug, season: RAW.season, team: state.team, picks: toIds(state.picks), flips: toIds(state.flips) });
+  if (error) return toast('Could not create link: ' + error.message);
+  const base = CONFIG.siteUrl || location.origin + location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '').replace(/\/(index\.html)?$/, '');
+  const url = base + '/s/' + slug;
+  openModal(`<h3>Share this scenario</h3><p>Anyone with the link sees exactly these picks. They can change them without touching yours.</p>
+    <div class="sharebox"><input type="text" id="shareUrl" readonly value="${url}"><button class="btn primary" data-act="copyshare">Copy</button></div>
+    <div class="row-btns"><button class="btn" data-act="close">Done</button></div>`);
+  $('#shareUrl').select();
+}
+async function openShareFromUrl() {
+  const m = location.pathname.match(/\/s\/([a-z0-9]{6,12})\/?$/) || location.search.match(/[?&]s=([a-z0-9]{6,12})/);
+  if (!m) return;
+  const { data, error } = await sb.from('shares').select('season,team,picks,flips').eq('slug', m[1]).maybeSingle();
+  history.replaceState(null, '', location.origin + location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '/') + location.hash);
+  if (error || !data) return toast('That shared scenario could not be found');
+  if (data.season !== RAW.season) return toast(`That link is from the ${data.season} season`);
+  applyScenario(data, true);
+  state.viewingShare = { team: data.team };
+  render();
+}
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('button');
+  if (!b || !b.dataset.act) return;
+  const act = b.dataset.act;
+  if (act === 'account') return user ? myScenarios() : signInDialog('list');
+  if (act === 'close') return closeModal();
+  if (act === 'oauth') return oauth(b.dataset.provider);
+  if (act === 'save') return saveDialog();
+  if (act === 'dosave') return doSave();
+  if (act === 'share') return share();
+  if (act === 'copyshare') { try { await navigator.clipboard.writeText($('#shareUrl').value); toast('Link copied'); } catch { $('#shareUrl').select(); toast('Press Ctrl/Cmd+C to copy'); } return; }
+  if (act === 'loadscn') { const r = (myScenarios.cache || []).find((x) => x.id === b.dataset.id); if (r) { applyScenario(r, false); state.viewingShare = null; closeModal(); toast(`Loaded "${r.name}"`); } return; }
+  if (act === 'delscn') { const { error } = await sb.from('scenarios').delete().eq('id', b.dataset.id); if (error) toast('Could not delete: ' + error.message); return myScenarios(); }
+  if (act === 'signout') { await sb.auth.signOut(); user = null; paintAccount(); closeModal(); toast('Signed out'); return; }
+  if (act === 'restoremine') {
+    const bk = store.get('picks:backup', null);
+    state.picks = bk ? bk.picks : {}; state.flips = bk ? bk.flips : {}; if (bk && bk.team) state.team = bk.team;
+    state.viewingShare = null; savePicks(); render(); recomputePickOdds(); return;
+  }
+});
+
+$('#brandName').textContent = CONFIG.siteName;
+initAccounts();
+render();
+setTimeout(() => {
+  baseOdds = simulate(ctx, { sims: 10000 });
+  if (hasPicks()) recomputePickOdds(); else render();
+}, 30);
+</script>
+</body>
+</html>

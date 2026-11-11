@@ -1,0 +1,13 @@
+{
+  "name": "clinch",
+  "private": true,
+  "type": "module",
+  "description": "NFL playoff scenarios, odds, tiebreakers and draft order",
+  "scripts": {
+    "fetch": "node scripts/fetch-data.js",
+    "validate": "node scripts/validate.js",
+    "build": "node scripts/build.js",
+    "all": "npm run fetch && npm run validate && npm run build"
+  },
+  "engines": { "node": ">=20" }
+}
