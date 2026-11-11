@@ -31,10 +31,26 @@ html = html
   .replace('/*__ENGINE__*/', () => engine)
   .replace('/*__DATA__*/', () => JSON.stringify(data))
   .replace('/*__CONFIG__*/', () => JSON.stringify(config));
+const url = config.siteUrl || '';
+const seo = url ? [
+  `<link rel="canonical" href="${url}/">`,
+  `<meta property="og:type" content="website">`,
+  `<meta property="og:site_name" content="Clinch">`,
+  `<meta property="og:title" content="Clinch · NFL playoff scenarios, odds & tiebreakers">`,
+  `<meta property="og:description" content="Pick every game. See who clinches, who tanks, and why.">`,
+  `<meta property="og:url" content="${url}/">`,
+  `<meta property="og:image" content="${url}/og.png">`,
+  `<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">`,
+  `<meta name="twitter:card" content="summary_large_image">`,
+  `<meta name="twitter:image" content="${url}/og.png">`,
+].join('\n') : '';
+html = html.replace('<!--__SEO__-->', () => seo);
 
 const outDir = new URL('public/', root);
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(new URL('index.html', outDir), html);
+for (const f of fs.readdirSync(new URL('web/assets/', root))) fs.copyFileSync(new URL('web/assets/' + f, root), new URL(f, outDir));
+fs.writeFileSync(new URL('site.webmanifest', outDir), JSON.stringify({ name: 'Clinch', short_name: 'Clinch', start_url: '/', display: 'standalone', background_color: '#0f1422', theme_color: '#0f1422', icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }] }));
 // 404 -> app shell, so share links like /s/abc123 resolve on static hosting
 fs.writeFileSync(new URL('404.html', outDir), html);
 fs.writeFileSync(new URL('robots.txt', outDir), `User-agent: *\nAllow: /\n${config.siteUrl ? `Sitemap: ${config.siteUrl}/sitemap.xml\n` : ''}`);
