@@ -116,9 +116,9 @@ function picker() {
     <div class="wkgrid">${days.map((d) => `<section class="wday"><h4>${fmt(d, { weekday: 'short', month: 'short', day: 'numeric' })}</h4>${list.filter((g) => g.date === d).map(miniGame).join('')}</section>`).join('')}</div>`;
 }
 function renderStandings() {
-  return `<div class="npick"><div class="pmain">${picker()}</div>
-    <div class="pside"><div class="legend"><span><i style="background:var(--accent)"></i>Seeds 1-6: playoffs</span><span><i style="background:var(--gold)"></i>7-10: play-in</span><span><i style="background:var(--line)"></i>11-15: lottery</span></div>
-    <div class="ngrid">${standingsTable(0)}${standingsTable(1)}</div></div></div>`;
+  const legend = '<div class="legend"><span><i style="background:var(--accent)"></i>Seeds 1-6: playoffs</span><span><i style="background:var(--gold)"></i>7-10: play-in</span><span><i style="background:var(--line)"></i>11-15: lottery</span></div>';
+  return `<div class="npick3"><div class="pmain">${picker()}</div>
+    <div class="peast">${legend}${standingsTable(0)}</div><div class="pwest">${standingsTable(1)}</div></div>`;
 }
 
 // ---- odds ----
@@ -138,7 +138,7 @@ function renderOdds() {
     return `<section class="card scroll"><div class="stand-head" style="padding:14px 14px 0"><h3>${c ? 'West' : 'East'}</h3></div><table class="t"><thead><tr><th>Team</th><th>Record</th><th>Proj. W</th><th>Playoffs</th><th>Top 6</th><th>Play-in</th><th>#1 seed</th><th>Conf. finals</th><th>Finals</th><th>Title</th></tr></thead><tbody>
       ${list.map((x) => `<tr class="${x.t === state.team ? 'me' : ''}" style="--tc:${COLORS[x.t]}"><td><span class="tn">${chip(x.t)}<a href="${pathFor('team', x.t)}" style="color:inherit;text-decoration:none">${NICK[x.t]}</a></span></td><td class="num">${rec(x.i)}</td><td class="num">${x.avgWins.toFixed(1)}</td><td><span class="bar"><i><b style="width:${Math.round(x.playoffs * 100)}%"></b></i><span class="num">${pct(x.playoffs)}</span></span></td><td class="num">${pct(x.top6)}</td><td class="num">${pct(x.playIn)}</td><td class="num">${pct(x.one)}</td><td class="num">${pct(x.conf)}</td><td class="num">${pct(x.finals)}</td><td class="num po champ">${pct(x.title)}</td></tr>`).join('')}</tbody></table></section>`;
   };
-  return `${oddsBracket()}<div style="margin-top:22px">${hero}</div><div class="section-head" style="margin-top:22px"><h2>Every team's chances</h2></div><div style="display:grid;gap:16px">${tbl(0)}${tbl(1)}</div>`;
+  return `${hero}<div style="margin-top:22px">${oddsBracket()}</div><div class="section-head" style="margin-top:22px"><h2>Every team's chances</h2></div><div style="display:grid;gap:16px">${tbl(0)}${tbl(1)}</div>`;
 }
 
 // ---- draft lottery (2027+: "3-2-1", 16 teams, all 16 picks drawn; traded picks resolved) ----

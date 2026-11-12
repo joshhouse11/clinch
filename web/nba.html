@@ -62,6 +62,19 @@
 .bracket:has(.bconf.nb) .bsb { max-width: 520px; width: 100%; justify-self: center; }
 @media (max-width: 600px) { .chh-pts.n5 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .chhero .chh1 { font-size: 26px; } }
 @keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.npick3 { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "main" "east" "west"; align-items: start; }
+.npick3 > * { min-width: 0; } .npick3 .pmain { grid-area: main; } .npick3 .peast { grid-area: east; } .npick3 .pwest { grid-area: west; }
+@media (min-width: 1000px) and (max-width: 1299px) { .npick3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "main main" "east west"; } }
+@media (min-width: 1300px) {
+  main:has(.npick3) { max-width: 1480px; }
+  .npick3 { grid-template-columns: minmax(300px, 1fr) minmax(0, 2.1fr) minmax(300px, 1fr); grid-template-areas: "east main west"; }
+  .npick3 .peast, .npick3 .pwest { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; }
+  .npick3 .pwest { padding-top: 30px; }
+  .npick3 .nst th:nth-child(4), .npick3 .nst td:nth-child(4), .npick3 .nst th:nth-child(5), .npick3 .nst td:nth-child(5) { display: none; }
+  .npick3 .nst td, .npick3 .nst th { padding-left: 5px; padding-right: 5px; }
+  .npick3 .nst .tag.div { display: none; } .npick3 .nst .tn a { font-size: 14px; }
+  .npick3 .legend { font-size: 11px; gap: 8px; }
+}
 .npick { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); } .npick > * { min-width: 0; }
 @media (min-width: 1200px) { .npick { grid-template-columns: minmax(0, 1fr) 470px; align-items: start; } .npick .pside { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; } .npick .ngrid { grid-template-columns: 1fr; } .npick .nst th:nth-child(5), .npick .nst td:nth-child(5) { display: none; } .npick .games.two { grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); } }
 .wkgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 10px; align-items: start; }
