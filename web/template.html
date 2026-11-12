@@ -334,8 +334,8 @@ details.tb li b { display: block; font-weight: 700; }
 .modal { width: min(420px, 100%); max-height: 85vh; overflow: auto; padding: 20px; display: grid; gap: 14px; }
 .modal h3 { font-family: var(--display); margin: 0; font-size: 19px; }
 .modal p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
-.modal input[type=text] { width: 100%; background: var(--surface-2); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 10px 12px; font: inherit; }
-.modal input[type=text]:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.modal input[type=text], .modal input[type=number], .chsave input, .sharebox input { width: 100%; background: var(--surface-2); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 10px 12px; font: inherit; }
+.modal input[type=text]:focus, .modal input[type=number]:focus, .chsave input:focus { outline: 2px solid var(--accent); border-color: transparent; }
 .modal .row-btns { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 .oauth { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: #111; font-weight: 700; }
 .oauth.apple { background: #000; color: #fff; border-color: #333; }
@@ -419,6 +419,57 @@ main:has(.ohero) .bracket-top { margin-top: 4px; }
 .pobody .section-head { margin-top: 0; }
 .t td.po { color: var(--text); } .t td.champ { color: var(--gold); font-weight: 800; }
 
+
+/* ---------- bracket challenge ---------- */
+nav.tabs .chtab { color: var(--gold); }
+.chhero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: center; padding: 26px; border-radius: 20px; margin: 4px 0 16px;
+  background: radial-gradient(90% 120% at 0% 0%, color-mix(in srgb, var(--accent) 22%, var(--surface)) 0%, var(--surface) 55%), radial-gradient(70% 100% at 100% 100%, color-mix(in srgb, var(--gold) 18%, transparent), transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); }
+.chhero h1 { font-family: var(--display); font-size: 38px; letter-spacing: -1px; line-height: 1.05; margin: 10px 0 8px; }
+.chhero p { color: var(--muted); margin: 0 0 16px; max-width: 52ch; }
+.chpill { display: inline-block; font-size: 12px; font-weight: 800; padding: 5px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+.chpill.open { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--accent); }
+.chpill.live { background: color-mix(in srgb, var(--gold) 22%, transparent); color: var(--gold); }
+.btn.big { padding: 11px 18px; font-size: 15px; border-radius: 12px; }
+.chh-pts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.chh-pts div { background: color-mix(in srgb, var(--bg) 55%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 12px 8px; text-align: center; }
+.chh-pts b { display: block; font-family: var(--display); font-size: 30px; color: var(--gold); line-height: 1; }
+.chh-pts span { font-size: 11px; color: var(--muted); font-weight: 700; }
+.chh-pts small { grid-column: 1 / -1; color: var(--muted); font-size: 12px; text-align: center; }
+@media (max-width: 800px) { .chhero { grid-template-columns: 1fr; padding: 18px; } .chhero h1 { font-size: 30px; } }
+.chgrid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+@media (max-width: 1000px) { .chgrid { grid-template-columns: 1fr; } }
+.chside { display: grid; gap: 16px; }
+.chcard { padding: 16px; }
+.chcard h3 { font-family: var(--display); margin: 0 0 8px; font-size: 17px; }
+.chcard p { color: var(--muted); margin: 0 0 8px; }
+.chcard a { color: var(--accent); }
+.chgroup { width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; text-align: left; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); margin-bottom: 8px; cursor: pointer; font: inherit; }
+.chgroup:hover { border-color: var(--accent); }
+.chgroup span { grid-column: 1; font-size: 12px; color: var(--muted); }
+.chgroup i { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-style: normal; font-size: 22px; color: var(--muted); }
+.chsave { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 14px; }
+.chsave label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); font-weight: 700; }
+.chsave input { width: 190px; }
+.chsave .btn { margin-left: auto; }
+.chscore { margin-left: auto; font-size: 14px; color: var(--muted); } .chscore b { font-family: var(--display); font-size: 26px; color: var(--gold); }
+.bt.right { box-shadow: inset 3px 0 0 var(--accent); background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.bt.right .bp { color: var(--accent); }
+.bt.wrong { box-shadow: inset 3px 0 0 #ff6b6b; background: color-mix(in srgb, #ff6b6b 14%, transparent); }
+.bt.wrong .bn { text-decoration: line-through; text-decoration-color: #ff6b6b; }
+.tn.dead { opacity: .35; filter: grayscale(1); }
+.chboard td, .chmembers td { padding: 8px; }
+.chmembers .ok, .chboard .ok { color: var(--accent); font-weight: 700; }
+.chmembers .muted { color: var(--muted); }
+.paid { border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); border-radius: 999px; padding: 4px 10px; font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; }
+.paid.on { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.btn.mini { padding: 3px 8px; font-size: 12px; }
+.chhero.grp { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+.chdues { display: grid; gap: 8px; background: color-mix(in srgb, var(--bg) 55%, transparent); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.chdues b { font-family: var(--display); font-size: 30px; color: var(--accent); margin-right: 6px; } .chdues span, .chdues small { color: var(--muted); font-size: 13px; }
+.meter { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; } .meter i { display: block; height: 100%; background: var(--accent); }
+.chlegal { margin-top: 18px; font-size: 12px; }
+
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -430,6 +481,7 @@ main:has(.ohero) .bracket-top { margin-top: 4px; }
       <button role="tab" data-tab="league">League</button>
       <button role="tab" data-tab="team">My team</button>
       <button role="tab" data-tab="odds">Playoffs</button>
+      <button role="tab" data-tab="challenge" class="chtab">Challenge</button>
       <button role="tab" data-tab="draft">Draft order</button>
     </nav>
     <div class="hdr-actions">
@@ -451,7 +503,7 @@ main:has(.ohero) .bracket-top { margin-top: 4px; }
       <a class="brand" href="./" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk2)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span>clinch</span></a>
       <p>Every NFL playoff scenario, odds and tiebreaker, updated through the season.</p>
     </div>
-    <nav class="sf-col" aria-label="Tools"><b>Tools</b><a href="#league">League picker</a><a href="#team">My team</a><a href="#odds">Playoffs &amp; odds</a><a href="#draft">Draft order</a></nav>
+    <nav class="sf-col" aria-label="Tools"><b>Tools</b><a href="#league">League picker</a><a href="#team">My team</a><a href="#odds">Playoffs &amp; odds</a><a href="#challenge">Bracket Challenge</a><a href="#draft">Draft order</a></nav>
     <nav class="sf-col" aria-label="Company"><b>Clinch</b><a href="mailto:hello@clinchscenarios.com">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></nav>
   </div>
   <div class="sf-base"><span>© <span id="yr">2026</span> Clinch</span><span>Odds are simulations, not betting advice. Not affiliated with the NFL or any team.</span></div>
@@ -515,7 +567,7 @@ const sosFmt = (v) => v === null ? '–' : v.toFixed(3).replace(/^0/, '');
 const lastFinalWeek = Math.max(0, ...G.filter((g) => g.played).map((g) => g.week));
 
 const store = { get(k, d) { try { const v = localStorage.getItem('clinch:' + k); return v ? JSON.parse(v) : d; } catch { return d; } }, set(k, v) { try { localStorage.setItem('clinch:' + k, JSON.stringify(v)); } catch {} } };
-const validTab = (h) => ['league', 'team', 'odds', 'draft'].includes(h) ? h : 'league';
+const validTab = (h) => ['league', 'team', 'odds', 'challenge', 'draft'].includes(h) ? h : 'league';
 const state = {
   team: store.get('team', 'CHI'),
   tab: validTab(location.hash.slice(1)),
@@ -839,7 +891,7 @@ function renderLeague(cur) {
       <button class="btn" data-weekact="clear">Clear week</button>`}
       ${clearAllHtml()}
     </div>`}</div>
-    ${isPO ? `<div class="pobody">${bracketHead()}${bracketHtml(cur)}</div>` : `<div class="games two">${list.map(gameCard).join('')}</div>`}
+    ${isPO ? `<div class="pobody">${bracketHead()}${bracketHtml(cur.seeds)}</div>` : `<div class="games two">${list.map(gameCard).join('')}</div>`}
   </div>${sidebar}<div class="tb-slot">${tiebreakSection(cur, [0, 1])}</div></div>`;
 }
 
@@ -873,18 +925,34 @@ const seedingNote = () => {
   const left = unplayed.filter((g) => outcomes()[g.k] == null).length;
   return left ? `Seeds as if the season ended today${Object.keys(state.picks).length ? ', with your picks' : ''} · ${left} regular-season game${left === 1 ? '' : 's'} unpicked` : 'Seeds set by your full-season picks';
 };
-function bracketHtml(cur) {
-  const br = playBracket(cur.seeds, poDecide);
+// mode 'po': the Playoffs-tab bracket (win odds, real results lock games).
+// mode 'ch': a Bracket Challenge entry (picks only; once games are played, right/wrong marks and points).
+function bracketHtml(seeds, mode = 'po', readOnly = false, picksSrc = null) {
+  const ch = mode === 'ch';
+  const src = picksSrc || (ch ? window.__chPicks() : null);
+  const br = playBracket(seeds, ch ? (r, hi, lo) => { const w = src[pairKey(r, hi, lo)]; return w === hi || w === lo ? w : null; } : poDecide);
+  const RR = ch ? realRounds() : null;
   const i0 = IDX[state.team];
   const ROUND = { WC: 'Wild Card', DIV: 'Divisional', CON: 'Conference', SB: 'Super Bowl' };
   const trow = (t, sd, p, key, m, real) => {
     if (m.neutral) sd = CONF_OF[t] ? 'NFC' : 'AFC';
     const st = m.w == null ? '' : m.w === t ? 'win' : 'loss';
-    return `<button class="bt ${st}${t === i0 ? ' me' : ''}" style="--tc:${COLORS[TEAMS[t]]}" ${real ? 'disabled' : `data-po="${key}" data-pw="${t}"`} aria-label="${TEAM_NAMES[TEAMS[t]]} win">
-      <span class="sd">${sd}</span>${chip(TEAMS[t])}<span class="bn">${TEAM_NAMES[TEAMS[t]]}</span><span class="bp num">${real ? (m.w === t ? 'W' : 'L') : pct(p)}</span></button>`;
+    let mark = '', right = '';
+    if (ch && m.w === t) {
+      const r = key.split(':')[0];
+      if (RR.won[r].has(t)) {
+        const g = RR.games.find((x) => x.round === r && x.w === t);
+        const sd2 = (x) => { for (const cs of seeds) { const k = cs.indexOf(x); if (k >= 0) return k + 1; } return 0; };
+        mark = ' right'; right = `+${CH_PTS[r] + (r !== 'SB' && g ? Math.max(0, sd2(g.w) - sd2(g.l)) : 0)}`;
+      }
+      else if (RR.out.has(t) && RR.out.get(t) <= RO.indexOf(r)) mark = ' wrong';
+    }
+    const lock = ch ? readOnly : real;
+    return `<button class="bt ${st}${mark}${t === i0 && !ch ? ' me' : ''}" style="--tc:${COLORS[TEAMS[t]]}" ${lock ? 'disabled' : `data-${mode}="${key}" data-pw="${t}"`} aria-label="${TEAM_NAMES[TEAMS[t]]} win">
+      <span class="sd">${sd}</span>${chip(TEAMS[t])}<span class="bn">${TEAM_NAMES[TEAMS[t]]}</span><span class="bp num">${ch ? right : real ? (m.w === t ? 'W' : 'L') : pct(p)}</span></button>`;
   };
   const mu = (round, m) => {
-    const key = pairKey(round, m.hi, m.lo), real = REAL_PO[key] !== undefined;
+    const key = pairKey(round, m.hi, m.lo), real = !ch && REAL_PO[key] !== undefined;
     const p = poWinProb(STRENGTH, m.hi, m.lo, round === 'SB');
     return `<div class="mu${real ? ' real' : ''}${round === 'SB' ? ' sbm' : ''}">${trow(m.hi, m.hs, p, key, m, real)}${trow(m.lo, m.ls, 1 - p, key, m, real)}${real ? '<small>Final</small>' : ''}</div>`;
   };
@@ -904,7 +972,7 @@ function bracketHtml(cur) {
   const champ = sb && sb.w != null ? sb.w : null;
   const sbHtml = `<section class="bsb${champ != null ? ' done' : ''}" style="${champ != null ? `--tc:${COLORS[TEAMS[champ]]}` : ''}">
     <h3>Super Bowl</h3>${sb ? mu('SB', sb) : `<div class="mu tbd sbm"><div class="bt ghost"><span class="sd">AFC</span><span class="bn">Champion</span></div><div class="bt ghost"><span class="sd">NFC</span><span class="bn">Champion</span></div></div>`}
-    ${champ != null ? `<div class="trophy">${chip(TEAMS[champ])}<div><small>Your champion</small><b>${TEAM_NAMES[TEAMS[champ]]}</b></div></div>` : '<p class="hint">Pick every round to crown a champion.</p>'}
+    ${champ != null ? `<div class="trophy">${chip(TEAMS[champ])}<div><small>${ch ? 'Your pick' : 'Your champion'}</small><b>${TEAM_NAMES[TEAMS[champ]]}</b></div></div>` : '<p class="hint">Pick every round to crown a champion.</p>'}
   </section>`;
   return `<div class="bwrap"><div class="bracket">${confBlock(0)}${sbHtml}${confBlock(1)}</div></div>`;
 }
@@ -934,7 +1002,7 @@ function renderOdds() {
     const bar = (v) => `<span class="bar"><i><b style="width:${Math.round(v * 100)}%"></b></i><span class="num">${pct(v)}</span></span>`;
     return `<tr class="${i === i0 ? 'me' : ''}" style="--tc:${COLORS[o.team]}"><td><span class="tn">${chip(o.team)}${TEAM_NAMES[o.team]}</span></td><td class="num">${recStr(cur.R, i)}</td><td class="num">${o.avgWins.toFixed(1)}</td><td>${bar(o.playoffs)}</td><td class="num">${pct(o.division)}</td><td class="num">${pct(o.bye)}</td><td class="num po">${pct(o.divRound)}</td><td class="num po">${pct(o.confGame)}</td><td class="num po">${pct(o.superBowl)}</td><td class="num po champ">${pct(o.champ)}</td><td><span class="sos ${sosClass(REM_SOS[i])}">${sosFmt(REM_SOS[i])}</span></td></tr>`;
   }).join('');
-  return `${bracketHead()}${bracketHtml(cur)}${oddsHero(src)}
+  return `${bracketHead()}${bracketHtml(cur.seeds)}${oddsHero(src)}
     <div class="section-head" style="margin-top:24px"><h2>${conf ? 'NFC' : 'AFC'} odds by round${hasPicks() ? ' with your picks' : ''}</h2>
     <div class="seg"><button data-conf="0" aria-pressed="${conf === 0}">AFC</button><button data-conf="1" aria-pressed="${conf === 1}">NFC</button></div>
     ${hasPicks() ? '<button class="btn" data-act="reset">Clear picks</button>' : ''}</div>
@@ -964,7 +1032,7 @@ function render() {
   const cur = evaluate(ctx, outcomes(), { explain: true });
   const banner = nFlips() ? `<div class="card whatif"><b>DO-OVER</b><span>${nFlips()} result${nFlips() > 1 ? 's' : ''} changed · standings, odds and draft use your version</span><button class="btn" data-act="resetflips">Back to real results</button></div>` : '';
   const viewing = state.viewingShare ? `<div class="card viewing"><b>Shared scenario</b><span>You're looking at someone's picks${state.viewingShare.team ? ` for the ${TEAM_NAMES[state.viewingShare.team]}` : ''}. Change anything you like.</span><button class="btn" data-act="restoremine">Back to my picks</button></div>` : '';
-  $('#view').innerHTML = viewing + banner + (state.tab === 'league' ? renderLeague(cur) : state.tab === 'team' ? renderScenarios(cur) : state.tab === 'odds' ? renderOdds() : renderDraft());
+  $('#view').innerHTML = viewing + banner + (state.tab === 'league' ? renderLeague(cur) : state.tab === 'team' ? renderScenarios(cur) : state.tab === 'odds' ? renderOdds() : state.tab === 'challenge' ? renderChallenge() : renderDraft());
   { const n = Object.keys(state.picks).length, f = nFlips(), q = nPo(); $('#pickCount').textContent = n || f || q ? `Your scenario: ${n} pick${n === 1 ? '' : 's'}${f ? `, ${f} do-over${f === 1 ? '' : 's'}` : ''}${q ? `, ${q} playoff pick${q === 1 ? '' : 's'}` : ''}` : ''; }
   $('#season').textContent = `${RAW.season} season · through Week ${lastFinalWeek}`;
   const wb = document.querySelector('.weekbar'), on = wb && wb.querySelector('[aria-pressed="true"]');
@@ -1254,6 +1322,12 @@ function applyScenario(sc, team, viaShare) {
 async function openLinkFromUrl() {
   const q = new URLSearchParams(location.search);
   const clean = () => history.replaceState(null, '', location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '/') + location.hash);
+  if (q.get('join')) {
+    const code = q.get('join').toLowerCase().replace(/[^a-z0-9]/g, '');
+    clean(); state.tab = 'challenge'; location.hash = 'challenge'; render();
+    if (sb) chJoinDialog(code);
+    return;
+  }
   if (q.get('p')) {
     const [season, team, data, po] = q.get('p').split('.');
     clean();
@@ -1334,6 +1408,8 @@ function signInDialog(why) {
     return openModal(`<h3>Accounts are almost here</h3><p>Sign-in with Google is coming in the next few days. Until then, Save keeps your scenarios on this device and Share makes a link you can send anywhere.</p><div class="row-btns"><button class="btn primary" data-act="close">Got it</button></div>`);
   }
   const head = why === 'save' ? ['Sign in to save', 'Saving needs a free account so your scenarios follow you to every device. Your picks stay right where they are while you sign in.']
+    : why === 'chsave' ? ['Sign in to submit your bracket', 'Your picks stay right here while you sign in. Brackets are free; you only need an account so your friends can see your score.']
+    : why === 'challenge' ? ['Sign in to play', 'Groups and brackets are tied to your account so your friends can find you. Free, no spam.']
     : why === 'saved' ? ['Sign in to see your saves', 'Saved scenarios live in your account, on every device. You can still Share any scenario as a link without signing in.']
     : ['Sign in to Clinch', 'Save scenarios and pick them up on any device. No password, no spam.'];
   openModal(`<h3>${head[0]}</h3>
@@ -1371,11 +1447,17 @@ async function initAccounts() {
       sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
       const { data } = await sb.auth.getSession();
       user = data.session?.user || null;
-      sb.auth.onAuthStateChange((_e, session) => { user = session?.user || null; paintAccount(); });
+      sb.auth.onAuthStateChange((_e, session) => { const was = user?.id; user = session?.user || null; paintAccount(); if (was !== user?.id) { ch.loaded = false; ch.group = null; if (state.tab === 'challenge') chLoad(true); } });
       paintAccount();
       const pending = store.get('pending', null);
       if (user) await migrateLocal();
-      if (pending && user) { store.set('pending', null); if (pending === 'save') saveDialog(); }
+      if (pending && user) {
+        store.set('pending', null);
+        if (pending === 'save') saveDialog();
+        else if (pending.startsWith('join:')) { state.tab = 'challenge'; location.hash = 'challenge'; render(); chJoinDialog(pending.slice(5)); }
+        else if (pending.startsWith('ch')) { state.tab = 'challenge'; location.hash = 'challenge'; render(); if (pending === 'chnew') chGroupForm(null); if (pending === 'chjoin') chJoinDialog(''); }
+      }
+      if (state.tab === 'challenge') chLoad(true);
     } catch (err) { console.warn(err); }
   }
   await openLinkFromUrl();
@@ -1407,13 +1489,305 @@ document.addEventListener('click', async (e) => {
     else setLocalList(localList().filter((x) => x.id !== b.dataset.id));
     paintAccount(); return myScenarios();
   }
-  if (act === 'signout') { await sb.auth.signOut(); user = null; paintAccount(); closeModal(); toast('Signed out'); return; }
+  if (act === 'signout') { await sb.auth.signOut(); user = null; ch.loaded = false; ch.group = null; paintAccount(); closeModal(); render(); toast('Signed out'); return; }
   if (act === 'restoremine') {
     const bk = store.get('picks:backup', null);
     state.picks = bk ? bk.picks : {}; state.flips = bk ? bk.flips : {}; state.po = bk && bk.po ? bk.po : {}; if (bk && bk.team) state.team = bk.team;
     state.viewingShare = null; savePicks(); render(); recomputePickOdds(); return;
   }
 });
+
+
+// ---------- Playoff Bracket Challenge ----------
+// Free to play. Groups track dues with checkmarks; Clinch never collects or holds money.
+const CH_PTS = { WC: 2, DIV: 4, CON: 8, SB: 16 };
+const RO = ['WC', 'DIV', 'CON', 'SB'];
+const REG_DONE = unplayed.length === 0;
+const REAL_SEEDS = REG_DONE ? evaluate(ctx, G.map((g) => g.fixed)).seeds.map((x) => x.slice(0, 7)) : null;
+const ch = {
+  loaded: false, loading: false, lockAt: null, entry: null,
+  picks: store.get('ch:' + RAW.season, {}), tiebreak: store.get('chtb:' + RAW.season, ''),
+  groups: [], group: null, members: [], hasBracket: new Set(), scores: null, board: null,
+};
+const chLocked = () => (ch.lockAt ? Date.now() >= new Date(ch.lockAt).getTime() : Object.keys(REAL_PO).length > 0);
+window.__chPicks = () => ch.picks;
+const chDecide = (round, hi, lo) => { const w = ch.picks[pairKey(round, hi, lo)]; return w === hi || w === lo ? w : null; };
+const chSeeds = () => (ch.entry && chLocked() ? ch.entry.seeds : REAL_SEEDS);
+const myName = () => (user && (user.user_metadata?.full_name || (user.email || '').split('@')[0])) || 'Player';
+const inviteUrl = (code) => `${siteBase()}/?join=${code}`;
+
+// What actually happened so far: winners by round, and the round each team went out.
+let _rr = null;
+function realRounds() {
+  if (_rr) return _rr;
+  const won = { WC: new Set(), DIV: new Set(), CON: new Set(), SB: new Set() }, out = new Map(), games = [];
+  if (REAL_SEEDS) {
+    playBracket(REAL_SEEDS, (round, hi, lo) => {
+      const w = REAL_PO[pairKey(round, hi, lo)];
+      if (w !== hi && w !== lo) return null;
+      won[round].add(w); out.set(w === hi ? lo : hi, RO.indexOf(round));
+      games.push({ round, w, l: w === hi ? lo : hi });
+      return w;
+    });
+  }
+  return (_rr = { won, out, games });
+}
+// Points: 2 / 4 / 8 / 16 per correct winner by round, plus 1 per seed of difference when a lower seed you picked pulls the upset.
+function scoreBracket(b) {
+  const picked = { WC: new Set(), DIV: new Set(), CON: new Set(), SB: new Set() };
+  const seedOf = new Map();
+  b.seeds.forEach((cs) => cs.forEach((t, k) => seedOf.set(t, k + 1)));
+  const br = playBracket(b.seeds, (round, hi, lo) => { const w = b.picks[pairKey(round, hi, lo)]; if (w === hi || w === lo) { picked[round].add(w); return w; } return null; });
+  const RR = realRounds();
+  let pts = 0, right = 0, maxLeft = 0;
+  for (const g of RR.games) if (picked[g.round].has(g.w)) {
+    right++; pts += CH_PTS[g.round];
+    if (g.round !== 'SB') pts += Math.max(0, (seedOf.get(g.w) || 0) - (seedOf.get(g.l) || 0));
+  }
+  for (const r of RO) for (const t of picked[r]) if (!RR.won[r].has(t) && !RR.out.has(t)) maxLeft += CH_PTS[r];
+  const champ = br.sb && br.sb.w != null ? br.sb.w : null;
+  return { pts, right, max: pts + maxLeft, champ, champAlive: champ != null && !RR.out.has(champ) };
+}
+const bracketDone = () => { if (!REAL_SEEDS) return false; const br = playBracket(REAL_SEEDS, chDecide); return !!(br.sb && br.sb.w != null); };
+const nChPicks = () => { if (!REAL_SEEDS) return 0; let n = 0; playBracket(REAL_SEEDS, (r, hi, lo) => { const w = chDecide(r, hi, lo); if (w != null) n++; return w; }); return n; };
+
+async function chLoad(force) {
+  if (!ACCOUNTS || !sb || ch.loading || (ch.loaded && !force)) return;
+  ch.loading = true;
+  try {
+    const st = await sb.from('challenge_settings').select('lock_at').eq('season', RAW.season).maybeSingle();
+    ch.lockAt = st.data?.lock_at || null;
+    if (user) {
+      const [e, g] = await Promise.all([
+        sb.from('brackets').select('*').eq('season', RAW.season).eq('user_id', user.id).maybeSingle(),
+        sb.from('bgroups').select('id,name,code,owner,dues,dues_note').eq('season', RAW.season).order('created_at'),
+      ]);
+      ch.entry = e.data || null;
+      if (ch.entry && !Object.keys(ch.picks).length) { ch.picks = ch.entry.picks; ch.tiebreak = ch.entry.tiebreak ?? ''; }
+      ch.groups = g.data || [];
+    } else { ch.entry = null; ch.groups = []; }
+    if (chLocked()) {
+      const all = await sb.from('brackets').select('user_id,display_name,seeds,picks,tiebreak').eq('season', RAW.season).limit(5000);
+      ch.board = (all.data || []).map((b) => ({ ...b, ...scoreBracket(b) })).sort((x, y) => y.pts - x.pts || x.display_name.localeCompare(y.display_name));
+    }
+    ch.loaded = true;
+  } catch (err) { console.warn(err); }
+  ch.loading = false;
+  if (state.tab === 'challenge') render();
+}
+async function chOpenGroup(id) {
+  const g = ch.groups.find((x) => x.id === id);
+  if (!g) return;
+  ch.group = g; ch.members = []; render();
+  const [m, s] = await Promise.all([
+    sb.from('group_members').select('user_id,display_name,paid,joined_at').eq('group_id', id).order('joined_at'),
+    sb.rpc('group_bracket_status', { g: id }),
+  ]);
+  ch.members = m.data || [];
+  ch.hasBracket = new Set((s.data || []).map((r) => r.user_id));
+  if (chLocked() && ch.board) {
+    const by = new Map(ch.board.map((b) => [b.user_id, b]));
+    ch.members = ch.members.map((mm) => ({ ...mm, b: by.get(mm.user_id) || null })).sort((x, y) => (y.b?.pts ?? -1) - (x.b?.pts ?? -1));
+  }
+  render();
+}
+
+function chPhase() {
+  if (chLocked()) return { k: 'live', t: 'Brackets locked · live scoring' };
+  if (!REG_DONE) return { k: 'pre', t: `Groups are open now · brackets open when Week 18 ends · ${unplayed.length} regular-season games left` };
+  const ms = ch.lockAt ? new Date(ch.lockAt) - Date.now() : null;
+  const left = ms ? `${Math.floor(ms / 864e5)}d ${Math.floor((ms % 864e5) / 36e5)}h` : '';
+  return { k: 'open', t: `Brackets are open${left ? ` · lock in ${left}` : ''}` };
+}
+
+function renderChallenge() {
+  if (!ch.loaded) chLoad();
+  if (ch.group) return chGroupView();
+  const ph = chPhase();
+  const hero = `<section class="chhero">
+    <div class="chh-text"><span class="chpill ${ph.k}">${ph.t}</span>
+      <h1>Playoff Bracket Challenge</h1>
+      <p>Pick all 13 playoff games, start a group with your friends, and see who really knows ball. Free to play.</p>
+      <div class="row-btns" style="justify-content:flex-start">
+        <button class="btn primary big" data-act="chnew">Start a group</button>
+        <button class="btn big" data-act="chjoin">Join with a code</button>
+      </div></div>
+    <div class="chh-pts">${RO.map((r) => `<div><b>${CH_PTS[r]}</b><span>${{ WC: 'Wild Card', DIV: 'Divisional', CON: 'Conference', SB: 'Super Bowl' }[r]}</span></div>`).join('')}<small>points per correct pick · +1 per seed on upsets you call · Super Bowl total points breaks ties</small></div>
+  </section>`;
+  // my bracket
+  let mine;
+  if (ph.k === 'pre') mine = `<div class="card chcard"><h3>Your bracket</h3><p>Seeds aren't set until Week 18 is over. Brackets open that night and lock at the first wild card kickoff.</p><p class="hint">Want to practice? Build a what-if bracket on the <a href="#odds">Playoffs tab</a>.</p></div>`;
+  else if (ph.k === 'open') {
+    const n = nChPicks(), done = bracketDone();
+    mine = `<div class="card chcard wide"><div class="section-head" style="margin-top:0"><h3>Your bracket</h3>
+      <span class="hint">${ch.entry ? `Saved ${new Date(ch.entry.updated_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}` : 'Not submitted yet'} · ${n} of 13 picked</span>
+      <span style="margin-left:auto;display:flex;gap:6px"><button class="btn" data-act="chfav">Favorites win</button>${n ? '<button class="btn" data-act="chclear">Clear</button>' : ''}</span></div>
+      ${bracketHtml(REAL_SEEDS, 'ch')}
+      <div class="chsave"><label>Super Bowl total points <input type="number" id="chTb" min="0" max="200" inputmode="numeric" value="${esc(ch.tiebreak)}" placeholder="e.g. 47"></label>
+        <label>Name on leaderboards <input type="text" id="chName" maxlength="40" value="${esc(ch.entry?.display_name || myName())}"></label>
+        <button class="btn primary big" data-act="chsave" ${done ? '' : 'disabled'}>${user ? (ch.entry ? 'Update bracket' : 'Submit bracket') : 'Sign in to submit'}</button></div>
+      ${done ? '' : '<p class="hint" style="margin:6px 0 0">Pick every game through the Super Bowl to submit.</p>'}
+    </div>`;
+  } else {
+    const sc = ch.entry ? scoreBracket(ch.entry) : null;
+    const rank = sc && ch.board ? ch.board.findIndex((b) => b.user_id === user.id) + 1 : 0;
+    mine = ch.entry ? `<div class="card chcard wide"><div class="section-head" style="margin-top:0"><h3>Your bracket</h3>
+      <span class="chscore num"><b>${sc.pts}</b> pts</span><span class="hint num">${sc.right} right · max ${sc.max}${rank ? ` · #${rank} of ${ch.board.length}` : ''}</span></div>
+      ${bracketHtml(ch.entry.seeds, 'ch', true, ch.entry.picks)}</div>`
+      : `<div class="card chcard"><h3>Your bracket</h3><p>Brackets are locked${user ? " and you didn't submit one this year" : ''}. Follow along with your groups, and you'll be first in line next season.</p></div>`;
+  }
+  const groups = !user ? `<div class="card chcard"><h3>Your groups</h3><p>Sign in to start or join a group.</p><button class="btn primary" data-act="signin">Sign in</button></div>`
+    : `<div class="card chcard"><h3>Your groups</h3>${ch.groups.length ? ch.groups.map((g) => `<button class="chgroup" data-chgroup="${g.id}"><b>${esc(g.name)}</b><span>${g.owner === user.id ? 'Commissioner' : 'Member'}${g.dues ? ` · $${g.dues} dues` : ''}</span><i>›</i></button>`).join('') : '<p class="hint">No groups yet. Start one and send the link to your group chat.</p>'}</div>`;
+  const board = ph.k === 'live' && ch.board ? `<div class="card chcard"><h3>Everyone</h3><table class="t chboard"><thead><tr><th>#</th><th>Name</th><th>Champion</th><th>Pts</th></tr></thead><tbody>${ch.board.slice(0, 25).map((b, k) => `<tr class="${user && b.user_id === user.id ? 'me' : ''}"><td class="num">${k + 1}</td><td>${esc(b.display_name)}</td><td>${b.champ != null ? `<span class="tn${b.champAlive ? '' : ' dead'}">${chip(TEAMS[b.champ])}</span>` : ''}</td><td class="num"><b>${b.pts}</b></td></tr>`).join('')}</tbody></table></div>` : '';
+  return `${hero}<div class="chgrid">${mine}<div class="chside">${groups}${board}</div></div>
+    <p class="hint chlegal">Free to play. Clinch never collects, holds or pays out money. The dues tracker is a checklist; groups settle up however they choose, where it's legal for them.</p>`;
+}
+
+function chGroupView() {
+  const g = ch.group, own = user && g.owner === user.id, locked = chLocked();
+  const unpaid = ch.members.filter((m) => !m.paid);
+  const rows = ch.members.map((m, k) => {
+    const has = ch.hasBracket.has(m.user_id);
+    return `<tr class="${user && m.user_id === user.id ? 'me' : ''}">
+      ${locked ? `<td class="num">${m.b ? k + 1 : ''}</td>` : ''}
+      <td>${esc(m.display_name)}${m.user_id === g.owner ? ' <span class="tag">commish</span>' : ''}</td>
+      <td>${has ? '<span class="ok">✓ in</span>' : '<span class="muted">—</span>'}</td>
+      ${locked ? `<td>${m.b && m.b.champ != null ? `<span class="tn${m.b.champAlive ? '' : ' dead'}">${chip(TEAMS[m.b.champ])}</span>` : ''}</td><td class="num"><b>${m.b ? m.b.pts : ''}</b></td>` : ''}
+      ${g.dues ? `<td>${own ? `<button class="paid ${m.paid ? 'on' : ''}" data-chpaid="${m.user_id}" aria-pressed="${m.paid}">${m.paid ? '✓ Paid' : 'Unpaid'}</button>` : m.paid ? '<span class="ok">✓ Paid</span>' : '<span class="muted">Unpaid</span>'}</td>` : ''}
+      ${own && m.user_id !== g.owner ? `<td><button class="btn danger mini" data-chkick="${m.user_id}" aria-label="Remove ${esc(m.display_name)}">✕</button></td>` : own ? '<td></td>' : ''}
+    </tr>`;
+  }).join('');
+  const pot = g.dues * ch.members.length, got = g.dues * (ch.members.length - unpaid.length);
+  return `<div class="section-head" style="margin-top:4px"><button class="btn" data-act="chback">← Bracket Challenge</button></div>
+  <section class="chhero grp"><div class="chh-text">
+    <span class="chpill ${chPhase().k}">${chPhase().t}</span>
+    <h1>${esc(g.name)}</h1>
+    <p>${ch.members.length} member${ch.members.length === 1 ? '' : 's'} · ${ch.hasBracket.size} bracket${ch.hasBracket.size === 1 ? '' : 's'} in${g.dues ? ` · $${g.dues} dues` : ''}</p>
+    <div class="sharebox"><input type="text" readonly value="${esc(inviteUrl(g.code))}" id="chInvite" aria-label="Invite link"><button class="btn primary" data-act="chcopyinvite">Copy invite</button>${navigator.share ? '<button class="btn" data-act="chshareinvite">Share</button>' : ''}</div>
+  </div>
+  ${g.dues ? `<div class="chdues"><div><b class="num">$${got}</b><span>of $${pot} paid</span></div><div class="meter"><i style="width:${pot ? Math.round((got / pot) * 100) : 0}%"></i></div>${g.dues_note ? `<small>Pay: ${esc(g.dues_note)}</small>` : ''}</div>` : ''}
+  </section>
+  <div class="card scroll"><table class="t chmembers"><thead><tr>${locked ? '<th>#</th>' : ''}<th>Member</th><th>Bracket</th>${locked ? '<th>Champion</th><th>Pts</th>' : ''}${g.dues ? '<th>Dues</th>' : ''}${own ? '<th></th>' : ''}</tr></thead><tbody>${rows || '<tr><td>Loading…</td></tr>'}</tbody></table></div>
+  <div class="row-btns" style="justify-content:flex-start;margin-top:12px">
+    ${own ? `<button class="btn" data-act="chedit">Group settings</button>${g.dues && unpaid.length ? `<button class="btn" data-act="chremind">Copy dues reminder (${unpaid.length})</button>` : ''}` : '<button class="btn danger" data-act="chleave">Leave group</button>'}
+  </div>
+  <p class="hint chlegal">Clinch doesn't collect or hold money. The commissioner marks who's paid.</p>`;
+}
+
+function chGroupForm(g) {
+  openModal(`<h3>${g ? 'Group settings' : 'Start a group'}</h3>
+    <label class="hint" for="cgName">Group name</label><input type="text" id="cgName" maxlength="60" value="${esc(g ? g.name : `${(myName().split(' ')[0])}'s Bracket Challenge`)}">
+    <label class="hint" for="cgDues">Dues per person (optional, tracking only)</label><input type="number" id="cgDues" min="0" max="10000" inputmode="numeric" value="${g ? g.dues || '' : ''}" placeholder="0">
+    <label class="hint" for="cgNote">How to pay (optional)</label><input type="text" id="cgNote" maxlength="200" value="${esc(g?.dues_note || '')}" placeholder="e.g. Venmo @josh-house">
+    <p class="hint">Clinch only tracks who's paid. Money goes directly between members.</p>
+    <div class="row-btns">${g ? '<button class="btn danger" data-act="chdelete" style="margin-right:auto">Delete group</button>' : ''}<button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="${g ? 'chupdate' : 'chcreate'}">${g ? 'Save' : 'Create group'}</button></div>`);
+  $('#cgName').select();
+}
+async function chJoinDialog(code) {
+  if (!code) {
+    return openModal(`<h3>Join a group</h3><label class="hint" for="cjCode">Invite code or link</label><input type="text" id="cjCode" placeholder="e.g. 3f9a1c2b">
+      <div class="row-btns"><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="chlookup">Next</button></div>`);
+  }
+  const { data } = await sb.rpc('peek_group', { c: code });
+  const g = data && data[0];
+  if (!g) return toast('That invite code does not exist');
+  openModal(`<h3>Join ${esc(g.name)}?</h3><p>${esc(g.commissioner || 'A friend')} invited you to their Playoff Bracket Challenge. ${g.members} member${g.members === 1 ? '' : 's'} so far${g.dues ? ` · $${g.dues} dues, tracked by the commissioner` : ''}.</p>
+    ${user ? `<label class="hint" for="cjName">Your name in this group</label><input type="text" id="cjName" maxlength="40" value="${esc(myName())}">` : ''}
+    <div class="row-btns"><button class="btn" data-act="close">Not now</button><button class="btn primary" data-act="chdojoin" data-code="${esc(code)}">${user ? 'Join group' : 'Sign in to join'}</button></div>`);
+}
+
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.ch) {
+    const w = +b.dataset.pw;
+    if (ch.picks[b.dataset.ch] === w) delete ch.picks[b.dataset.ch]; else ch.picks[b.dataset.ch] = w;
+    store.set('ch:' + RAW.season, ch.picks); render(); return;
+  }
+  if (b.dataset.chgroup) return chOpenGroup(b.dataset.chgroup);
+  if (b.dataset.chpaid) {
+    const m = ch.members.find((x) => x.user_id === b.dataset.chpaid); if (!m) return;
+    const { error } = await sb.from('group_members').update({ paid: !m.paid }).eq('group_id', ch.group.id).eq('user_id', m.user_id);
+    if (error) return toast(error.message);
+    m.paid = !m.paid; render(); return;
+  }
+  if (b.dataset.chkick) {
+    const m = ch.members.find((x) => x.user_id === b.dataset.chkick);
+    if (!m || !confirmTwice(b)) return;
+    const { error } = await sb.from('group_members').delete().eq('group_id', ch.group.id).eq('user_id', m.user_id);
+    if (error) return toast(error.message);
+    return chOpenGroup(ch.group.id);
+  }
+  const act = b.dataset.act;
+  if (!act || !act.startsWith('ch')) return;
+  if (act === 'chback') { ch.group = null; render(); return; }
+  if (act === 'chfav' || act === 'chclear') {
+    if (act === 'chclear') ch.picks = {};
+    else playBracket(REAL_SEEDS, (round, hi, lo, neutral) => { const k = pairKey(round, hi, lo); if (ch.picks[k] !== hi && ch.picks[k] !== lo) ch.picks[k] = poWinProb(STRENGTH, hi, lo, neutral) >= 0.5 ? hi : lo; return ch.picks[k]; });
+    store.set('ch:' + RAW.season, ch.picks); render(); return;
+  }
+  if (act === 'chsave') {
+    ch.tiebreak = $('#chTb').value; store.set('chtb:' + RAW.season, ch.tiebreak);
+    if (!user) { store.set('pending', 'chsave'); return signInDialog('chsave'); }
+    const tb = parseInt(ch.tiebreak, 10);
+    if (!(tb >= 0 && tb <= 200)) return toast('Add your guess for Super Bowl total points (the tiebreaker)');
+    const name = ($('#chName').value || '').trim() || myName();
+    // keep only picks that are part of this bracket
+    const keep = {}; playBracket(REAL_SEEDS, (r, hi, lo) => { const k = pairKey(r, hi, lo), w = chDecide(r, hi, lo); if (w != null) keep[k] = w; return w; });
+    const { data, error } = await sb.from('brackets').upsert({ season: RAW.season, display_name: name, seeds: REAL_SEEDS, picks: keep, tiebreak: tb }, { onConflict: 'user_id,season' }).select().single();
+    if (error) return toast('Could not save: ' + error.message);
+    ch.entry = data; toast(`Bracket ${ch.entry.created_at === ch.entry.updated_at ? 'submitted' : 'updated'}. Good luck!`); render(); return;
+  }
+  if (!user && ['chnew', 'chjoin'].includes(act)) { store.set('pending', act); return signInDialog('challenge'); }
+  if (act === 'chnew') return chGroupForm(null);
+  if (act === 'chedit') return chGroupForm(ch.group);
+  if (act === 'chcreate' || act === 'chupdate') {
+    const rec = { name: $('#cgName').value.trim(), dues: Math.max(0, parseInt($('#cgDues').value || '0', 10) || 0), dues_note: $('#cgNote').value.trim() || null };
+    if (!rec.name) return toast('Give your group a name');
+    if (act === 'chcreate') {
+      const { data, error } = await sb.from('bgroups').insert({ ...rec, season: RAW.season }).select().single();
+      if (error) return toast('Could not create: ' + error.message);
+      closeModal(); ch.groups.push(data); toast('Group created. Send the invite link to your group chat'); return chOpenGroup(data.id);
+    }
+    const { data, error } = await sb.from('bgroups').update(rec).eq('id', ch.group.id).select().single();
+    if (error) return toast(error.message);
+    Object.assign(ch.group, data); closeModal(); render(); return;
+  }
+  if (act === 'chdelete') {
+    if (!confirmTwice(b)) return;
+    const { error } = await sb.from('bgroups').delete().eq('id', ch.group.id);
+    if (error) return toast(error.message);
+    ch.groups = ch.groups.filter((x) => x.id !== ch.group.id); ch.group = null; closeModal(); render(); return;
+  }
+  if (act === 'chleave') {
+    if (!confirmTwice(b)) return;
+    await sb.from('group_members').delete().eq('group_id', ch.group.id).eq('user_id', user.id);
+    ch.groups = ch.groups.filter((x) => x.id !== ch.group.id); ch.group = null; render(); return;
+  }
+  if (act === 'chjoin') return chJoinDialog('');
+  if (act === 'chlookup') { const v = ($('#cjCode').value || '').trim(); const code = (v.match(/join=([a-z0-9]+)/i) || [, v])[1].toLowerCase(); return chJoinDialog(code); }
+  if (act === 'chdojoin') {
+    const code = b.dataset.code;
+    if (!user) { store.set('pending', 'join:' + code); return signInDialog('challenge'); }
+    const { data, error } = await sb.rpc('join_group', { c: code, nm: ($('#cjName')?.value || myName()).trim() });
+    if (error) return toast(error.message);
+    closeModal(); ch.loaded = false; await chLoad(true); state.tab = 'challenge'; location.hash = 'challenge'; return chOpenGroup(data);
+  }
+  if (act === 'chcopyinvite') { try { await navigator.clipboard.writeText(inviteUrl(ch.group.code)); toast('Invite link copied'); } catch { $('#chInvite').select(); } return; }
+  if (act === 'chshareinvite') { try { await navigator.share({ title: ch.group.name, text: `Join my NFL Playoff Bracket Challenge on Clinch: ${ch.group.name}`, url: inviteUrl(ch.group.code) }); } catch {} return; }
+  if (act === 'chremind') {
+    const g = ch.group, unpaid = ch.members.filter((m) => !m.paid).map((m) => m.display_name);
+    const msg = `🏈 ${g.name}: $${g.dues} dues still owed by ${unpaid.join(', ')}.${g.dues_note ? ` Pay: ${g.dues_note}.` : ''} Make your bracket: ${inviteUrl(g.code)}`;
+    try { await navigator.clipboard.writeText(msg); toast('Reminder copied. Paste it in your group chat'); } catch { toast(msg); }
+  }
+});
+// Destructive buttons need a second tap.
+function confirmTwice(b) {
+  if (b.dataset.armed) return true;
+  b.dataset.armed = '1'; const t = b.textContent; b.textContent = 'Tap again to confirm';
+  setTimeout(() => { delete b.dataset.armed; b.textContent = t; }, 3000);
+  return false;
+}
 
 $('#brandName').textContent = CONFIG.siteName;
 $('#yr').textContent = new Date().getFullYear();
