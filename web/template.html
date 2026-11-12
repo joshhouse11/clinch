@@ -490,6 +490,10 @@ nav.tabs i.lg { font-style: normal; }
 .hbtn.auto { color: var(--accent); }
 .hbtn.auto svg { fill: color-mix(in srgb, var(--accent) 35%, transparent); }
 .autotag { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); margin-left: 6px; }
+.modal.wide { max-width: 560px; }
+.cardseg { margin: 4px 0 12px; }
+.cardprev { background: #000; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); aspect-ratio: 1080 / 1350; max-height: 58vh; margin: 0 auto; }
+.cardprev img { width: 100%; height: 100%; object-fit: contain; display: block; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -1309,7 +1313,7 @@ const fromIds = (m) => Object.fromEntries(Object.entries(m || {}).filter(([id]) 
 const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const LOCAL_KEY = 'scenarios:' + RAW.season;
 
-function openModal(html) { $('#modal').innerHTML = html; $('#modalBg').hidden = false; const f = $('#modal').querySelector('input, button'); if (f) f.focus(); }
+function openModal(html) { $('#modal').classList.remove('wide'); $('#modal').innerHTML = html; $('#modalBg').hidden = false; const f = $('#modal').querySelector('input, button'); if (f) f.focus(); }
 function closeModal() { $('#modalBg').hidden = true; $('#modal').innerHTML = ''; }
 $('#modalBg').addEventListener('click', (e) => { if (e.target.id === 'modalBg') closeModal(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#modalBg').hidden) closeModal(); });
@@ -1348,14 +1352,6 @@ function unpackScenario(str) {
   return { picks, flips };
 }
 const siteBase = () => CONFIG.siteUrl || location.origin + location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '').replace(/\/(index\.html)?$/, '');
-function share() {
-  if (!hasPicks()) return toast('Make a pick or a do-over first, then share it');
-  const url = `${siteBase()}/?p=${RAW.season}.${state.team}.${packScenario()}${nPo() ? '.' + packPo(state.po) : ''}`;
-  openModal(`<h3>Share this scenario</h3><p>Anyone with the link sees exactly these picks and do-overs. They can change them without touching yours.</p>
-    <div class="sharebox"><input type="text" id="shareUrl" readonly value="${esc(url)}" aria-label="Share link"><button class="btn primary" data-act="copyshare">Copy</button></div>
-    <div class="row-btns"><button class="btn" data-act="close">Done</button></div>`);
-  $('#shareUrl').select();
-}
 function applyScenario(sc, team, viaShare) {
   if (viaShare) setActive(null);
   if (viaShare) store.set('picks:backup', { picks: state.picks, flips: state.flips, po: state.po, team: state.team });
@@ -1858,6 +1854,221 @@ function confirmTwice(b) {
   setTimeout(() => { delete b.dataset.armed; b.textContent = t; }, 3000);
   return false;
 }
+
+
+// ---------- share images: 1080x1350 cards for Instagram / X, drawn on a canvas ----------
+const CARD = { W: 1080, H: 1350, bg: '#0d0f12', surf: '#16191e', line: '#2b313a', text: '#eef1f4', muted: '#8b939e', lime: '#c6f24e', gold: '#ffc861' };
+function cv() { const c = document.createElement('canvas'); c.width = CARD.W; c.height = CARD.H; return [c, c.getContext('2d')]; }
+function rr(x, cx, cy, w, h, r) { x.beginPath(); x.moveTo(cx + r, cy); x.arcTo(cx + w, cy, cx + w, cy + h, r); x.arcTo(cx + w, cy + h, cx, cy + h, r); x.arcTo(cx, cy + h, cx, cy, r); x.arcTo(cx, cy, cx + w, cy, r); x.closePath(); }
+const F = (w, s, fam = 'Poppins') => `${w} ${s}px ${fam === 'Poppins' ? '"Poppins"' : '"DM Sans"'}, system-ui, sans-serif`;
+function fitText(x, t, max, w, s, fam) { let z = s; x.font = F(w, z, fam); while (x.measureText(t).width > max && z > 12) { z -= 2; x.font = F(w, z, fam); } return z; }
+function cChip(x, t, cx, cy, r, dim = false) {
+  x.save(); x.globalAlpha = dim ? 0.35 : 1;
+  x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fillStyle = COLORS[t]; x.fill();
+  x.fillStyle = ink(COLORS[t]); x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = F(800, Math.round(r * 0.62)); x.fillText(t, cx, cy + 1);
+  x.restore();
+}
+function cLogo(x, lx, ly, s) {
+  const g = x.createLinearGradient(lx, ly + s, lx + s, ly); g.addColorStop(0, '#9fd420'); g.addColorStop(1, '#e2ff8a');
+  rr(x, lx, ly, s, s, s * 0.28); x.fillStyle = g; x.fill();
+  x.strokeStyle = '#1b2400'; x.lineWidth = s * 0.125; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(lx + s * 0.25, ly + s * 0.515); x.lineTo(lx + s * 0.383, ly + s * 0.648); x.stroke();
+  x.beginPath(); x.moveTo(lx + s * 0.516, ly + s * 0.672); x.lineTo(lx + s * 0.758, ly + s * 0.344); x.stroke();
+}
+function cFrame(x, glow = CARD.lime) {
+  x.fillStyle = CARD.bg; x.fillRect(0, 0, CARD.W, CARD.H);
+  const g1 = x.createRadialGradient(980, 60, 0, 980, 60, 620); g1.addColorStop(0, glow + '38'); g1.addColorStop(1, glow + '00');
+  x.fillStyle = g1; x.fillRect(0, 0, CARD.W, CARD.H);
+  const g2 = x.createRadialGradient(60, 1320, 0, 60, 1320, 520); g2.addColorStop(0, '#ffc86118'); g2.addColorStop(1, '#ffc86100');
+  x.fillStyle = g2; x.fillRect(0, 0, CARD.W, CARD.H);
+  cLogo(x, 64, 60, 64);
+  x.fillStyle = CARD.text; x.font = F(800, 46); x.textBaseline = 'middle'; x.textAlign = 'left'; x.fillText('clinch', 144, 94);
+  // footer
+  x.fillStyle = CARD.line; x.fillRect(64, CARD.H - 118, CARD.W - 128, 2);
+  x.font = F(800, 34); x.fillStyle = CARD.text; x.fillText('clinchscenarios.com', 64, CARD.H - 62);
+  x.font = F(700, 28, 'DM'); x.fillStyle = CARD.lime; x.textAlign = 'right'; x.fillText('Make yours →', CARD.W - 64, CARD.H - 62); x.textAlign = 'left';
+}
+function cHead(x, eyebrow, title, sub, y = 210) {
+  x.textBaseline = 'alphabetic'; x.textAlign = 'left';
+  x.font = F(800, 26, 'DM'); x.fillStyle = CARD.lime; x.fillText(eyebrow.toUpperCase().split('').join(' '), 64, y);
+  const z = fitText(x, title, CARD.W - 128, 800, 78); x.fillStyle = CARD.text; x.fillText(title, 64, y + z + 6);
+  if (sub) { x.font = F(500, 30, 'DM'); x.fillStyle = CARD.muted; x.fillText(sub, 64, y + z + 58); }
+}
+const pickedLabel = () => Object.keys(state.picks).length ? `with my picks · through Week ${lastFinalWeek}` : `if the season ended today · Week ${lastFinalWeek}`;
+
+function cardPicture(cur) {
+  const [c, x] = cv(); cFrame(x);
+  cHead(x, `${RAW.season} NFL playoff picture`, 'My playoff picture', pickedLabel());
+  const src = hasPicks() ? pickOdds || baseOdds : baseOdds;
+  const winners = new Set(cur.divOrder.map((o) => o[0]));
+  [0, 1].forEach((cf) => {
+    const x0 = cf ? 556 : 64, w = 460, y0 = 400;
+    rr(x, x0, y0, w, 760, 28); x.fillStyle = CARD.surf; x.fill(); x.strokeStyle = CARD.line; x.lineWidth = 2; x.stroke();
+    x.font = F(800, 40); x.fillStyle = CARD.text; x.textAlign = 'left'; x.textBaseline = 'middle'; x.fillText(cf ? 'NFC' : 'AFC', x0 + 28, y0 + 52);
+    cur.seeds[cf].slice(0, 7).forEach((t, k) => {
+      const ry = y0 + 120 + k * 88, T = TEAMS[t];
+      if (k === 0) { rr(x, x0 + 12, ry - 38, w - 24, 76, 18); x.fillStyle = CARD.lime + '1f'; x.fill(); }
+      x.font = F(800, 32); x.fillStyle = k === 0 ? CARD.lime : CARD.muted; x.textAlign = 'center'; x.fillText(String(k + 1), x0 + 44, ry + 2);
+      cChip(x, T, x0 + 104, ry, 28);
+      x.textAlign = 'left'; const nz = fitText(x, TEAM_NAMES[T], 200, 800, 32); x.fillStyle = CARD.text; x.fillText(TEAM_NAMES[T], x0 + 146, ry + 2);
+      if (winners.has(t) && k < 4) { const nw = x.measureText(TEAM_NAMES[T]).width; x.font = F(800, 16, 'DM'); x.fillStyle = CARD.lime; x.fillText('DIV', x0 + 156 + nw, ry + 4); }
+      x.font = F(700, 28, 'DM'); x.fillStyle = CARD.muted; x.textAlign = 'right'; x.fillText(recStr(cur.R, t), x0 + w - 28, ry + 2);
+    });
+    const out = cur.seeds[cf][7];
+    x.textAlign = 'left'; x.font = F(500, 24, 'DM'); x.fillStyle = CARD.muted; x.fillText(`First team out: ${TEAM_NAMES[TEAMS[out]]} (${recStr(cur.R, out)})`, x0 + 28, y0 + 728);
+  });
+  const fav = src ? [...src].sort((a, b) => b.champ - a.champ)[0] : null;
+  if (fav) { x.textAlign = 'left'; x.font = F(700, 30, 'DM'); x.fillStyle = CARD.text; x.fillText(`Super Bowl favorite: ${TEAM_NAMES[fav.team]} ${pct(fav.champ)}`, 64, 1196); }
+  return c;
+}
+
+function cardTeam(cur) {
+  const i0 = IDX[state.team], T = state.team, tc = COLORS[T];
+  const [c, x] = cv(); cFrame(x, tc);
+  const band = x.createLinearGradient(0, 180, CARD.W, 700); band.addColorStop(0, tc); band.addColorStop(1, '#0d0f12');
+  rr(x, 40, 160, CARD.W - 80, 600, 36); x.fillStyle = band; x.fill();
+  const o = oddsFor(T, hasPicks() ? pickOdds || baseOdds : baseOdds);
+  const sd = cur.seeds[CONF_OF[i0]].indexOf(i0);
+  x.fillStyle = '#ffffffcc'; x.font = F(800, 26, 'DM'); x.textBaseline = 'alphabetic'; x.textAlign = 'left';
+  x.fillText((Object.keys(state.picks).length ? `My ${T} scenario` : `${T} right now`).toUpperCase(), 92, 250);
+  const nz = fitText(x, TEAM_NAMES[T], 640, 800, 120); x.fillStyle = '#fff'; x.fillText(TEAM_NAMES[T], 88, 250 + nz);
+  x.font = F(700, 40, 'DM'); x.fillStyle = '#ffffffd9';
+  x.fillText(`${recStr(cur.R, i0)} · ${sd < 7 ? `#${sd + 1} seed` : 'out of the playoffs'}`, 92, 250 + nz + 64);
+  cChip(x, T, CARD.W - 170, 300, 86);
+  x.font = F(800, 200); x.fillStyle = '#fff'; x.fillText(o ? pct(o.playoffs) : '…', 80, 660);
+  x.font = F(700, 34, 'DM'); x.fillStyle = '#ffffffd9'; x.fillText('to make the playoffs', 92, 716);
+  const stats = o ? [['Win division', pct(o.division)], ['#1 seed', pct(o.bye)], ['Win Super Bowl', pct(o.champ)]] : [];
+  stats.forEach(([l, v], k) => {
+    const sx = 64 + k * 324; rr(x, sx, 776, 304, 150, 24); x.fillStyle = CARD.surf; x.fill(); x.strokeStyle = CARD.line; x.lineWidth = 2; x.stroke();
+    x.font = F(800, 64); x.fillStyle = k === 2 ? CARD.gold : CARD.text; x.fillText(v, sx + 26, 862);
+    x.font = F(700, 26, 'DM'); x.fillStyle = CARD.muted; x.fillText(l, sx + 28, 904);
+  });
+  // remaining schedule with picks
+  const games = G.filter((g) => !g.played && (g.h === i0 || g.a === i0)).sort((a, b) => a.week - b.week).slice(0, 9);
+  x.font = F(800, 24, 'DM'); x.fillStyle = CARD.muted; x.fillText(games.length ? 'MY PICKS, REST OF THE WAY' : 'REGULAR SEASON COMPLETE', 64, 990);
+  games.forEach((g, k) => {
+    const gx = 64 + k * 106, opp = TEAMS[g.h === i0 ? g.a : g.h], p = state.picks[g.k];
+    const res = p === undefined ? null : (p === 0 ? 'T' : ((p > 0) === (g.h === i0) ? 'W' : 'L'));
+    rr(x, gx, 1012, 94, 132, 18); x.fillStyle = res === 'W' ? CARD.lime + '2a' : res === 'L' ? '#ff6b6b22' : CARD.surf; x.fill();
+    x.strokeStyle = res === 'W' ? CARD.lime : res === 'L' ? '#ff6b6b' : CARD.line; x.lineWidth = 2; x.stroke();
+    cChip(x, opp, gx + 47, 1058, 26);
+    x.textAlign = 'center'; x.font = F(800, 30); x.fillStyle = res === 'W' ? CARD.lime : res === 'L' ? '#ff6b6b' : CARD.muted;
+    x.fillText(res || `W${g.week}`, gx + 47, 1122); x.textAlign = 'left';
+  });
+  return c;
+}
+
+function cardBracket(seeds, decide, title, sub) {
+  const [c, x] = cv(); cFrame(x);
+  cHead(x, `${RAW.season} NFL playoffs`, title, sub);
+  const br = playBracket(seeds, decide);
+  const node = (t, sd, cx, cy, state) => {
+    rr(x, cx - 66, cy - 30, 132, 60, 30); x.fillStyle = state === 'win' ? CARD.lime + '24' : CARD.surf; x.fill();
+    x.strokeStyle = state === 'win' ? CARD.lime : CARD.line; x.lineWidth = state === 'win' ? 3 : 2; x.stroke();
+    cChip(x, TEAMS[t], cx - 34, cy, 22, state === 'loss');
+    x.font = F(800, 24); x.fillStyle = state === 'loss' ? CARD.muted : CARD.text; x.textAlign = 'left'; x.textBaseline = 'middle'; x.fillText(String(sd), cx - 4, cy + 1);
+    x.font = F(700, 22, 'DM'); x.fillText(TEAMS[t], cx + 20, cy + 1);
+  };
+  const tbd = (cx, cy) => { rr(x, cx - 66, cy - 30, 132, 60, 30); x.setLineDash([6, 6]); x.strokeStyle = CARD.line; x.lineWidth = 2; x.stroke(); x.setLineDash([]); };
+  const st = (m, t) => (m.w == null ? '' : m.w === t ? 'win' : 'loss');
+  [0, 1].forEach((cf) => {
+    const C = br.conf[cf], s = C.seeds;
+    const col = cf ? [CARD.W - 120, CARD.W - 280, CARD.W - 440] : [120, 280, 440];
+    x.font = F(800, 34); x.fillStyle = CARD.text; x.textAlign = cf ? 'right' : 'left'; x.textBaseline = 'alphabetic';
+    x.fillText(cf ? 'NFC' : 'AFC', cf ? CARD.W - 64 : 64, 420);
+    const y0 = 470;
+    // wild card: bye + 3 games (pairs)
+    node(s[0], 1, col[0], y0 + 10, 'win');
+    C.wc.forEach((m, k) => { const gy = y0 + 110 + k * 160; node(m.hi, m.hs, col[0], gy, st(m, m.hi)); node(m.lo, m.ls, col[0], gy + 66, st(m, m.lo)); });
+    const dy = [y0 + 110, y0 + 430];
+    if (C.div) C.div.forEach((m, k) => { node(m.hi, m.hs, col[1], dy[k], st(m, m.hi)); node(m.lo, m.ls, col[1], dy[k] + 66, st(m, m.lo)); });
+    else dy.forEach((yy) => { tbd(col[1], yy); tbd(col[1], yy + 66); });
+    const cy = y0 + 270;
+    if (C.con) { node(C.con.hi, C.con.hs, col[2], cy, st(C.con, C.con.hi)); node(C.con.lo, C.con.ls, col[2], cy + 66, st(C.con, C.con.lo)); }
+    else { tbd(col[2], cy); tbd(col[2], cy + 66); }
+  });
+  // Super Bowl / champion
+  const sb = br.sb, champ = sb && sb.w != null ? sb.w : null;
+  const by = 1040;
+  rr(x, 64, by - 10, CARD.W - 128, 150, 30);
+  const gg = x.createLinearGradient(64, by, CARD.W - 64, by + 150); gg.addColorStop(0, (champ != null ? COLORS[TEAMS[champ]] : '#2b313a') + 'cc'); gg.addColorStop(1, '#16191e');
+  x.fillStyle = gg; x.fill(); x.strokeStyle = CARD.gold; x.lineWidth = 3; x.stroke();
+  x.textAlign = 'left'; x.textBaseline = 'alphabetic';
+  if (champ != null) {
+    cChip(x, TEAMS[champ], 150, by + 65, 52);
+    x.font = F(800, 26, 'DM'); x.fillStyle = CARD.gold; x.fillText('SUPER BOWL CHAMPION', 230, by + 48);
+    const z = fitText(x, TEAM_NAMES[TEAMS[champ]], 560, 800, 64); x.fillStyle = '#fff'; x.fillText(TEAM_NAMES[TEAMS[champ]], 228, by + 48 + z);
+    const lo = sb.w === sb.hi ? sb.lo : sb.hi; x.font = F(700, 28, 'DM'); x.fillStyle = '#ffffffcc'; x.textAlign = 'right'; x.fillText(`over the ${TEAM_NAMES[TEAMS[lo]]}`, CARD.W - 100, by + 112); x.textAlign = 'left';
+  } else { x.font = F(800, 40); x.fillStyle = CARD.gold; x.fillText('Super Bowl: still deciding…', 104, by + 80); }
+  return c;
+}
+
+function cardDraft(cur) {
+  const [c, x] = cv(); cFrame(x, '#ff6b6b');
+  cHead(x, `${DRAFT_YEAR} NFL draft order`, 'Tank watch', `Top 10 ${Object.keys(state.picks).length ? 'with my picks' : 'if the season ended today'}`);
+  const owners = pickOwners(cur.draft);
+  cur.draft.slice(0, 10).forEach((t, k) => {
+    const T = TEAMS[t], own = owners[T], ry = 430 + k * 76;
+    rr(x, 64, ry - 32, CARD.W - 128, 64, 18); x.fillStyle = k === 0 ? '#ff6b6b26' : CARD.surf; x.fill();
+    x.font = F(800, 34); x.fillStyle = k === 0 ? '#ff8b8b' : CARD.muted; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(String(k + 1), 116, ry + 2);
+    cChip(x, own, 190, ry, 24); x.textAlign = 'left';
+    x.font = F(800, 32); x.fillStyle = CARD.text; x.fillText(TEAM_NAMES[own], 232, ry + 2);
+    if (own !== T) { const nw = x.measureText(TEAM_NAMES[own]).width; x.font = F(700, 22, 'DM'); x.fillStyle = CARD.gold; x.fillText(`via ${T}`, 246 + nw, ry + 4); }
+    x.font = F(700, 28, 'DM'); x.fillStyle = CARD.muted; x.textAlign = 'right'; x.fillText(recStr(cur.R, t), CARD.W - 96, ry + 2); x.textAlign = 'left';
+  });
+  return c;
+}
+
+const CARD_KINDS = [
+  { k: 'picture', label: 'Playoff picture' }, { k: 'team', label: 'My team' }, { k: 'bracket', label: 'Bracket' }, { k: 'draft', label: 'Tank watch' },
+];
+const defaultCard = () => ({ league: 'picture', team: 'team', odds: 'bracket', challenge: 'bracket', draft: 'draft' })[state.tab] || 'picture';
+async function makeCard(kind) {
+  try { await Promise.all([document.fonts.load(F(800, 40)), document.fonts.load(F(700, 30, 'DM')), document.fonts.load(F(500, 30, 'DM'))]); } catch {}
+  const cur = evaluate(ctx, outcomes());
+  if (kind === 'team') return cardTeam(cur);
+  if (kind === 'draft') return cardDraft(cur);
+  if (kind === 'bracket') {
+    if (state.tab === 'challenge' && REAL_SEEDS) {
+      const src = ch.entry && chLocked() ? ch.entry.picks : ch.picks, seeds = ch.entry && chLocked() ? ch.entry.seeds : REAL_SEEDS;
+      return cardBracket(seeds, (r, hi, lo) => { const w = src[pairKey(r, hi, lo)]; return w === hi || w === lo ? w : null; }, 'My Bracket Challenge picks', 'Playoff Bracket Challenge on Clinch');
+    }
+    return cardBracket(cur.seeds, poDecide, 'My playoff bracket', nPo() ? pickedLabel() : `Seeds ${pickedLabel()} · pick yours`);
+  }
+  return cardPicture(cur);
+}
+let cardKind = null, cardBlob = null;
+async function share(kind) {
+  cardKind = kind || defaultCard();
+  const url = hasPicks() ? `${siteBase()}/?p=${RAW.season}.${state.team}.${packScenario()}${nPo() ? '.' + packPo(state.po) : ''}` : siteBase() + '/';
+  openModal(`<h3>Share</h3>
+    <div class="seg cardseg">${CARD_KINDS.map((c) => `<button data-card="${c.k}" aria-pressed="${c.k === cardKind}">${c.label}</button>`).join('')}</div>
+    <div class="cardprev"><img id="cardImg" alt="Share image preview"></div>
+    <div class="row-btns">${navigator.canShare ? '<button class="btn primary" data-act="cardshare">Share image</button>' : ''}<button class="btn ${navigator.canShare ? '' : 'primary'}" data-act="carddl">Download image</button></div>
+    <p class="hint" style="margin:12px 0 6px">${hasPicks() ? 'Link to these exact picks' : 'Link'}</p>
+    <div class="sharebox"><input type="text" id="shareUrl" readonly value="${esc(url)}" aria-label="Share link"><button class="btn" data-act="copyshare">Copy</button></div>
+    <div class="row-btns"><button class="btn" data-act="close">Done</button></div>`);
+  $('#modal').classList.add('wide');
+  await drawPreview();
+}
+async function drawPreview() {
+  const c = await makeCard(cardKind);
+  cardBlob = await new Promise((r) => c.toBlob(r, 'image/png'));
+  const img = $('#cardImg'); if (img) img.src = URL.createObjectURL(cardBlob);
+}
+const shareText = () => ({ picture: 'My NFL playoff picture 👀', team: `My ${TEAM_NAMES[state.team]} scenario 👀`, bracket: 'My NFL playoff bracket 🏆', draft: 'Tank watch: the NFL draft order 📉' })[cardKind] + ' Make yours at clinchscenarios.com';
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.card) { cardKind = b.dataset.card; document.querySelectorAll('.cardseg button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.card === cardKind))); return drawPreview(); }
+  if (b.dataset.act === 'carddl' && cardBlob) { const a = document.createElement('a'); a.href = URL.createObjectURL(cardBlob); a.download = `clinch-${cardKind}.png`; a.click(); return; }
+  if (b.dataset.act === 'cardshare' && cardBlob) {
+    const file = new File([cardBlob], `clinch-${cardKind}.png`, { type: 'image/png' });
+    try {
+      if (navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: shareText() });
+      else { const a = document.createElement('a'); a.href = URL.createObjectURL(cardBlob); a.download = file.name; a.click(); }
+    } catch {}
+  }
+});
 
 $('#brandName').textContent = CONFIG.siteName;
 $('#yr').textContent = new Date().getFullYear();
