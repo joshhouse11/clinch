@@ -3,6 +3,6 @@
   "SITE_NAME": "clinch",
   "SITE_URL": "https://clinchscenarios.com",
   "SUPABASE_URL": "https://plpzvjkagfikdjskomvy.supabase.co",
-  "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBscHp2amthZ2Zpa2Rqc2tvbXZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0MzUyMDksImV4cCI6MjExMDAxMTIwOX0.wIcbIYXEzWdDH4qjklhNoWrSAXT_sYDmHq7NF9nz4wo",
+  "SUPABASE_ANON_KEY": "sb_publishable__jbgViStVgRVmK0x-RD7Aw_Yid66RoX",
   "AUTH_PROVIDERS": "google"
 }
