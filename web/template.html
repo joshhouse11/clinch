@@ -703,7 +703,7 @@ function renderLeague(cur) {
     return `<div class="grid has-tb lg3"><div class="lmain"><div class="lhead">
       <div class="section-head" style="margin-top:4px"><h2>Every remaining game</h2>${views}
         <div class="seg"><button data-gconf="all" aria-pressed="${gc === 'all'}">All</button><button data-gconf="0" aria-pressed="${gc === 0}">AFC</button><button data-gconf="1" aria-pressed="${gc === 1}">NFC</button></div></div></div>
-      ${gridView(cur)}</div>${sidebar}<div class="tb-slot">${tiebreakSection(cur, gc === 'all' ? [0, 1] : [gc])}</div></div>`;
+      <div class="gridwrap">${gridView(cur)}</div></div>${sidebar}<div class="tb-slot">${tiebreakSection(cur, gc === 'all' ? [0, 1] : [gc])}</div></div>`;
   }
   const past = wk <= lastFinalWeek && !weeks.includes(wk);
   const list = G.filter((g) => g.week === wk).sort((x, y) => (x.day + x.time).localeCompare(y.day + y.time));
