@@ -56,7 +56,7 @@ const outDir = new URL('public/', root);
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(new URL('index.html', outDir), html);
 for (const f of fs.readdirSync(new URL('web/assets/', root))) fs.copyFileSync(new URL('web/assets/' + f, root), new URL(f, outDir));
-fs.writeFileSync(new URL('site.webmanifest', outDir), JSON.stringify({ name: 'Clinch', short_name: 'Clinch', start_url: '/', display: 'standalone', background_color: '#0f1422', theme_color: '#0f1422', icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }] }));
+fs.writeFileSync(new URL('site.webmanifest', outDir), JSON.stringify({ name: 'Clinch', short_name: 'Clinch', start_url: '/', display: 'standalone', background_color: '#0d0f12', theme_color: '#0d0f12', icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }] }));
 // 404 -> app shell, so share links like /s/abc123 resolve on static hosting
 fs.writeFileSync(new URL('404.html', outDir), html);
 fs.writeFileSync(new URL('robots.txt', outDir), `User-agent: *\nAllow: /\n${config.siteUrl ? `Sitemap: ${config.siteUrl}/sitemap.xml\n` : ''}`);
