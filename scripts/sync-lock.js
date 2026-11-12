@@ -15,7 +15,8 @@ const toUtc = (d, t) => new Date(`${d}T${t.padStart(5, '0')}:00-05:00`);
 const first = wc.map((r) => toUtc(r.gameday, r.gametime)).sort((a, b) => a - b)[0];
 const res = await fetch(`${site.SUPABASE_URL}/rest/v1/challenge_settings?on_conflict=season`, {
   method: 'POST',
-  headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+  // New-style keys (sb_secret_...) go in the apikey header only; legacy JWT keys also need the Bearer header.
+  headers: { apikey: key, ...(key.startsWith('sb_') ? {} : { Authorization: `Bearer ${key}` }), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
   body: JSON.stringify({ season, lock_at: first.toISOString() }),
 });
 console.log(res.ok ? `Bracket lock for ${season} set to ${first.toISOString()} (first wild card kickoff).` : `Could not set lock time: HTTP ${res.status} ${await res.text()}`);
