@@ -52,6 +52,7 @@ let simTimer = 0, simGen = 0;
 function recompute() {
   ST = nbaStandings(ctx, outcomes());
   savePicks();
+  if (typeof queueAutosave === 'function') queueAutosave();
   clearTimeout(simTimer); const gen = ++simGen;
   simTimer = setTimeout(() => { const o = nbaSimulate(ctx, RATING, { sims: 3000, rules: RULES, picks }); if (gen === simGen) { odds = o; render(); } }, 350);
 }
@@ -160,7 +161,7 @@ function ruleNotes() {
     if (r.type === 'rank') return r.picks.length === 3 ? `<b>${r.picks.map(nm).join(', ')}</b> picks: best → ${nm(r.to[0])}, 2nd → ${nm(r.to[1])}, worst → ${nm(r.to[2])}` : `<b>${r.picks.map(nm).join(' / ')}</b> picks: better → ${nm(r.to[0])}, other → ${nm(r.to[1])}${r.lastKeepIf ? ` (top-${r.lastKeepIf[1]} protected; if it lands there, ${nm(r.lastKeepTo)} keeps both)` : ''}`;
     if (r.type === 'split') return `<b>${nm(r.pick)}</b> pick → ${r.ranges.map(([lo, hi, to]) => `${nm(to)} if ${lo}-${hi}`).join(', ')}`;
     if (r.type === 'swapWorstOf') return `<b>${nm(r.holder)}</b> can swap the worse of its ${r.among.map(nm).join('/')} picks for ${nm(r.with)}'s`;
-    if (r.type === 'swapIfHolding') return `<b>${nm(r.holder)}</b> can then swap that pick for ${nm(r.with)}'s`;
+    if (r.type === 'swapIfHolding') return `<b>${nm(r.holder)}</b> can then swap whichever first it holds for ${nm(r.with)}'s`;
     return '';
   });
   const bans = RULES.bans.map((b) => `<b>${nm(b.pick)}</b> pick can't land ${b.noPicks.length === 1 ? '#1' : 'top ' + b.noPicks.length}: ${esc(b.why.split(';')[1] ? b.why.split(';')[1].trim() : b.why)}`);

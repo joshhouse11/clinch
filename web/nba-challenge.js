@@ -14,6 +14,92 @@ function confirmTwice(b) {
   setTimeout(() => { delete b.dataset.armed; b.textContent = t; }, 3000);
   return false;
 }
+// ---- saved scenarios (sport 'nba' in the shared scenarios table) + share links ----
+let active = store.get('active:' + RAW.season, null), autoTimer = null, autoState = 'saved';
+function setActive(a) { active = a; store.set('active:' + RAW.season, a); autoState = 'saved'; paintSave(); }
+const pickIds = () => Object.fromEntries(Object.entries(picks).map(([k, v]) => [G[k].id, v]));
+function applyPicks(byId) {
+  for (const k in picks) delete picks[k];
+  for (const [id, v] of Object.entries(byId || {})) { const k = BY_ID[id]; if (k !== undefined && !G[k].played && (v === 1 || v === -1)) picks[k] = v; }
+  recompute(); render();
+}
+function queueAutosave() {
+  if (!active || !user || !sb) return;
+  clearTimeout(autoTimer); autoState = 'pending'; paintSave();
+  autoTimer = setTimeout(async () => {
+    autoState = 'saving'; paintSave();
+    const { data, error } = await sb.from('scenarios').update({ team: state.team, picks: pickIds() }).eq('id', active.id).select('id');
+    if (error || !data || !data.length) { toast(error ? 'Auto-save failed: ' + error.message : `Stopped auto-saving: "${active.name}" no longer exists`); setActive(null); return; }
+    autoState = 'saved'; paintSave();
+  }, 1200);
+}
+function paintSave() {
+  const b = document.querySelector('.hbtn[data-act="save"]'); if (!b) return;
+  const on = active && user;
+  b.classList.toggle('auto', !!on);
+  b.querySelector('span').textContent = on ? (autoState === 'saved' ? 'Saved ✓' : 'Saving…') : 'Save';
+  b.title = on ? `Auto-saving to "${active.name}". Click to save a copy` : 'Save these picks';
+}
+window.addEventListener('beforeunload', (e) => { if (autoState !== 'saved' && active) { e.preventDefault(); e.returnValue = ''; } });
+function saveDialog() {
+  if (!user) { store.set('pending', 'save'); return signInDialog('save'); }
+  if (active) {
+    return openModal(`<h3>Auto-saving</h3><p>Every pick saves to <b>${esc(active.name)}</b> automatically. Want a separate copy? Save it as a new scenario.</p>
+      <label for="scnName" class="hint">New scenario name</label><input type="text" id="scnName" maxlength="80" value="${esc(active.name + ' (copy)')}">
+      <div class="row-btns"><button class="btn" data-act="stopauto" style="margin-right:auto">Stop auto-saving</button><button class="btn" data-act="close">Done</button><button class="btn primary" data-act="dosave">Save as new</button></div>`);
+  }
+  const n = nPicks();
+  if (!n) return toast('Pick some games first, then save them');
+  openModal(`<h3>Save this scenario</h3><p>${n} game pick${n === 1 ? '' : 's'}. Saving to your account.</p>
+    <label for="scnName" class="hint">Name</label><input type="text" id="scnName" maxlength="80" value="${esc(FULL[state.team] + ' scenario')}">
+    <p class="hint">After this, your changes save to it automatically.</p>
+    <div class="row-btns"><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="dosave">Save</button></div>`);
+  $('#scnName').select();
+}
+async function doSave() {
+  const name = ($('#scnName').value || '').trim() || 'My NBA scenario';
+  const { data, error } = await sb.from('scenarios').insert({ sport: 'nba', season: RAW.season, name, team: state.team, picks: pickIds(), flips: {} }).select('id,name').single();
+  if (error) return toast('Could not save: ' + error.message);
+  setActive({ id: data.id, name: data.name }); closeModal(); toast(`Saved "${name}". Changes now save automatically`);
+}
+async function myScenarios() {
+  if (!user) return signInDialog('saved');
+  const { data, error } = await sb.from('scenarios').select('id,name,team,picks,updated_at').eq('sport', 'nba').eq('season', RAW.season).order('updated_at', { ascending: false });
+  const rows = myScenarios.cache = error ? [] : data;
+  const row = (r) => `<div class="scn"><b>${esc(r.name)}${active && active.id === r.id ? ' <span class="tag autotag">auto-saving</span>' : ''}</b><small>${r.team && FULL[r.team] ? esc(FULL[r.team]) + ' · ' : ''}${Object.keys(r.picks || {}).length} picks · ${new Date(r.updated_at).toLocaleDateString()}</small><span class="acts"><button class="btn primary" data-act="loadscn" data-id="${r.id}">Load</button><button class="btn danger" data-act="delscn" data-id="${r.id}" aria-label="Delete ${esc(r.name)}">✕</button></span></div>`;
+  openModal(`<h3>Saved NBA scenarios</h3>${rows.length ? rows.map(row).join('') : '<p>Nothing saved yet. Pick some games, then tap Save.</p>'}
+    <div class="row-btns"><span class="hint" style="margin-right:auto">Signed in as ${esc(user.email || '')}</span><button class="btn" data-act="signout">Sign out</button></div>
+    <div class="row-btns"><button class="btn" data-act="close">Close</button></div>`);
+}
+// Share link: ?p=<season>.<team>.<2 bits per regular-season game, ordered by game id>
+const SHARE_ORDER = [...G].sort((a, b) => String(a.id).localeCompare(String(b.id), 'en', { numeric: true })).map((g) => g.k);
+function packPicks() {
+  const bytes = new Uint8Array(Math.ceil(SHARE_ORDER.length / 4));
+  SHARE_ORDER.forEach((k, i) => { const v = picks[k] === 1 ? 1 : picks[k] === -1 ? 2 : 0; bytes[i >> 2] |= v << ((i & 3) * 2); });
+  let end = bytes.length; while (end && !bytes[end - 1]) end--;
+  return btoa(String.fromCharCode(...bytes.slice(0, end))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function unpackPicks(str) {
+  const bin = atob(str.replace(/-/g, '+').replace(/_/g, '/')), out = {};
+  SHARE_ORDER.forEach((k, i) => { const byte = bin.charCodeAt(i >> 2) || 0, v = (byte >> ((i & 3) * 2)) & 3; if (v && !G[k].played) out[G[k].id] = v === 1 ? 1 : -1; });
+  return out;
+}
+async function shareLink() {
+  if (!nPicks()) return toast('Pick some games first, then share them');
+  const url = `${SITE()}${location.pathname}?p=${RAW.season}.${state.team}.${packPicks()}`;
+  try { if (navigator.share && matchMedia('(pointer: coarse)').matches) await navigator.share({ title: 'My NBA scenario on Clinch', url }); else { await navigator.clipboard.writeText(url); toast('Link copied. Anyone who opens it sees your picks'); } }
+  catch { openModal(`<h3>Share link</h3><input type="text" readonly value="${esc(url)}" onfocus="this.select()"><div class="row-btns"><button class="btn primary" data-act="close">Done</button></div>`); }
+}
+function openShareFromUrl() {
+  const q = new URLSearchParams(location.search), p = q.get('p');
+  if (!p) return;
+  history.replaceState(null, '', location.pathname);
+  const [season, team, data] = p.split('.');
+  if (+season !== RAW.season) return toast(`That link is from the ${season} season`);
+  try { setActive(null); applyPicks(unpackPicks(data || '')); if (T.includes(team)) { state.team = team; store.set('team', team); } toast(`Loaded ${nPicks()} shared pick${nPicks() === 1 ? '' : 's'}`); render(); }
+  catch { toast('That share link looks broken'); }
+}
+
 const myName = () => (user && (user.user_metadata?.full_name || (user.email || '').split('@')[0])) || 'Player';
 function paintAccount() {
   const b = $('#acctBtn'); if (!b) return;
@@ -24,6 +110,8 @@ function signInDialog(why) {
   if (!ACCOUNTS) return openModal('<h3>Accounts are almost here</h3><p>Sign-in is not switched on for this preview.</p><div class="row-btns"><button class="btn primary" data-act="close">Got it</button></div>');
   const head = why === 'chsave' ? ['Sign in to submit your bracket', 'Your picks stay right here while you sign in. Brackets are free; you only need an account so your friends can see your score.']
     : why === 'challenge' ? ['Sign in to play', 'Groups and brackets are tied to your account so your friends can find you. Free, no spam.']
+    : why === 'save' ? ['Sign in to save', 'Saving needs a free account so your scenarios follow you to every device. Your picks stay right where they are while you sign in.']
+    : why === 'saved' ? ['Sign in to see your saves', 'Saved scenarios live in your account, on every device. You can still Share any scenario as a link without signing in.']
     : ['Sign in to Clinch', 'One account for every sport. No password, no spam.'];
   openModal(`<h3>${head[0]}</h3><p>${head[1]}</p>
     <button class="oauth" data-act="oauth" data-provider="google">${GOOGLE_SVG}Continue with Google</button>
@@ -39,7 +127,8 @@ function loadSupabase() {
   });
 }
 async function initAccounts() {
-  paintAccount();
+  paintAccount(); paintSave();
+  openShareFromUrl();
   if (!ACCOUNTS) return;
   try {
     await loadSupabase();
@@ -54,6 +143,7 @@ async function initAccounts() {
     if (pending && user) {
       store.set('pending', null);
       if (pending.startsWith('join:')) { go('challenge'); chJoinDialog(pending.slice(5)); }
+      else if (pending === 'save') saveDialog();
       else if (pending === 'chnew') { go('challenge'); chGroupForm(null); }
       else if (pending === 'chjoin') { go('challenge'); chJoinDialog(''); }
     }
@@ -311,11 +401,25 @@ document.addEventListener('click', async (e) => {
   const act = b.dataset.act;
   if (act === 'close') return closeModal();
   if (act === 'signin') return signInDialog('challenge');
-  if (act === 'account') {
-    if (!user) return signInDialog();
-    return openModal(`<h3>${esc(myName())}</h3><p class="hint">${esc(user.email || '')}</p><div class="row-btns"><button class="btn" data-act="signout">Sign out</button><button class="btn primary" data-act="close">Done</button></div>`);
+  if (act === 'account') return user ? myScenarios() : signInDialog();
+  if (act === 'signout') { await sb.auth.signOut(); setActive(null); closeModal(); return; }
+  if (act === 'share') return shareLink();
+  if (act === 'save') return saveDialog();
+  if (act === 'myscn') return myScenarios();
+  if (act === 'dosave') return doSave();
+  if (act === 'stopauto') { setActive(null); closeModal(); toast('Stopped auto-saving. Your saved copy is unchanged'); return; }
+  if (act === 'loadscn') {
+    const r = (myScenarios.cache || []).find((x) => x.id === b.dataset.id); if (!r) return;
+    setActive(null); applyPicks(r.picks); if (r.team && T.includes(r.team)) { state.team = r.team; store.set('team', r.team); }
+    setActive({ id: r.id, name: r.name }); closeModal(); toast(`Loaded "${r.name}"`); return;
   }
-  if (act === 'signout') { await sb.auth.signOut(); closeModal(); return; }
+  if (act === 'delscn') {
+    if (!confirmTwice(b)) return;
+    const { error } = await sb.from('scenarios').delete().eq('id', b.dataset.id);
+    if (error) return toast('Could not delete: ' + error.message);
+    if (active && active.id === b.dataset.id) setActive(null);
+    return myScenarios();
+  }
   if (act === 'oauth') { store.set('lastPath', location.pathname); const { error } = await sb.auth.signInWithOAuth({ provider: b.dataset.provider, options: { redirectTo: location.origin + location.pathname } }); if (error) toast('Sign-in failed: ' + error.message); return; }
   if (!act || !act.startsWith('ch')) return;
   if (act === 'chback') { ch.group = null; render(); return; }

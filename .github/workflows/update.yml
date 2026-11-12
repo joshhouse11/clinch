@@ -53,7 +53,20 @@ jobs:
             fi
           fi
 
-      - name: Set the Bracket Challenge lock time from the NFL schedule
+      - name: Check for NBA trades that moved draft picks (opens a GitHub issue)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/check-nba-trades.js
+          if [ -s nba-trade-report.md ]; then
+            TITLE="NBA pick check: trade moved draft picks"
+            if [ -z "$(gh issue list --state open --search "$TITLE in:title" --json number -q '.[0].number')" ]; then
+              gh issue create --title "$TITLE" --body-file nba-trade-report.md
+            fi
+          fi
+
+      - name: Set Bracket Challenge lock times (NFL + NBA)
         continue-on-error: true
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

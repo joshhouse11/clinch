@@ -1,24 +1,169 @@
 {
-  "_readme": "2027 NBA draft: first-round pick obligations and league pick limits. Sources: RealGM future draft details (as of Sept 2026), NBA.com 3-2-1 lottery announcement (May 28, 2026). Rules apply in order. Team codes are ESPN's (GS, NO, NY, SA, UTAH, WSH).",
+  "_readme": "2027 NBA draft: first-round pick obligations and league pick limits. Sources: RealGM future draft details (as of Sept 2026), checked against NBA.com transactions through Nov 11, 2026, NBA.com 3-2-1 lottery announcement (May 28, 2026). Rules apply in order. Team codes are ESPN's (GS, NO, NY, SA, UTAH, WSH).",
   "asOf": "2026-11-12",
   "format": "321",
   "bans": [
-    { "pick": "WSH", "noPicks": [1], "why": "Washington picked #1 in 2026; no team can pick #1 in back-to-back drafts" },
-    { "pick": "UTAH", "noPicks": [1, 2, 3, 4, 5], "why": "Utah's pick landed in the top 5 in 2025 and 2026; no top-5 pick three years in a row" }
+    {
+      "pick": "WSH",
+      "noPicks": [
+        1
+      ],
+      "why": "Washington picked #1 in 2026; no team can pick #1 in back-to-back drafts"
+    },
+    {
+      "pick": "UTAH",
+      "noPicks": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "why": "Utah's pick landed in the top 5 in 2025 and 2026; no top-5 pick three years in a row"
+    }
   ],
   "rules": [
-    { "type": "convey", "pick": "ATL", "to": "SA", "deal": "Dejounte Murray trade" },
-    { "type": "convey", "pick": "NY", "to": "BKN", "deal": "Mikal Bridges trade" },
-    { "type": "convey", "pick": "PHX", "to": "HOU", "deal": "Kevin Durant trade (via Brooklyn)" },
-    { "type": "swap", "a": "HOU", "b": "BKN", "deal": "Houston may swap its pick for Brooklyn's" },
-    { "type": "convey", "pick": "DAL", "to": "CHA", "keepIf": [1, 2], "deal": "Top-2 protected (Gafford/Washington trade)" },
-    { "type": "convey", "pick": "LAL", "to": "MEM", "keepIf": [1, 4], "deal": "Top-4 protected (via Utah)" },
-    { "type": "convey", "pick": "MIA", "to": "CHA", "keepIf": [1, 14], "deal": "Top-14 protected (Terry Rozier trade)" },
-    { "type": "convey", "pick": "DEN", "to": "OKC", "keepIf": [1, 5], "deal": "Top-5 protected" },
-    { "type": "rank", "picks": ["CLE", "MIN", "UTAH"], "to": ["MEM", "UTAH", "PHX"], "deal": "Best of CLE/MIN/UTAH to Memphis, second to Utah, worst to Phoenix" },
-    { "type": "rank", "picks": ["NO", "MIL"], "to": ["NO", "ATL"], "lastKeepIf": [1, 4], "lastKeepTo": "NO", "deal": "Better of NO/MIL to New Orleans; the other to Atlanta, top-4 protected (Dejounte Murray trade)" },
-    { "type": "split", "pick": "SA", "ranges": [[1, 16, "SAC"], [17, 30, "OKC"]], "deal": "To Sacramento if 1-16, else Oklahoma City (De'Aaron Fox trade)" },
-    { "type": "swapWorstOf", "holder": "OKC", "among": ["OKC", "DEN"], "with": "LAC", "deal": "OKC may swap the worse of its own and Denver's pick for the Clippers' (Paul George trade)" },
-    { "type": "swapIfHolding", "holder": "LAC", "among": ["OKC", "DEN"], "with": "TOR", "deal": "The Clippers may then swap that pick for Toronto's" }
+    {
+      "type": "convey",
+      "pick": "ATL",
+      "to": "SA",
+      "deal": "Dejounte Murray trade"
+    },
+    {
+      "type": "convey",
+      "pick": "NY",
+      "to": "BKN",
+      "deal": "Mikal Bridges trade"
+    },
+    {
+      "type": "convey",
+      "pick": "PHX",
+      "to": "HOU",
+      "deal": "Kevin Durant trade (via Brooklyn)"
+    },
+    {
+      "type": "swap",
+      "a": "HOU",
+      "b": "BKN",
+      "deal": "Houston may swap its pick for Brooklyn's"
+    },
+    {
+      "type": "convey",
+      "pick": "DAL",
+      "to": "CHA",
+      "keepIf": [
+        1,
+        2
+      ],
+      "deal": "Top-2 protected (Gafford/Washington trade)"
+    },
+    {
+      "type": "convey",
+      "pick": "LAL",
+      "to": "MEM",
+      "keepIf": [
+        1,
+        4
+      ],
+      "deal": "Top-4 protected (via Utah)"
+    },
+    {
+      "type": "convey",
+      "pick": "MIA",
+      "to": "CHA",
+      "keepIf": [
+        1,
+        14
+      ],
+      "deal": "Top-14 protected (Terry Rozier trade)"
+    },
+    {
+      "type": "convey",
+      "pick": "DEN",
+      "to": "OKC",
+      "keepIf": [
+        1,
+        5
+      ],
+      "deal": "Top-5 protected"
+    },
+    {
+      "type": "rank",
+      "picks": [
+        "CLE",
+        "MIN",
+        "UTAH"
+      ],
+      "to": [
+        "MEM",
+        "UTAH",
+        "PHX"
+      ],
+      "deal": "Best of CLE/MIN/UTAH to Memphis, second to Utah, worst to Phoenix"
+    },
+    {
+      "type": "rank",
+      "picks": [
+        "NO",
+        "MIL"
+      ],
+      "to": [
+        "NO",
+        "ATL"
+      ],
+      "lastKeepIf": [
+        1,
+        4
+      ],
+      "lastKeepTo": "NO",
+      "deal": "Better of NO/MIL to New Orleans; the other to Atlanta, top-4 protected (Dejounte Murray trade)"
+    },
+    {
+      "type": "split",
+      "pick": "SA",
+      "ranges": [
+        [
+          1,
+          16,
+          "SAC"
+        ],
+        [
+          17,
+          30,
+          "OKC"
+        ]
+      ],
+      "deal": "To Sacramento if 1-16, else Oklahoma City (De'Aaron Fox trade)"
+    },
+    {
+      "type": "swapWorstOf",
+      "holder": "OKC",
+      "among": [
+        "OKC",
+        "DEN"
+      ],
+      "with": "LAC",
+      "deal": "OKC may swap the worse of its own and Denver's pick for the Clippers' (Paul George trade)"
+    },
+    {
+      "type": "swapIfHolding",
+      "holder": "LAC",
+      "among": [
+        "LAC",
+        "OKC",
+        "DEN"
+      ],
+      "with": "TOR",
+      "deal": "The Clippers may then swap whichever first they hold (their own, or the one from OKC) for Toronto's (Kawhi Leonard trade)"
+    }
+  ],
+  "reviewedTrades": [
+    "2026012",
+    "2026013",
+    "2026014",
+    "2026015",
+    "2026016",
+    "2026017",
+    "2026018"
   ]
 }

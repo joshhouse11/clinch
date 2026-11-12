@@ -426,8 +426,8 @@ main:has(.ohero) .bracket-top { margin-top: 4px; }
 nav.tabs .chtab { color: var(--gold); margin-left: 10px; }
 nav.tabs .chtab::before { content: ''; position: absolute; left: -6px; top: 30%; bottom: 30%; width: 1px; background: var(--line); }
 nav.tabs .chtab span { font-size: 13px; }
-nav.tabs i.lg { font-style: normal; }
-@media (max-width: 560px) { nav.tabs i.lg { display: none; } nav.tabs a { padding: 0 5px; font-size: 12.5px; } nav.tabs .chtab { margin-left: 4px; } }
+nav.tabs i.lg, nav.tabs i.sm { font-style: normal; } nav.tabs i.sm { display: none; }
+@media (max-width: 560px) { nav.tabs i.lg { display: none; } nav.tabs i.sm { display: inline; } nav.tabs a { padding: 0 5px; font-size: 12.5px; } nav.tabs .chtab { margin-left: 4px; } }
 .chhero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: center; padding: 26px; border-radius: 20px; margin: 4px 0 16px;
   background: radial-gradient(90% 120% at 0% 0%, color-mix(in srgb, var(--accent) 22%, var(--surface)) 0%, var(--surface) 55%), radial-gradient(70% 100% at 100% 100%, color-mix(in srgb, var(--gold) 18%, transparent), transparent);
   border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); }
@@ -521,9 +521,9 @@ a.chip { text-decoration: none; }
       <div class="sportmenu" hidden><b>Sports</b><a class="on" href="/">🏈 NFL</a><a href="/nba/">🏀 NBA</a><span>⚾ MLB <em>soon</em></span><span>🏒 NHL <em>soon</em></span><span>🎓 College football <em>soon</em></span></div></div>
     <nav class="tabs" role="tablist" aria-label="NFL sections">
       <a role="tab" data-tab="league" href="/nfl/playoff-scenarios/">Scenarios</a>
-      <a role="tab" data-tab="team" href="/nfl/teams/">My team</a>
-      <a role="tab" data-tab="odds" href="/nfl/playoff-odds/">Playoffs</a>
+      <a role="tab" data-tab="odds" href="/nfl/playoff-odds/"><i class="lg">Playoff&nbsp;odds</i><i class="sm">Odds</i></a>
       <a role="tab" data-tab="draft" href="/nfl/draft-order/">Draft<i class="lg">&nbsp;order</i></a>
+      <a role="tab" data-tab="team" href="/nfl/teams/">My team</a>
       <a role="tab" data-tab="challenge" href="/nfl/bracket-challenge/" class="chtab"><span>🏆</span>&nbsp;<i class="lg">Bracket&nbsp;</i>Challenge</a>
     </nav>
     <div class="hdr-actions">
@@ -546,8 +546,8 @@ a.chip { text-decoration: none; }
       <a class="brand" href="/" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk2)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span>clinch</span></a>
       <p>Every NFL playoff scenario, odds and tiebreaker, updated through the season.</p>
     </div>
-    <nav class="sf-col" aria-label="NFL"><b>NFL</b><a href="/nfl/playoff-scenarios/">Playoff scenarios</a><a href="/nfl/playoff-odds/">Playoff bracket &amp; odds</a><a href="/nfl/draft-order/">Draft order</a><a href="/nfl/bracket-challenge/">Bracket Challenge</a></nav>
-    <nav class="sf-col" aria-label="NBA"><b>NBA</b><a href="/nba/">Standings &amp; playoff odds</a><a href="/nba/draft-lottery/">Draft lottery simulator</a></nav>
+    <nav class="sf-col" aria-label="NFL"><b>NFL</b><a href="/nfl/playoff-scenarios/">Playoff scenarios</a><a href="/nfl/playoff-odds/">Playoff odds &amp; bracket</a><a href="/nfl/draft-order/">Draft order</a><a href="/nfl/bracket-challenge/">Bracket Challenge</a></nav>
+    <nav class="sf-col" aria-label="NBA"><b>NBA</b><a href="/nba/">Scenarios &amp; standings</a><a href="/nba/playoff-odds/">Playoff odds</a><a href="/nba/draft-lottery/">Draft lottery simulator</a><a href="/nba/bracket-challenge/">Bracket Challenge</a></nav>
     <nav class="sf-col" aria-label="Company"><b>Clinch</b><a href="mailto:hello@clinchscenarios.com">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></nav>
   </div>
   <nav class="sf-teams" id="sfTeams" aria-label="NFL team playoff pages"></nav>
@@ -1546,7 +1546,7 @@ async function myScenarios() {
   if (ACCOUNTS && !user) return signInDialog('saved');
   let cloud = [];
   if (user) {
-    const { data, error } = await sb.from('scenarios').select('id,name,team,picks,flips,updated_at').eq('season', RAW.season).order('updated_at', { ascending: false });
+    const { data, error } = await sb.from('scenarios').select('id,name,team,picks,flips,updated_at').eq('sport', 'nfl').eq('season', RAW.season).order('updated_at', { ascending: false });
     if (!error) cloud = data;
   }
   myScenarios.cache = { cloud, local: localList() };
@@ -1792,7 +1792,7 @@ function renderChallenge() {
   </section>`;
   // my bracket
   let mine;
-  if (ph.k === 'pre') mine = `<div class="card chcard"><h3>Your bracket</h3><p>Seeds aren't set until Week 18 is over. Brackets open that night and lock at the first wild card kickoff.</p><p class="hint">Want to practice? Build a what-if bracket on the <a href="/nfl/playoff-odds/">Playoffs tab</a>.</p></div>`;
+  if (ph.k === 'pre') mine = `<div class="card chcard"><h3>Your bracket</h3><p>Seeds aren't set until Week 18 is over. Brackets open that night and lock at the first wild card kickoff.</p><p class="hint">Want to practice? Build a what-if bracket on the <a href="/nfl/playoff-odds/">Playoff odds tab</a>.</p></div>`;
   else if (ph.k === 'open') {
     const n = nChPicks(), done = bracketDone();
     mine = `<div class="card chcard wide"><div class="section-head" style="margin-top:0"><h3>Your bracket</h3>

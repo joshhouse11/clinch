@@ -74,13 +74,18 @@
     <div class="sport"><button class="sportbtn" data-act="sportmenu" aria-haspopup="true" aria-expanded="false">🏀 NBA <span aria-hidden="true">▾</span></button>
       <div class="sportmenu" hidden><b>Sports</b><a href="/">🏈 NFL</a><a class="on" href="/nba/">🏀 NBA</a><span>⚾ MLB <em>soon</em></span><span>🏒 NHL <em>soon</em></span></div></div>
     <nav class="tabs" role="tablist" aria-label="NBA sections">
-      <a role="tab" data-tab="standings" href="/nba/">Standings</a>
-      <a role="tab" data-tab="odds" href="/nba/playoff-odds/">Playoff odds</a>
-      <a role="tab" data-tab="lottery" href="/nba/draft-lottery/">Draft lottery</a>
+      <a role="tab" data-tab="standings" href="/nba/">Scenarios</a>
+      <a role="tab" data-tab="odds" href="/nba/playoff-odds/"><i class="lg">Playoff&nbsp;odds</i><i class="sm">Odds</i></a>
+      <a role="tab" data-tab="lottery" href="/nba/draft-lottery/">Draft<i class="lg">&nbsp;lottery</i></a>
       <a role="tab" data-tab="team" href="/nba/teams/">My team</a>
       <a role="tab" data-tab="challenge" href="/nba/bracket-challenge/" class="chtab"><span>🏆</span>&nbsp;<i class="lg">Bracket&nbsp;</i>Challenge</a>
     </nav>
-    <div class="hdr-actions"><button class="btn acct" id="acctBtn" data-act="account">Sign in</button></div>
+    <div class="hdr-actions">
+      <button class="hbtn" data-act="share" title="Copy a link to these picks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Share</span></button>
+      <button class="hbtn" data-act="save" title="Save these picks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>Save</span></button>
+      <button class="hbtn" data-act="myscn" title="Your saved scenarios"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>My saves</span></button>
+      <button class="btn acct" id="acctBtn" data-act="account">Sign in</button>
+    </div>
   </div>
 </header>
 <main>
@@ -95,8 +100,8 @@
       <a class="brand" href="/" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk2)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span>clinch</span></a>
       <p>NBA standings, playoff and play-in odds, and a draft lottery simulator, updated every day.</p>
     </div>
-    <nav class="sf-col" aria-label="NBA"><b>NBA</b><a href="/nba/">Standings</a><a href="/nba/playoff-odds/">Playoff odds</a><a href="/nba/draft-lottery/">Draft lottery simulator</a><a href="/nba/bracket-challenge/">Bracket Challenge</a></nav>
-    <nav class="sf-col" aria-label="NFL"><b>NFL</b><a href="/nfl/playoff-scenarios/">Playoff scenarios</a><a href="/nfl/playoff-odds/">Playoff bracket &amp; odds</a><a href="/nfl/bracket-challenge/">Bracket Challenge</a></nav>
+    <nav class="sf-col" aria-label="NBA"><b>NBA</b><a href="/nba/">Scenarios &amp; standings</a><a href="/nba/playoff-odds/">Playoff odds</a><a href="/nba/draft-lottery/">Draft lottery simulator</a><a href="/nba/bracket-challenge/">Bracket Challenge</a></nav>
+    <nav class="sf-col" aria-label="NFL"><b>NFL</b><a href="/nfl/playoff-scenarios/">Playoff scenarios</a><a href="/nfl/playoff-odds/">Playoff odds &amp; bracket</a><a href="/nfl/bracket-challenge/">Bracket Challenge</a></nav>
     <nav class="sf-col" aria-label="Company"><b>Clinch</b><a href="mailto:hello@clinchscenarios.com">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></nav>
   </div>
   <nav class="sf-teams" id="sfTeams" aria-label="NBA team playoff pages"></nav>

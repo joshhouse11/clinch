@@ -64,3 +64,8 @@ $$;
 
 grant execute on function public.peek_group(text) to anon, authenticated;
 grant execute on function public.challenge_locked(text, int) to anon, authenticated;
+
+-- 4) Saved scenarios belong to a sport
+alter table public.scenarios add column if not exists sport text not null default 'nfl';
+drop index if exists public.scenarios_user_idx;
+create index if not exists scenarios_user_idx on public.scenarios (user_id, sport, season, updated_at desc);
