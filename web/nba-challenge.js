@@ -139,8 +139,10 @@ async function initAccounts() {
     paintAccount();
     const q = new URLSearchParams(location.search), jc = (q.get('join') || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     if (jc) { history.replaceState(null, '', location.pathname); if (state.tab !== 'challenge') go('challenge'); chJoinDialog(jc); }
+    if (q.get('emails') === 'off') { history.replaceState(null, '', location.pathname); if (user) setEmails(false); else { store.set('pending', 'emailsoff'); signInDialog('challenge'); } }
     const pending = store.get('pending', null);
     if (pending && user) {
+      if (pending === 'emailsoff') { store.set('pending', null); setEmails(false); }
       store.set('pending', null);
       if (pending.startsWith('join:')) { go('challenge'); chJoinDialog(pending.slice(5)); }
       else if (pending === 'save') saveDialog();
@@ -158,6 +160,14 @@ const RNAME = { PI: 'Play-in', R1: 'First round', R2: 'Conf. semis', CF: 'Conf. 
 const POST = nbaPostResults((RAW.post || []).map((g) => [NBA_IDX[g[0]], NBA_IDX[g[1]], g[2], g[3], g[4], g[5]]).filter((g) => g[0] !== undefined && g[1] !== undefined));
 const REG_DONE = G.length > 0 && G.every((g) => g.played);
 const REAL_SEEDS = REG_DONE ? nbaStandings(ctx, REAL).seeds.map((s) => s.slice(0, 10)) : null;
+// Brackets open early (about the last 10 days) on projected seeds; final seeds replace them when the regular season ends.
+const EARLY_GAMES = 75;
+const EARLY = !REG_DONE && G.filter((g) => !g.played).length <= EARLY_GAMES;
+const CH_SEEDS = REAL_SEEDS || (EARLY ? nbaStandings(ctx, REAL).seeds.map((s) => s.slice(0, 10)) : null);
+const sameSeeds = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+function staleNote() {
+  return ch.entry && REAL_SEEDS && !sameSeeds(ch.entry.seeds, REAL_SEEDS) ? '<p class="chnote warn">Final seeds are set and some matchups changed since you submitted. Check the picks below and tap Update bracket.</p>' : '';
+}
 const ch = {
   loaded: false, loading: false, lockAt: null, entry: null,
   picks: store.get('ch:' + RAW.season, {}), practice: store.get('chp:' + RAW.season, {}), tiebreak: store.get('chtb:' + RAW.season, ''),
@@ -241,6 +251,8 @@ async function chLoad(force) {
       ch.entry = e.data || null;
       if (ch.entry && !Object.keys(ch.picks).length) { ch.picks = ch.entry.picks; ch.tiebreak = ch.entry.tiebreak ?? ''; }
       ch.groups = g.data || [];
+      const ep = await sb.from('email_prefs').select('bracket_emails').maybeSingle();
+      ch.emails = ep.data ? ep.data.bracket_emails : true;
     } else { ch.entry = null; ch.groups = []; }
     if (chLocked()) {
       const all = await sb.from('brackets').select('user_id,display_name,seeds,picks,tiebreak').eq('sport', 'nba').eq('season', RAW.season).limit(5000);
@@ -269,10 +281,10 @@ async function chOpenGroup(id) {
 }
 function chPhase() {
   if (chLocked()) return { k: 'live', t: 'Brackets locked · live scoring' };
-  if (!REG_DONE) { const left = G.filter((g) => !g.played).length; return { k: 'pre', t: `Groups are open now · brackets open when the regular season ends · ${left} games left` }; }
+  if (!REG_DONE && !EARLY) return { k: 'pre', t: 'Groups are open now · brackets open for the last 10 days of the regular season' };
   const ms = ch.lockAt ? new Date(ch.lockAt) - Date.now() : null;
   const left = ms ? `${Math.floor(ms / 864e5)}d ${Math.floor((ms % 864e5) / 36e5)}h` : '';
-  return { k: 'open', t: `Brackets are open${left ? ` · lock in ${left}` : ''}` };
+  return { k: 'open', t: `Brackets are open${EARLY ? ' · projected seeds until the regular season ends' : left ? ` · lock in ${left}` : ''}` };
 }
 function bracketHead(seeds, src, mode) {
   const n = countPicks(seeds, src);
@@ -294,12 +306,12 @@ function renderChallenge() {
   </section>`;
   let mine;
   if (ph.k === 'pre') {
-    mine = `<div class="card chcard"><h3>Your bracket</h3><p>Seeds aren't set until the regular season ends. Brackets open that night and lock at the first play-in tip.</p><p class="hint">Want to practice? Build a what-if bracket on the <a href="/nba/playoff-odds/">Playoff odds tab</a>.</p></div>`;
+    mine = `<div class="card chcard"><h3>Your bracket</h3><p>Brackets open about 10 days before the regular season ends, with projected seeds, so your group can fill them out early. Seeds go final the night the season ends, and brackets lock at the first play-in tip.</p><p class="hint">Want to practice? Build a what-if bracket on the <a href="/nba/playoff-odds/">Playoff odds tab</a>.</p></div>`;
   } else if (ph.k === 'open') {
-    const n = countPicks(REAL_SEEDS, ch.picks), done = n === TOTAL_PICKS;
+    const n = countPicks(CH_SEEDS, ch.picks), done = n === TOTAL_PICKS;
     mine = `<div class="card chcard wide"><div class="section-head" style="margin-top:0"><h3>Your bracket</h3>
-      <span class="hint">${ch.entry ? `Saved ${new Date(ch.entry.updated_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })} · ` : 'Not submitted yet · '}</span>${bracketHead(REAL_SEEDS, ch.picks, 'ch')}</div>
-      ${nbaBracketHtml(REAL_SEEDS, ch.picks, { mode: 'ch' })}
+      <span class="hint">${ch.entry ? `Saved ${new Date(ch.entry.updated_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })} · ` : 'Not submitted yet · '}</span>${bracketHead(CH_SEEDS, ch.picks, 'ch')}</div>
+      ${EARLY ? '<p class="chnote">Seeds are projected from today\'s standings. When the regular season ends they become final, and if your matchups change we\'ll ask you to recheck your picks.</p>' : ''}${staleNote()}${nbaBracketHtml(CH_SEEDS, ch.picks, { mode: 'ch' })}
       <div class="chsave"><label>Total points, last Finals game <input type="number" id="chTb" min="0" max="400" inputmode="numeric" value="${esc(ch.tiebreak)}" placeholder="e.g. 212"></label>
         <label>Name on leaderboards <input type="text" id="chName" maxlength="40" value="${esc(ch.entry?.display_name || myName())}"></label>
         <button class="btn primary big" data-act="chsave" ${done ? '' : 'disabled'}>${user ? (ch.entry ? 'Update bracket' : 'Submit bracket') : 'Sign in to submit'}</button></div>
@@ -313,11 +325,21 @@ function renderChallenge() {
       : `<div class="card chcard"><h3>Your bracket</h3><p>Brackets are locked${user ? " and you didn't submit one this year" : ''}. Follow along with your groups, and you'll be first in line next season.</p></div>`;
   }
   const groups = !user ? `<div class="card chcard"><h3>Your groups</h3><p>Sign in to start or join a group.</p><button class="btn primary" data-act="signin">Sign in</button></div>`
-    : `<div class="card chcard"><h3>Your groups</h3>${ch.groups.length ? ch.groups.map((g) => `<button class="chgroup" data-chgroup="${g.id}"><b>${esc(g.name)}</b><span>${g.owner === user.id ? 'Commissioner' : 'Member'}${g.dues ? ` · $${g.dues} dues` : ''}</span><i>›</i></button>`).join('') : '<p class="hint">No groups yet. Start one and send the link to your group chat.</p>'}</div>`;
+    : `<div class="card chcard"><h3>Your groups</h3>${ch.groups.length ? ch.groups.map((g) => `<button class="chgroup" data-chgroup="${g.id}"><b>${esc(g.name)}</b><span>${g.owner === user.id ? 'Commissioner' : 'Member'}${g.dues ? ` · $${g.dues} dues` : ''}</span><i>›</i></button>`).join('') : '<p class="hint">No groups yet. Start one and send the link to your group chat.</p>'}${emailToggle()}</div>`;
   const board = ph.k === 'live' && ch.board ? `<div class="card chcard"><h3>Everyone</h3><table class="t chboard"><thead><tr><th>#</th><th>Name</th><th>Champion</th><th>Pts</th></tr></thead><tbody>${ch.board.slice(0, 25).map((b, k) => `<tr class="${user && b.user_id === user.id ? 'me' : ''}"><td class="num">${k + 1}</td><td>${esc(b.display_name)}</td><td>${b.champ != null ? `<span class="tn${b.champAlive ? '' : ' dead'}">${chip(T[b.champ])}</span>` : ''}</td><td class="num"><b>${b.pts}</b></td></tr>`).join('')}</tbody></table></div>` : '';
   return `${hero}<div class="chgrid">${mine}<div class="chside">${groups}${board}</div></div>
     <p class="hint chlegal">Free to play. Clinch never collects, holds or pays out money. The dues tracker is a checklist; groups settle up however they choose, where it's legal for them.</p>`;
 }
+function emailToggle() {
+  return `<label class="emt"><input type="checkbox" id="chEmails" ${ch.emails !== false ? 'checked' : ''}> Email me when brackets open and before they lock</label>`;
+}
+async function setEmails(on) {
+  if (!user) return;
+  const { error } = await sb.from('email_prefs').upsert({ user_id: user.id, bracket_emails: on, updated_at: new Date().toISOString() });
+  if (error) return toast('Could not save: ' + error.message);
+  ch.emails = on; toast(on ? 'Bracket emails on' : 'Bracket emails off'); render();
+}
+document.addEventListener('change', (e) => { if (e.target.id === 'chEmails') setEmails(e.target.checked); });
 function chGroupView() {
   const g = ch.group, own = user && g.owner === user.id, locked = chLocked();
   const unpaid = ch.members.filter((m) => !m.paid);
@@ -344,7 +366,7 @@ function chGroupView() {
   </section>
   <div class="card scroll"><table class="t chmembers"><thead><tr>${locked ? '<th>#</th>' : ''}<th>Member</th><th>Bracket</th>${locked ? '<th>Champion</th><th>Pts</th>' : ''}${g.dues ? '<th>Dues</th>' : ''}${own ? '<th></th>' : ''}</tr></thead><tbody>${rows || '<tr><td>Loading…</td></tr>'}</tbody></table></div>
   <div class="row-btns" style="justify-content:flex-start;margin-top:12px">
-    ${own ? `<button class="btn" data-act="chedit">Group settings</button>${g.dues && unpaid.length ? `<button class="btn" data-act="chremind">Copy dues reminder (${unpaid.length})</button>` : ''}` : '<button class="btn danger" data-act="chleave">Leave group</button>'}
+    ${chPhase().k === 'open' && ch.members.some((m) => !ch.hasBracket.has(m.user_id)) ? `<button class="btn primary" data-act="chnudge">Copy bracket reminder (${ch.members.filter((m) => !ch.hasBracket.has(m.user_id)).length})</button>` : ''}${own ? `<button class="btn" data-act="chedit">Group settings</button>${g.dues && unpaid.length ? `<button class="btn" data-act="chremind">Copy dues reminder (${unpaid.length})</button>` : ''}` : '<button class="btn danger" data-act="chleave">Leave group</button>'}
   </div>
   <p class="hint chlegal">Clinch doesn't collect or hold money. The commissioner marks who's paid.</p>`;
 }
@@ -421,7 +443,7 @@ document.addEventListener('click', async (e) => {
   if (!act || !act.startsWith('ch')) return;
   if (act === 'chback') { ch.group = null; render(); return; }
   if (act === 'chfav' || act === 'chclear') {
-    const mode = b.dataset.mode, seeds = mode === 'practice' ? practiceSeeds() : REAL_SEEDS;
+    const mode = b.dataset.mode, seeds = mode === 'practice' ? practiceSeeds() : CH_SEEDS;
     const src = act === 'chclear' ? {} : { ...(mode === 'practice' ? ch.practice : ch.picks) };
     if (act === 'chfav') nbaBracket(seeds, (a, c, r) => { const k = keyOf(r, a, c); if (src[k] !== a && src[k] !== c) src[k] = nbaWinProb(RATING, a, c, r === 'F') >= 0.5 ? a : c; return src[k]; });
     chSet(mode, src); render(); return;
@@ -432,8 +454,8 @@ document.addEventListener('click', async (e) => {
     const tb = parseInt(ch.tiebreak, 10);
     if (!(tb >= 0 && tb <= 400)) return toast('Add your guess for total points in the last Finals game (the tiebreaker)');
     const name = ($('#chName').value || '').trim() || myName();
-    const keep = {}; nbaBracket(REAL_SEEDS, (a, c, r) => { const w = decideFrom(ch.picks)(a, c, r); if (w != null) keep[keyOf(r, a, c)] = w; return w; });
-    const { data, error } = await sb.from('brackets').upsert({ sport: 'nba', season: RAW.season, display_name: name, seeds: REAL_SEEDS, picks: keep, tiebreak: tb }, { onConflict: 'user_id,sport,season' }).select().single();
+    const keep = {}; nbaBracket(CH_SEEDS, (a, c, r) => { const w = decideFrom(ch.picks)(a, c, r); if (w != null) keep[keyOf(r, a, c)] = w; return w; });
+    const { data, error } = await sb.from('brackets').upsert({ sport: 'nba', season: RAW.season, display_name: name, seeds: CH_SEEDS, picks: keep, tiebreak: tb }, { onConflict: 'user_id,sport,season' }).select().single();
     if (error) return toast('Could not save: ' + error.message);
     ch.entry = data; toast(`Bracket ${ch.entry.created_at === ch.entry.updated_at ? 'submitted' : 'updated'}. Good luck!`); render(); return;
   }
@@ -474,6 +496,13 @@ document.addEventListener('click', async (e) => {
   }
   if (act === 'chcopyinvite') { try { await navigator.clipboard.writeText(inviteUrl(ch.group.code)); toast('Invite link copied'); } catch { $('#chInvite').select(); } return; }
   if (act === 'chshareinvite') { try { await navigator.share({ title: ch.group.name, text: `Join my NBA Playoff Bracket Challenge on Clinch: ${ch.group.name}`, url: inviteUrl(ch.group.code) }); } catch {} return; }
+  if (act === 'chnudge') {
+    const g = ch.group, need = ch.members.filter((m) => !ch.hasBracket.has(m.user_id)).map((m) => m.display_name);
+    const lock = ch.lockAt ? ` Locks ${new Date(ch.lockAt).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.` : '';
+    const msg = `🏀 ${g.name}: brackets are open! Still waiting on ${need.join(', ')}.${lock} Make your picks: ${SITE()}/nba/bracket-challenge/`;
+    try { await navigator.clipboard.writeText(msg); toast('Reminder copied. Paste it in your group chat'); } catch { toast(msg); }
+    return;
+  }
   if (act === 'chremind') {
     const g = ch.group, unpaid = ch.members.filter((m) => !m.paid).map((m) => m.display_name);
     const msg = `🏀 ${g.name}: $${g.dues} dues still owed by ${unpaid.join(', ')}.${g.dues_note ? ` Pay: ${g.dues_note}.` : ''} Make your bracket: ${inviteUrl(g.code)}`;

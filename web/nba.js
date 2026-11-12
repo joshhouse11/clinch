@@ -68,10 +68,11 @@ state.week = FUT_DAYS.length ? weekOf(FUT_DAYS[0]) : WEEKS.at(-1);
 // ---- standings ----
 function gb(c, i) { const top = ST.seeds[c][0]; return ((ST.R.W[top] - ST.R.W[i]) + (ST.R.L[i] - ST.R.L[top])) / 2; }
 function standingsTable(c) {
+  const ck = clinchMap();
   const rowsH = ST.seeds[c].map((i, k) => {
     const t = T[i], o = odds ? odds[i] : null, g = gb(c, i);
     return `<tr class="${k === 5 || k === 9 ? 'cutline' : ''}${k >= 6 && k <= 9 ? ' pi' : ''}${t === state.team ? ' me' : ''}" style="--tc:${COLORS[t]}">
-      <td class="sd">${k + 1}</td><td><span class="tn">${chip(t)}<a href="${pathFor('team', t)}">${NICK[t]}</a>${ST.divWinners.has(i) ? ' <span class="tag div">div</span>' : ''}</span></td>
+      <td class="sd">${k + 1}</td><td><span class="tn">${chip(t)}${ckTag(ck, i)}<a href="${pathFor('team', t)}">${NICK[t]}</a>${ST.divWinners.has(i) ? ' <span class="tag div">div</span>' : ''}</span></td>
       <td class="num">${rec(i)}</td><td class="num">${g === 0 ? '–' : g.toFixed(1).replace('.0', '')}</td>
       <td class="num">${ST.R.cW[i]}-${ST.R.cL[i]}</td>
       <td class="num">${o ? pct(o.playoffs) : '…'}</td><td class="num">${o ? pct(o.top6) : '…'}</td></tr>`;
@@ -96,11 +97,36 @@ function miniGame(g) {
   const btn = (t, side, q) => `<button class="ms" ${g.played ? 'disabled' : `data-g="${g.k}" data-pick="${side === 'h' ? 1 : -1}"`} data-state="${st(side)}" style="--tc:${COLORS[T[t]]}" aria-label="${FULL[T[t]]} win">${chip(T[t])}<span class="mn">${AB(T[t])}</span><span class="mp num">${g.played ? (side === 'h' ? g.hs : g.as) : pct(q)}</span></button>`;
   return `<div class="mg${g.played ? ' final' : ''}">${btn(g.a, 'a', 1 - p)}<span class="mat">@</span>${btn(g.h, 'h', p)}</div>`;
 }
+// Clinch markers: z = #1 seed, y = division, x = playoff spot (top 6), pi = at least the play-in (top 10), o = eliminated.
+// Conservative: marked only when no remaining results (picked or real) can change it, counting ties against the team.
+function clinchMap() {
+  const oc = outcomes(), rem = new Array(T.length).fill(0), out = new Map();
+  G.forEach((g, k) => { if (oc[k] === null) { rem[g.h]++; rem[g.a]++; } });
+  const W = ST.R.W, maxW = T.map((_, i) => W[i] + rem[i]);
+  if (rem.every((r) => r === 0)) {
+    ST.seeds.forEach((l) => l.forEach((t, k) => out.set(t, k === 0 ? 'z' : ST.divWinners.has(t) && k < 6 ? 'y' : k < 6 ? 'x' : k < 10 ? 'pi' : 'o')));
+    return out;
+  }
+  for (let t = 0; t < T.length; t++) {
+    const rivals = T.map((_, j) => j).filter((j) => j !== t && NBA_CONF_OF[j] === NBA_CONF_OF[t]);
+    const canTie = rivals.filter((j) => maxW[j] >= W[t]);
+    if (!canTie.length) out.set(t, 'z');
+    else if (!canTie.some((j) => NBA_DIV_OF[j] === NBA_DIV_OF[t])) out.set(t, 'y');
+    else if (canTie.length < 6) out.set(t, 'x');
+    else if (canTie.length < 10) out.set(t, 'pi');
+    else if (rivals.filter((j) => W[j] > maxW[t]).length >= 10) out.set(t, 'o');
+  }
+  return out;
+}
+const CK_TITLE = { z: 'Clinched the #1 seed', y: 'Clinched the division', x: 'Clinched a playoff spot', pi: 'Clinched at least a play-in spot', o: 'Eliminated from the postseason' };
+const ckTag = (m, i) => (m.has(i) ? `<span class="ck ck-${m.get(i)}" title="${CK_TITLE[m.get(i)]}">${m.get(i)}</span>` : '');
+const ckLegend = (m) => (m.size ? `<div class="cklegend">${['z', 'y', 'x', 'pi', 'o'].filter((k) => [...m.values()].includes(k)).map((k) => `<span><b class="ck ck-${k}">${k}</b>${{ z: '#1 seed', y: 'division', x: 'playoffs', pi: 'play-in', o: 'eliminated' }[k]}</span>`).join('')}</div>` : '');
 function standCard(c) {
+  const ck = clinchMap();
   const list = ST.seeds[c];
-  const row = (i, k) => `<div class="row${T[i] === state.team ? ' me' : ''}" style="--tc:${COLORS[T[i]]}"><span class="seed">${k + 1}</span>${chip(T[i])}<span class="rn"><a href="${pathFor('team', T[i])}">${NICK[T[i]]}</a>${ST.divWinners.has(i) && k < 6 ? ' <span class="tag div">div</span>' : ''}</span><span class="rec num">${rec(i)}</span>${playoffPill(i)}</div>`;
+  const row = (i, k) => `<div class="row${T[i] === state.team ? ' me' : ''}" style="--tc:${COLORS[T[i]]}"><span class="seed">${k + 1}</span>${chip(T[i])}<span class="rn">${ckTag(ck, i)}<a href="${pathFor('team', T[i])}">${NICK[T[i]]}</a>${ST.divWinners.has(i) && k < 6 ? ' <span class="tag div">div</span>' : ''}</span><span class="rec num">${rec(i)}</span>${playoffPill(i)}</div>`;
   return `<section class="card stand"><div class="stand-head"><h3>${c ? 'West' : 'East'}</h3></div>
-    <div class="rows">${list.slice(0, 6).map(row).join('')}<div class="cut"><span>play-in</span></div>${list.slice(6, 10).map((i, k) => row(i, k + 6)).join('')}<div class="cut"><span>lottery</span></div>${list.slice(10).map((i, k) => row(i, k + 10)).join('')}</div></section>`;
+    <div class="rows">${list.slice(0, 6).map(row).join('')}<div class="cut"><span>play-in</span></div>${list.slice(6, 10).map((i, k) => row(i, k + 6)).join('')}<div class="cut"><span>lottery</span></div>${list.slice(10).map((i, k) => row(i, k + 10)).join('')}</div>${ckLegend(ck)}</section>`;
 }
 function playoffPill(i) {
   const o = odds && odds[i];

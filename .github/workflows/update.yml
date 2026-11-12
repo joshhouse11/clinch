@@ -79,6 +79,13 @@ jobs:
       - name: Validate NBA tiebreakers against the last three seasons' play-in and playoff fields
         run: node scripts/validate-nba.js
 
+      - name: Email Bracket Challenge groups (brackets open, seeds final, lock in 24h)
+        continue-on-error: true
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: node scripts/notify.js
+
       - name: Validate tiebreaker engine against every season since 2002
         run: node scripts/validate.js
 
