@@ -9,7 +9,13 @@ if (!key || !site.SUPABASE_URL) { console.log('No service key; lock time left as
 const rows = parseCSV(fs.readFileSync(new URL('../data/games.csv', import.meta.url), 'utf8'));
 const season = Math.max(...rows.filter((r) => r.game_type === 'REG').map((r) => +r.season));
 const wc = rows.filter((r) => +r.season === season && r.game_type === 'WC' && r.gameday && r.gametime);
-if (!wc.length) { console.log(`No ${season} wild card times yet.`); process.exit(0); }
+const auth = { apikey: key, ...(key.startsWith('sb_') ? {} : { Authorization: `Bearer ${key}` }) };
+if (!wc.length) {
+  // Nothing to set yet; confirm the key works so a bad secret shows up now, not in January.
+  const r = await fetch(`${site.SUPABASE_URL}/rest/v1/challenge_settings?select=season,lock_at`, { headers: auth });
+  console.log(`No ${season} wild card times yet. Key check: HTTP ${r.status}${r.ok ? ' ' + (await r.text()) : ''}`);
+  process.exit(0);
+}
 // nflverse times are US Eastern; playoff games are in January (EST, UTC-5).
 const toUtc = (d, t) => new Date(`${d}T${t.padStart(5, '0')}:00-05:00`);
 const first = wc.map((r) => toUtc(r.gameday, r.gametime)).sort((a, b) => a - b)[0];
