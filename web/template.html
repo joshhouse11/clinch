@@ -105,8 +105,9 @@ main { max-width: 1180px; margin: 0 auto; padding: 16px; }
 .section-head { display: flex; align-items: center; gap: 10px; margin: 18px 0 10px; flex-wrap: wrap; }
 .section-head h2 { font-family: var(--display); font-size: 17px; margin: 0; }
 .seg { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); padding: 3px; border-radius: 999px; overflow-x: auto; max-width: 100%; }
-.seg button { border: 0; background: transparent; padding: 6px 11px; border-radius: 999px; font-weight: 700; font-size: 13px; color: var(--muted); white-space: nowrap; }
-.seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--text); }
+.seg button, .seg a { text-decoration: none; display: inline-flex; align-items: center; }
+.seg button, .seg a { border: 0; background: transparent; padding: 6px 11px; border-radius: 999px; font-weight: 700; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.seg button[aria-pressed="true"], .seg a[aria-pressed="true"] { background: var(--surface-2); color: var(--text); }
 .hint { color: var(--muted); font-size: 13px; }
 
 .games { display: grid; gap: 10px; }
@@ -475,6 +476,7 @@ nav.tabs i.lg, nav.tabs i.sm { font-style: normal; } nav.tabs i.sm { display: no
 .cmsg:hover .cdel { display: grid; place-items: center; }
 @media (hover: none) { .cdel { display: grid; place-items: center; } }
 .chatform { display: flex; gap: 8px; } .chatform input { flex: 1; min-width: 0; }
+.rstory { padding: 16px 18px; margin: 4px 0 12px; } .rstory h2 { font-family: var(--display); font-size: 18px; margin: 0 0 8px; } .rstory p { margin: 0 0 8px; line-height: 1.5; } .rstory .hint a { color: var(--accent); }
 .chnote { margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); color: var(--muted); font-size: 13px; }
 .chnote.warn { color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--surface-2)); }
 .chsave { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 14px; }
@@ -641,8 +643,10 @@ const FULL_NAMES = {ARI:'Arizona Cardinals',ATL:'Atlanta Falcons',BAL:'Baltimore
 const slugOf = (t) => FULL_NAMES[t].toLowerCase().replace(/[^a-z0-9]+/g, '-');
 const BY_SLUG = Object.fromEntries(Object.keys(FULL_NAMES).map((t) => [slugOf(t), t]));
 const TAB_PATH = { league: '/nfl/playoff-scenarios/', odds: '/nfl/playoff-odds/', draft: '/nfl/draft-order/', challenge: '/nfl/bracket-challenge/' };
-const pathFor = (tab, team) => (tab === 'team' ? `/nfl/teams/${slugOf(team)}/` : TAB_PATH[tab] || '/');
+const pathFor = (tab, team) => (tab === 'team' ? `/nfl/teams/${slugOf(team)}/` : tab === 'root' ? `/nfl/teams/${slugOf(team)}/rooting-guide/` : TAB_PATH[tab] || '/');
 function routeOf(pathname, hash) {
+  const rg = pathname.match(/^\/nfl\/teams\/([a-z0-9-]+)\/rooting-guide\/?$/);
+  if (rg && BY_SLUG[rg[1]]) return { tab: 'team', team: BY_SLUG[rg[1]], root: true };
   const m = pathname.match(/^\/nfl\/teams\/([a-z0-9-]+)\/?$/);
   if (m && BY_SLUG[m[1]]) return { tab: 'team', team: BY_SLUG[m[1]] };
   if (/^\/nfl\/teams\/?$/.test(pathname)) return { tab: 'team' };
@@ -654,7 +658,7 @@ const ROUTE0 = routeOf(location.pathname, location.hash);
 const state = {
   team: ROUTE0.team || store.get('team', 'CHI'),
   tab: ROUTE0.tab,
-  view: (v => (v === 'root' ? 'root' : 'mine'))(store.get('view', 'mine')),
+  view: ROUTE0.root ? 'root' : ROUTE0.tab === 'team' && ROUTE0.team ? 'mine' : (v => (v === 'root' ? 'root' : 'mine'))(store.get('view', 'mine')),
   lview: store.get('lview', 'week'),
   standView: store.get('standView', 'conf'),
   lweek: null,
@@ -1006,7 +1010,7 @@ function renderLeague(cur) {
 function renderScenarios(cur) {
   const i0 = IDX[state.team];
   const conf = state.oddsConf ?? CONF_OF[i0];
-  const views = `<div class="seg"><button data-view="mine" aria-pressed="${state.view === 'mine'}">${state.team} schedule</button><button data-view="root" aria-pressed="${state.view === 'root'}">Rooting guide</button></div>`;
+  const views = `<div class="seg"><button data-view="mine" aria-pressed="${state.view === 'mine'}">${state.team} schedule</button><a href="${pathFor('root', state.team)}" data-view="root" role="button" aria-pressed="${state.view === 'root'}">Rooting guide</a></div>`;
   let list;
   if (state.view === 'mine') list = G.filter((g) => g.h === i0 || g.a === i0).sort((x, y) => x.week - y.week);
   else list = unplayed.filter((g) => g.week === state.week);
@@ -1148,6 +1152,12 @@ function pageMeta() {
     const div = DIV_NAMES[DIV_OF[i]], rec = recStr(cur.R, i);
     const sum = `The ${full} are ${rec} through Week ${wk} and ${sd < 7 ? `hold the ${c ? 'NFC' : 'AFC'}'s #${sd + 1} seed` : `sit ${ord(sd + 1)} in the ${c ? 'NFC' : 'AFC'}, outside the playoff spots`}.` +
       (od ? ` Clinch gives them ${/^(8|11|18)\d?%|^>/.test(pct(od.playoffs)) ? 'an' : 'a'} ${pct(od.playoffs)} chance to make the playoffs, ${pct(od.division)} to win the ${div} and ${pct(od.bye)} to earn the #1 seed, from 10,000 simulations of the rest of the season.` : '');
+    if (state.view === 'root' && rooting && rootingWeek === state.week && rooting.team === t) {
+      const { order, tank } = rootingData(), nm = TEAM_NAMES[t], w = state.week;
+      const picks = order.filter((x) => x.rootHome !== null).slice(0, 3).map((x) => TEAM_NAMES[TEAMS[x.rootHome ? x.g.h : x.g.a]]);
+      const rs = `Week ${w} rooting guide for ${full} fans (${rec}, ${pct(rooting.bases[0])} to make the playoffs): ${picks.length ? `root for the ${picks.join(', the ')}` : 'no outside game moves the needle much'}. Every Week ${w} game ranked by how much it moves the ${nm}' ${tank ? 'draft position' : 'playoff odds'}.`;
+      return { title: `Who Should ${nm} Fans Root For in Week ${w}? ${yr} Rooting Guide | Clinch`, h1: `Who should ${nm} fans root for in Week ${w}?`, desc: rs.slice(0, 300), sum: rs, path: pathFor('root', t) };
+    }
     return { title: `${full} Playoff Chances ${yr}: Odds, Scenarios & Schedule | Clinch`, h1: `${full} playoff chances`, desc: sum.slice(0, 300), sum, path: pathFor('team', t) };
   }
   if (state.tab === 'odds') {
@@ -1184,7 +1194,7 @@ function paintFooterTeams() {
   el.innerHTML = '<b>Team playoff chances</b><div>' + DIV_NAMES.map((dn, di) => `<span><i>${dn}</i>${TEAMS.map((t, i) => [t, i]).filter(([, i]) => DIV_OF[i] === di).map(([t]) => `<a href="${pathFor('team', t)}">${FULL_NAMES[t]}</a>`).join('')}</span>`).join('') + '</div>';
 }
 // Used by the build to snapshot each page for search engines.
-window.__clinch = { ready: () => !!baseOdds, snap(path) { const r = routeOf(path, ''); if (r.team) state.team = r.team; state.tab = r.tab; render(); const m = paintMeta(); m.path = path; return { m, view: $('#view').innerHTML, teams: $('#teams').innerHTML, foot: $('#sfTeams').innerHTML, tabs: document.querySelector('nav.tabs').innerHTML }; }, paths: () => ['/', ...Object.values(TAB_PATH), ...TEAMS.map((t) => pathFor('team', t))] };
+window.__clinch = { ready: () => !!baseOdds, snap(path) { const r = routeOf(path, ''); if (r.team) { state.team = r.team; state.view = r.root ? 'root' : 'mine'; } state.tab = r.tab; if (r.root && weeks.length) { state.week = weeks[0]; rooting = rootingFor(state.team, state.week); rootingWeek = state.week; rootToken++; } render(); const m = paintMeta(); m.path = path; return { m, view: $('#view').innerHTML, teams: $('#teams').innerHTML, foot: $('#sfTeams').innerHTML, tabs: document.querySelector('nav.tabs').innerHTML }; }, paths: () => ['/', ...Object.values(TAB_PATH), ...TEAMS.map((t) => pathFor('team', t)), ...(weeks.length ? TEAMS.map((t) => pathFor('root', t)) : [])] };
 
 function render() {
   document.querySelectorAll('nav.tabs a').forEach((b) => { b.setAttribute('aria-selected', String(b.dataset.tab === state.tab)); if (b.dataset.tab === 'team') b.href = pathFor('team', state.team); });
@@ -1221,6 +1231,19 @@ function recomputePickOdds() {
 // One simulation pass compares the team's outlook when each side of every game this week wins.
 let rootToken = 0;
 const rootCache = new Map();
+function rootingFor(team, week) {
+  const key = team + ':' + week;
+  if (rootCache.has(key)) return rootCache.get(key);
+  const i0 = IDX[team];
+  const games = unplayed.filter((g) => g.week === week).map((g) => g.k);
+  const res = simulate(ctx, { sims: 20000, seed: 777, track: { team: i0, games } });
+  const o = oddsFor(team, res);
+  const bases = [o.playoffs, o.division, o.bye, o.avgPick];
+  const auto = [0, 1, 2].reduce((bi, i) => (Math.abs(bases[i] - 0.5) < Math.abs(bases[bi] - 0.5) ? i : bi), 0);
+  const r = { week, team, bases, auto, tankDefault: o.playoffs < 0.1, games: games.map((k) => ({ k, home: res.track[k].home, away: res.track[k].away })) };
+  rootCache.set(key, r);
+  return r;
+}
 function computeRooting() {
   const week = state.week, team = state.team, key = team + ':' + week;
   if (rootCache.has(key)) { rooting = rootCache.get(key); rootingWeek = week; return; }
@@ -1228,14 +1251,7 @@ function computeRooting() {
   rooting = null; rootingWeek = null;
   setTimeout(() => {
     if (token !== rootToken) return;
-    const i0 = IDX[team];
-    const games = unplayed.filter((g) => g.week === week).map((g) => g.k);
-    const res = simulate(ctx, { sims: 20000, seed: 777, track: { team: i0, games } });
-    const o = oddsFor(team, res);
-    const bases = [o.playoffs, o.division, o.bye, o.avgPick];
-    const auto = [0, 1, 2].reduce((bi, i) => (Math.abs(bases[i] - 0.5) < Math.abs(bases[bi] - 0.5) ? i : bi), 0);
-    const r = { week, team, bases, auto, tankDefault: o.playoffs < 0.1, games: games.map((k) => ({ k, home: res.track[k].home, away: res.track[k].away })) };
-    rootCache.set(key, r);
+    const r = rootingFor(team, week);
     if (token !== rootToken) return;
     rooting = r; rootingWeek = week;
     if (state.tab === 'team' && state.view === 'root') render();
@@ -1288,6 +1304,26 @@ function rootingData() {
   return { R, tank, order, own, rows };
 }
 
+// A short write-up of this week's rooting guide, in plain sentences.
+function rootingStory() {
+  const { R, tank, order, own } = rootingData(), t = state.team, nm = TEAM_NAMES[t], full = FULL_NAMES[t];
+  const i0 = IDX[t], wk = state.week, recNow = recStr(evaluate(ctx, G.map((g) => g.fixed)).R, i0);
+  const when = (g) => { const d = new Date(g.day + 'T12:00:00'); return isNaN(d) ? '' : ` (${d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })})`; };
+  const vsTxt = (g, rootHome) => { const w = TEAMS[rootHome ? g.h : g.a], l = TEAMS[rootHome ? g.a : g.h]; return `the ${TEAM_NAMES[w]} ${rootHome ? 'over' : 'at'} the ${TEAM_NAMES[l]}`.replace(' at the', ' over the'); };
+  const top = order.filter((x) => x.rootHome !== null).slice(0, 4);
+  const lines = [];
+  lines.push(tank
+    ? `The ${full} are ${recNow} and have a ${pct(R.bases[0])} chance to make the playoffs, so this week is about draft position: they project to pick around No. ${Math.round(R.bases[3])}.`
+    : `The ${full} are ${recNow} with a ${pct(R.bases[0])} chance to make the playoffs, ${pct(R.bases[1])} to win the division and ${pct(R.bases[2])} to earn the No. 1 seed, based on 20,000 simulations of the rest of the season.`);
+  if (!own && !G.some((g) => g.week === wk && (g.h === i0 || g.a === i0))) lines.push(`The ${nm} are on a bye in Week ${wk}, so every result below is out of their hands.`);
+  if (own) { const g = own.g, opp = TEAMS[g.h === i0 ? g.a : g.h]; lines.push(tank ? `Their own game against the ${TEAM_NAMES[opp]}${when(g)} matters most for the pick: a loss helps the draft slot.` : `Their own game against the ${TEAM_NAMES[opp]}${when(g)} matters most, of course.`); }
+  top.forEach((x, k) => {
+    const lead = k === 0 ? `The biggest outside game for ${nm} fans: root for ${vsTxt(x.g, x.rootHome)}${when(x.g)}` : `${['Next', 'Also', 'And'][Math.min(k - 1, 2)]}, root for ${vsTxt(x.g, x.rootHome)}${when(x.g)}`;
+    lines.push(`${lead}${x.detail ? `, worth about ${x.detail}` : x.logic ? ` (${x.logic.toLowerCase()})` : ''}.`);
+  });
+  if (!top.length) lines.push(`No other Week ${wk} game moves the needle much for the ${nm}.`);
+  return `<section class="card rstory"><h2>Who should ${nm} fans root for in Week ${wk}?</h2>${lines.map((l) => `<p>${l}</p>`).join('')}<p class="hint">Updated after every game. Odds use the real standings, not your picks. <a href="${pathFor('team', t)}">See all ${nm} playoff scenarios</a>.</p></section>`;
+}
 function rootingView() {
   const i0 = IDX[state.team], t = state.team, C = CONF_OF[i0];
   const weekSeg = `<div class="seg">${weeks.map((w) => `<button data-week="${w}" aria-pressed="${w === state.week}">Wk ${w}</button>`).join('')}</div>`;
@@ -1318,6 +1354,7 @@ function rootingView() {
     : `Every Week ${state.week} result, ranked by how much it helps the ${TEAM_NAMES[t]}' playoff chances (${pct(R.bases[0])} to make it, ${pct(R.bases[1])} to win the division, ${pct(R.bases[2])} for the #1 seed).`;
   return `${weekSeg}
     <div class="section-head" style="margin:12px 0 4px">${modeSeg}<span style="margin-left:auto">${shareBtn('root', `Share ${t} rooting guide`, true)}</span></div>
+    ${rootingStory()}
     <p class="hint">${intro} Based on the real standings, not your picks. Gold marks the side to root for.</p>
     <div class="games">${own ? card(own) : ''}${order.map(card).join('')}</div>`;
 }
@@ -1406,7 +1443,7 @@ document.addEventListener('click', async (e) => {
     }
     savePicks(); render(); recomputePickOdds(); return;
   }
-  if (b.dataset.view) { state.view = b.dataset.view; store.set('view', state.view); render();  return; }
+  if (b.dataset.view) { state.view = b.dataset.view; store.set('view', state.view); const u = state.view === 'root' ? pathFor('root', state.team) : pathFor('team', state.team); if (location.pathname !== u) history.pushState(null, '', u + location.search); render(); return; }
   if (b.dataset.week) { state.week = +b.dataset.week; rootingWeek = null; render(); return; }
   if (b.dataset.conf !== undefined) { state.oddsConf = +b.dataset.conf; render(); return; }
   const act = b.dataset.act, i0 = IDX[state.team];
@@ -1447,11 +1484,11 @@ document.addEventListener('click', async (e) => {
 function goTab(tab, team, replace) {
   if (team) { state.team = team; store.set('team', team); state.oddsConf = null; rootingWeek = null; }
   state.tab = tab;
-  const url = pathFor(tab, state.team);
+  const url = tab === 'team' && state.view === 'root' ? pathFor('root', state.team) : pathFor(tab, state.team);
   if (location.pathname !== url) history[replace ? 'replaceState' : 'pushState'](null, '', url + location.search);
   render(); window.scrollTo({ top: 0 });
 }
-window.addEventListener('popstate', () => { const r = routeOf(location.pathname, location.hash); if (r.team) state.team = r.team; state.tab = r.tab; render(); });
+window.addEventListener('popstate', () => { const r = routeOf(location.pathname, location.hash); if (r.team) { state.team = r.team; state.view = r.root ? 'root' : 'mine'; } state.tab = r.tab; render(); });
 window.addEventListener('hashchange', () => { const r = routeOf('/', location.hash); goTab(r.tab, null, true); });
 // Links (nav tabs, team chips, footer) navigate inside the app; they stay real links for crawlers and new tabs.
 document.addEventListener('click', (e) => {
@@ -1461,6 +1498,8 @@ document.addEventListener('click', (e) => {
   if (u.pathname !== '/' && !u.pathname.startsWith('/nfl/')) return;
   e.preventDefault();
   if (a.dataset.tab === 'team' && !r.team) return goTab('team', state.team);
+  if (a.dataset.view) { e.preventDefault(); state.view = a.dataset.view; store.set('view', state.view); }
+  else if (r.tab === 'team' && r.team) state.view = r.root ? 'root' : 'mine';
   goTab(r.tab, r.team);
 });
 
