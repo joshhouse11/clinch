@@ -487,6 +487,9 @@ nav.tabs i.lg { font-style: normal; }
 .sportmenu em { font-style: normal; font-size: 11px; color: var(--muted); opacity: .7; }
 @media (max-width: 900px) { .sportbtn { padding: 5px 9px; font-size: 12px; } }
 
+.hbtn.auto { color: var(--accent); }
+.hbtn.auto svg { fill: color-mix(in srgb, var(--accent) 35%, transparent); }
+.autotag { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); margin-left: 6px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -506,7 +509,7 @@ nav.tabs i.lg { font-style: normal; }
     <div class="hdr-actions">
       <button class="hbtn" data-act="share" title="Copy a link to these picks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Share</span></button>
       <button class="hbtn" data-act="save" title="Save these picks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>Save</span></button>
-      <button class="hbtn" data-act="myscn" title="Your saved scenarios"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Saved</span></button>
+      <button class="hbtn" data-act="myscn" title="Your saved scenarios"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>My saves</span></button>
       <button class="btn acct" id="acctBtn" data-act="account">Sign in</button>
     </div>
   </div>
@@ -1173,7 +1176,31 @@ function rootingView() {
 }
 
 // ---------- events ----------
-function savePicks() { store.set('picks:' + RAW.season, state.picks); store.set('flips:' + RAW.season, state.flips); store.set('po:' + RAW.season, state.po); }
+function savePicks() { store.set('picks:' + RAW.season, state.picks); store.set('flips:' + RAW.season, state.flips); store.set('po:' + RAW.season, state.po); queueAutosave(); }
+
+let sb = null, user = null; // Supabase client and signed-in user (set in initAccounts)
+// ---- auto-save: after the first save (or loading a saved scenario), changes save to that scenario ----
+let active = store.get('active:' + RAW.season, null), autoTimer = null, autoState = 'saved';
+function setActive(a) { active = a; store.set('active:' + RAW.season, a); autoState = 'saved'; paintSave(); }
+const scnRecord = () => ({ team: state.team, picks: { ...toIds(state.picks), ...(nPo() ? { _po: state.po } : {}) }, flips: toIds(state.flips) });
+function queueAutosave() {
+  if (!active || !user || state.viewingShare) return;
+  clearTimeout(autoTimer); autoState = 'pending'; paintSave();
+  autoTimer = setTimeout(async () => {
+    autoState = 'saving'; paintSave();
+    const { data, error } = await sb.from('scenarios').update(scnRecord()).eq('id', active.id).select('id');
+    if (error || !data || !data.length) { toast(error ? 'Auto-save failed: ' + error.message : `Stopped auto-saving: "${active.name}" no longer exists`); setActive(null); return; }
+    autoState = 'saved'; paintSave();
+  }, 1200);
+}
+function paintSave() {
+  const b = document.querySelector('.hbtn[data-act="save"]'); if (!b) return;
+  const on = active && user;
+  b.classList.toggle('auto', !!on);
+  b.querySelector('span').textContent = on ? (autoState === 'saved' ? 'Saved ✓' : 'Saving…') : 'Save';
+  b.title = on ? `Auto-saving to "${active.name}". Click to rename or save a copy` : 'Save these picks';
+}
+window.addEventListener('beforeunload', (e) => { if (autoState !== 'saved' && active) { e.preventDefault(); e.returnValue = ''; } });
 function setPick(k, o) {
   if (G[k].played) {
     // rewriting history: tapping the real result (or the current flip) restores what actually happened
@@ -1255,6 +1282,7 @@ document.addEventListener('click', async (e) => {
   } else if (act === 'resetflips') {
     state.flips = {};
   } else if (act === 'resetall') {
+    if (active) { setActive(null); }
     state.picks = {}; state.flips = {}; state.po = {}; state.confirmClear = false; toast('Cleared. Back to the real standings');
   } else if (act === 'askclear' || act === 'cancelclear') {
     state.confirmClear = act === 'askclear'; render(); return;
@@ -1275,7 +1303,6 @@ window.addEventListener('hashchange', () => { state.tab = validTab(location.hash
 // Share links carry the picks in the URL itself (no database needed).
 // Save works on this device for everyone; signed-in users also save to their account (Supabase).
 const ACCOUNTS = !!(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
-let sb = null, user = null;
 const byId = Object.fromEntries(G.map((g, k) => [g.id, k]));
 const toIds = (m) => Object.fromEntries(Object.entries(m).map(([k, v]) => [G[k].id, v]));
 const fromIds = (m) => Object.fromEntries(Object.entries(m || {}).filter(([id]) => byId[id] !== undefined).map(([id, v]) => [byId[id], v]));
@@ -1330,6 +1357,7 @@ function share() {
   $('#shareUrl').select();
 }
 function applyScenario(sc, team, viaShare) {
+  if (viaShare) setActive(null);
   if (viaShare) store.set('picks:backup', { picks: state.picks, flips: state.flips, po: state.po, team: state.team });
   state.picks = {}; state.flips = {}; state.po = {};
   for (const [k, v] of Object.entries(sc.po || {})) if (REAL_PO[k] === undefined) state.po[k] = +v;
@@ -1370,29 +1398,39 @@ async function openLinkFromUrl() {
 const localList = () => store.get(LOCAL_KEY, []);
 const setLocalList = (l) => store.set(LOCAL_KEY, l);
 function saveDialog() {
-  if (!hasPicks()) return toast('Make a pick or a do-over first, then save it');
   if (ACCOUNTS && !user) { store.set('pending', 'save'); return signInDialog('save'); }
+  if (active && user) {
+    return openModal(`<h3>Auto-saving</h3>
+      <p>Every change saves to <b>${esc(active.name)}</b> automatically. Want a separate copy instead? Save it as a new scenario.</p>
+      <label for="scnName" class="hint">New scenario name</label>
+      <input type="text" id="scnName" maxlength="80" value="${esc(active.name + ' (copy)')}">
+      <div class="row-btns"><button class="btn" data-act="stopauto" style="margin-right:auto">Stop auto-saving</button><button class="btn" data-act="close">Done</button><button class="btn primary" data-act="dosave">Save as new</button></div>`);
+  }
+  if (!hasPicks()) return toast('Make a pick or a do-over first, then save it');
   const n = Object.keys(state.picks).length, f = nFlips();
   const where = user ? 'to your account' : ACCOUNTS ? 'on this device. Sign in to keep scenarios on every device' : 'on this device';
   openModal(`<h3>Save this scenario</h3>
     <p>${n} pick${n === 1 ? '' : 's'}${f ? ` and ${f} do-over${f === 1 ? '' : 's'}` : ''}. Saving ${where}.</p>
     <label for="scnName" class="hint">Name</label>
     <input type="text" id="scnName" maxlength="80" value="${esc(TEAM_NAMES[state.team] + ' scenario')}">
+    ${user ? '<p class="hint">After this, your changes save to it automatically.</p>' : ''}
     <div class="row-btns"><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="dosave">Save</button></div>`);
   $('#scnName').select();
 }
 async function doSave() {
   const name = ($('#scnName').value || '').trim() || 'My scenario';
-  const rec = { season: RAW.season, name, team: state.team, picks: { ...toIds(state.picks), ...(nPo() ? { _po: state.po } : {}) }, flips: toIds(state.flips) };
+  const rec = { season: RAW.season, name, ...scnRecord() };
   if (user) {
-    const { error } = await sb.from('scenarios').insert(rec);
+    const { data, error } = await sb.from('scenarios').insert(rec).select('id,name').single();
     if (error) return toast('Could not save: ' + error.message);
+    setActive({ id: data.id, name: data.name });
+    closeModal(); toast(`Saved "${name}". Changes now save automatically`); paintAccount(); return;
   } else {
     setLocalList([{ id: 'l' + Date.now().toString(36), updated_at: new Date().toISOString(), ...rec }, ...localList()].slice(0, 50));
   }
   closeModal(); toast(`Saved "${name}"`); paintAccount();
 }
-const scnRow = (r, src) => `<div class="scn"><b>${esc(r.name)}</b><small>${r.team ? esc(TEAM_NAMES[r.team] || r.team) + ' · ' : ''}${Object.keys(r.picks).filter((k) => k !== '_po').length} picks${r.picks && r.picks._po ? ', bracket' : ''}${Object.keys(r.flips).length ? ', ' + Object.keys(r.flips).length + ' do-overs' : ''} · ${new Date(r.updated_at).toLocaleDateString()}</small><span class="acts"><button class="btn primary" data-act="loadscn" data-src="${src}" data-id="${r.id}">Load</button><button class="btn danger" data-act="delscn" data-src="${src}" data-id="${r.id}" aria-label="Delete ${esc(r.name)}">✕</button></span></div>`;
+const scnRow = (r, src) => `<div class="scn"><b>${esc(r.name)}${active && active.id === r.id ? ' <span class="tag autotag">auto-saving</span>' : ''}</b><small>${r.team ? esc(TEAM_NAMES[r.team] || r.team) + ' · ' : ''}${Object.keys(r.picks).filter((k) => k !== '_po').length} picks${r.picks && r.picks._po ? ', bracket' : ''}${Object.keys(r.flips).length ? ', ' + Object.keys(r.flips).length + ' do-overs' : ''} · ${new Date(r.updated_at).toLocaleDateString()}</small><span class="acts"><button class="btn primary" data-act="loadscn" data-src="${src}" data-id="${r.id}">Load</button><button class="btn danger" data-act="delscn" data-src="${src}" data-id="${r.id}" aria-label="Delete ${esc(r.name)}">✕</button></span></div>`;
 async function myScenarios() {
   if (ACCOUNTS && !user) return signInDialog('saved');
   let cloud = [];
@@ -1409,10 +1447,11 @@ async function myScenarios() {
   openModal(`<h3>Saved scenarios</h3>${empty}${sec(user ? 'Your account' : '', cloud, 'cloud')}${sec(user && local.length ? 'On this device' : '', local, 'local')}${acct}<div class="row-btns"><button class="btn" data-act="close">Close</button></div>`);
 }
 function paintAccount() {
+  paintSave();
   const b = $('#acctBtn');
   const n = localList().length;
   const savedBtn = document.querySelector('.hbtn[data-act="myscn"] span');
-  if (savedBtn) savedBtn.innerHTML = n && !user && !ACCOUNTS ? `Saved <span class="badge">${n}</span>` : 'Saved';
+  if (savedBtn) savedBtn.innerHTML = n && !user && !ACCOUNTS ? `My saves <span class="badge">${n}</span>` : 'My saves';
   if (user) {
     const name = user.user_metadata?.full_name || user.email || 'You';
     b.classList.add('in'); b.innerHTML = `<span class="av">${esc(name[0].toUpperCase())}</span>${esc(name.split(' ')[0])}`;
@@ -1500,15 +1539,22 @@ document.addEventListener('click', async (e) => {
   if (act === 'loadscn') {
     const list = b.dataset.src === 'cloud' ? myScenarios.cache.cloud : myScenarios.cache.local;
     const r = list.find((x) => x.id === b.dataset.id);
-    if (r) { applyScenario({ picks: fromIds(r.picks), flips: fromIds(r.flips), po: r.picks && r.picks._po }, r.team, false); state.viewingShare = null; closeModal(); toast(`Loaded "${r.name}"`); render(); }
+    if (r) {
+      setActive(null);
+      state.viewingShare = null;
+      applyScenario({ picks: fromIds(r.picks), flips: fromIds(r.flips), po: r.picks && r.picks._po }, r.team, false);
+      if (b.dataset.src === 'cloud') setActive({ id: r.id, name: r.name });
+      closeModal(); toast(`Loaded "${r.name}"${b.dataset.src === 'cloud' ? '. Changes save automatically' : ''}`); render();
+    }
     return;
   }
   if (act === 'delscn') {
-    if (b.dataset.src === 'cloud') { const { error } = await sb.from('scenarios').delete().eq('id', b.dataset.id); if (error) toast('Could not delete: ' + error.message); }
+    if (b.dataset.src === 'cloud') { const { error } = await sb.from('scenarios').delete().eq('id', b.dataset.id); if (error) toast('Could not delete: ' + error.message); else if (active && active.id === b.dataset.id) setActive(null); }
     else setLocalList(localList().filter((x) => x.id !== b.dataset.id));
     paintAccount(); return myScenarios();
   }
-  if (act === 'signout') { await sb.auth.signOut(); user = null; ch.loaded = false; ch.group = null; paintAccount(); closeModal(); render(); toast('Signed out'); return; }
+  if (act === 'stopauto') { setActive(null); closeModal(); toast('Auto-save off. Your saved scenario stays as it is'); return; }
+  if (act === 'signout') { setActive(null); await sb.auth.signOut(); user = null; ch.loaded = false; ch.group = null; paintAccount(); closeModal(); render(); toast('Signed out'); return; }
   if (act === 'restoremine') {
     const bk = store.get('picks:backup', null);
     state.picks = bk ? bk.picks : {}; state.flips = bk ? bk.flips : {}; state.po = bk && bk.po ? bk.po : {}; if (bk && bk.team) state.team = bk.team;
