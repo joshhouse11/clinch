@@ -34,7 +34,7 @@ export async function buildNBA({ root, outDir, config, url, seoTags, escA, V, pr
     .replace('/*__ENGINE__*/', () => engine)
     .replace('/*__DATA__*/', () => JSON.stringify(data))
     .replace('/*__CONFIG__*/', () => JSON.stringify(cfg))
-    .replace('/*__APP__*/', () => fs.readFileSync(new URL('web/nba.js', root), 'utf8').replace('/*__CHALLENGE__*/', () => fs.readFileSync(new URL('web/nba-challenge.js', root), 'utf8')));
+    .replace('/*__APP__*/', () => fs.readFileSync(new URL('web/nba.js', root), 'utf8').replace('/*__CHALLENGE__*/', () => fs.readFileSync(new URL('web/nba-challenge.js', root), 'utf8') + '\n' + fs.readFileSync(new URL('web/nba-share.js', root), 'utf8')));
   html = html.replace('href="/favicon.svg"', `href="/favicon.svg?v=${V.svg}"`).replace('href="/favicon-32.png"', `href="/favicon-32.png?v=${V.png}"`).replace('href="/apple-touch-icon.png"', `href="/apple-touch-icon.png?v=${V.touch}"`);
   if (config.analytics && url && !process.env.LOCAL_PREVIEW) html = html.replace('</head>', `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "${config.analytics}", "spa": true}'></script>\n</head>`);
   const paths = await prerender({ html, config: cfg, url, outDir, seoTags, escA, label: 'NBA' });

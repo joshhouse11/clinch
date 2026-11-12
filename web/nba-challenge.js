@@ -315,13 +315,14 @@ function renderChallenge() {
       <div class="chsave"><label>Total points, last Finals game <input type="number" id="chTb" min="0" max="400" inputmode="numeric" value="${esc(ch.tiebreak)}" placeholder="e.g. 212"></label>
         <label>Name on leaderboards <input type="text" id="chName" maxlength="40" value="${esc(ch.entry?.display_name || myName())}"></label>
         <button class="btn primary big" data-act="chsave" ${done ? '' : 'disabled'}>${user ? (ch.entry ? 'Update bracket' : 'Submit bracket') : 'Sign in to submit'}</button></div>
-      ${done ? '' : '<p class="hint" style="margin:6px 0 0">Pick every game through the Finals to submit.</p>'}</div>`;
+      ${done ? '' : '<p class="hint" style="margin:6px 0 0">Pick every game through the Finals to submit.</p>'}
+      ${ch.entry ? `<div class="row-btns" style="justify-content:flex-start;margin-top:10px">${shareBtn('bracket', 'Share my picks', true)}</div>` : ''}</div>`;
   } else {
     const sc = ch.entry ? scoreBracket(ch.entry) : null;
     const rank = sc && ch.board && user ? ch.board.findIndex((b) => b.user_id === user.id) + 1 : 0;
     mine = ch.entry ? `<div class="card chcard wide"><div class="section-head" style="margin-top:0"><h3>Your bracket</h3>
       <span class="chscore num"><b>${sc.pts}</b> pts</span><span class="hint num">${sc.right} right · max ${sc.max}${rank ? ` · #${rank} of ${ch.board.length}` : ''}</span></div>
-      ${nbaBracketHtml(ch.entry.seeds, ch.entry.picks, { mode: 'ch', readOnly: true })}</div>`
+      ${nbaBracketHtml(ch.entry.seeds, ch.entry.picks, { mode: 'ch', readOnly: true })}<div class="row-btns" style="justify-content:flex-start;margin-top:10px">${shareBtn('bracket', 'Share my bracket', true)}</div></div>`
       : `<div class="card chcard"><h3>Your bracket</h3><p>Brackets are locked${user ? " and you didn't submit one this year" : ''}. Follow along with your groups, and you'll be first in line next season.</p></div>`;
   }
   const groups = !user ? `<div class="card chcard"><h3>Your groups</h3><p>Sign in to start or join a group.</p><button class="btn primary" data-act="signin">Sign in</button></div>`
@@ -422,7 +423,7 @@ document.addEventListener('click', async (e) => {
   if (act === 'signin') return signInDialog('challenge');
   if (act === 'account') return user ? myScenarios() : signInDialog();
   if (act === 'signout') { await sb.auth.signOut(); setActive(null); closeModal(); return; }
-  if (act === 'share') return shareLink();
+  if (act === 'share') return share();
   if (act === 'save') return saveDialog();
   if (act === 'myscn') return myScenarios();
   if (act === 'dosave') return doSave();

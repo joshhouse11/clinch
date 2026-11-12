@@ -152,7 +152,7 @@ function picker() {
     <div class="seg weekbar" style="margin-bottom:10px">${chips}</div>
     <div class="section-head" style="margin:4px 0 10px">
       ${open.length ? `<span class="hint num">${done} of ${open.length} games picked</span><button class="btn" data-pact="favweek">Favorites win</button><button class="btn" data-pact="clearweek">Clear week</button>` : '<span class="hint num">Final scores</span>'}
-      <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="btn" data-pact="favall">Favorites win out</button>${nPicks() ? `<button class="btn" data-pact="clearall">Reset all ${nPicks()} picks</button>` : ''}</span>
+      <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="btn" data-pact="favall">Favorites win out</button>${nPicks() ? `<button class="btn" data-pact="clearall">Reset all ${nPicks()} picks</button>` : ''}${shareBtn('picture', 'Share my playoff picture', nPicks() > 0)}</span>
     </div></div>`;
   const games = `<div class="games two">${days.map((d) => `<h4 class="gday">${fmt(d, { weekday: 'long', month: 'short', day: 'numeric' })}</h4>${list.filter((g) => g.date === d).map((g) => gameCard(g)).join('')}`).join('')}</div>`;
   return head + games;
@@ -165,13 +165,13 @@ function renderStandings() {
 function oddsBracket() {
   const seeds = practiceSeeds(), n = countPicks(seeds, ch.practice);
   return `<div class="section-head"><h2>Playoff bracket</h2><span class="hint">Seeds as if the season ended today${nPicks() ? ', with your game picks' : ''} · tap a team to advance it</span>
-    <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="btn" data-act="chfav" data-mode="practice">Favorites win</button>${n ? '<button class="btn" data-act="chclear" data-mode="practice">Clear bracket</button>' : ''}</span></div>
+    <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="btn" data-act="chfav" data-mode="practice">Favorites win</button>${n ? '<button class="btn" data-act="chclear" data-mode="practice">Clear bracket</button>' : ''}${shareBtn('bracket', 'Share bracket', n > 0)}</span></div>
     ${nbaBracketHtml(seeds, ch.practice, { mode: 'practice' })}`;
 }
 function renderOdds() {
   if (!odds) return `${oddsBracket()}<div class="card empty" style="margin-top:16px">Running 5,000 seasons…</div>`;
   const top = T.map((t, i) => ({ t, i, ...odds[i] })).sort((a, b) => b.title - a.title).slice(0, 6);
-  const hero = `<section class="ohero" style="margin-top:4px"><div class="ohead"><h2>Title odds</h2><span class="hint">From 5,000 simulated seasons, play-ins and playoffs</span></div>
+  const hero = `<section class="ohero" style="margin-top:4px"><div class="ohead"><h2>Title odds</h2><span class="hint">From 5,000 simulated seasons, play-ins and playoffs</span><span style="margin-left:auto">${shareBtn('odds', 'Share title odds')}</span></div>
     <div class="hcards">${top.map((x) => `<div class="hcard" style="--tc:${COLORS[x.t]}">${chip(x.t)}<span class="nm">${NICK[x.t]}</span><b class="big num">${pct(x.title)}</b><span class="sub num">Finals ${pct(x.finals)}</span></div>`).join('')}</div></section>`;
   const tbl = (c) => {
     const list = ST.seeds[c].map((i) => ({ i, t: T[i], ...odds[i] })).sort((a, b) => b.playoffs - a.playoffs || b.avgWins - a.avgWins);
@@ -246,7 +246,7 @@ function renderLottery() {
   if (odds) {
     proj = T.map((t, i) => ({ t, i, own1: odds[i].own1, ownTop4: odds[i].ownTop4, via: T.map((u, j) => [u, (odds[j].toOwner || {})[t] || 0]).filter(([u, p]) => u !== t && p >= 0.2).map(([u]) => AB(u)) })).sort((a, b) => b.own1 - a.own1).slice(0, 6);
   }
-  return `<div class="lotbtn"><button class="btn primary big" data-act="sim">${d ? 'Sim it again' : '🎲 Sim the lottery'}</button>${state.drawN ? `<span class="hint">${state.drawN} lotter${state.drawN === 1 ? 'y' : 'ies'} simmed</span>` : '<span class="hint">Draws all 16 lottery picks with the new 3-2-1 odds and today\'s standings, then hands each pick to the team that owns it</span>'}</div>
+  return `<div class="lotbtn"><button class="btn primary big" data-act="sim">${d ? 'Sim it again' : '🎲 Sim the lottery'}</button>${d ? shareBtn('lottery', 'Share my lottery', true) : ''}${state.drawN ? `<span class="hint">${state.drawN} lotter${state.drawN === 1 ? 'y' : 'ies'} simmed</span>` : '<span class="hint">Draws all 16 lottery picks with the new 3-2-1 odds and today\'s standings, then hands each pick to the team that owns it</span>'}</div>
     ${drawRow}
     <div class="section-head"><h2>If the season ended today</h2><span class="hint">Chance (%) of landing each pick. 37 balls: 3 for teams outside the play-in, 2 for the three worst records and the 9-10 seeds, 1 for the 7-v-8 losers (8 seeds for now).</span></div>${tbl}
     ${proj.length ? `<div class="section-head" style="margin-top:22px"><h2>Who lands the #1 pick</h2><span class="hint">By pick owner, simulating the rest of the season and the lottery</span></div>
@@ -276,7 +276,7 @@ function renderTeam() {
   const tank = o && o.playoffs < 0.25;
   return `<section class="card hero" style="--tc:${COLORS[t]}"><div class="hero-head">${chip(t)}<div><div class="hero-name">${FULL[t]}</div><div class="hint num">${rec(i)} · ${sd + 1}${['st', 'nd', 'rd'][sd] || 'th'} in the ${c ? 'West' : 'East'} · ${NBA_DIV_NAMES[NBA_DIV_OF[i]]} ${div.indexOf(i) + 1}${['st', 'nd', 'rd'][div.indexOf(i)] || 'th'}</div></div></div>
     <div class="stats">${tank ? stat('#1 pick', o ? pct(o.pick1) : '…', o ? `Top 4: ${pct(o.top4)}` : '') + stat('Avg draft pick', o ? o.avgPick.toFixed(1) : '…') + stat('Make playoffs', o ? pct(o.playoffs) : '…') + stat('Proj. wins', o ? o.avgWins.toFixed(1) : '…')
-      : stat('Make playoffs', o ? pct(o.playoffs) : '…', o ? `Play-in: ${pct(o.playIn)}` : '') + stat('Top 6', o ? pct(o.top6) : '…') + stat('Win title', o ? pct(o.title) : '…', o ? `Finals: ${pct(o.finals)}` : '') + stat('Proj. wins', o ? o.avgWins.toFixed(1) : '…')}</div>${pickLine(i)}</section>
+      : stat('Make playoffs', o ? pct(o.playoffs) : '…', o ? `Play-in: ${pct(o.playIn)}` : '') + stat('Top 6', o ? pct(o.top6) : '…') + stat('Win title', o ? pct(o.title) : '…', o ? `Finals: ${pct(o.finals)}` : '') + stat('Proj. wins', o ? o.avgWins.toFixed(1) : '…')}</div>${pickLine(i)}<div class="row-btns" style="justify-content:flex-start;margin-top:12px">${shareBtn('team', `Share my ${NICK[t]} scenario`, true)}</div></section>
     <div class="grid" style="margin-top:16px"><div>
       <div class="section-head"><h2>Next 10 games</h2><span class="hint">Tap a winner · ${G.filter((g) => !g.played && (g.h === i || g.a === i)).length} left</span></div>
       <div class="section-head pickbar"><button class="btn" data-pact="winout">${NICK[t]} win out</button><button class="btn" data-pact="loseout">Lose out</button><button class="btn" data-pact="favteam">Favorites</button><button class="btn" data-pact="clearteam">Clear ${NICK[t]} picks</button></div>
