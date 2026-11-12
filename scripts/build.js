@@ -37,7 +37,8 @@ let html = fs.readFileSync(new URL('web/template.html', root), 'utf8');
 html = html
   .replace('/*__ENGINE__*/', () => engine)
   .replace('/*__DATA__*/', () => JSON.stringify(data))
-  .replace('/*__CONFIG__*/', () => JSON.stringify(config));
+  .replace('/*__CONFIG__*/', () => JSON.stringify(config))
+  .replace('/*__GROUPCHAT__*/', () => fs.readFileSync(new URL('web/group-chat.js', root), 'utf8'));
 // Versioned icon/image URLs (content hash) so browsers and link previews pick up logo changes instead of cached copies.
 import crypto from 'node:crypto';
 const ver = (f) => crypto.createHash('md5').update(fs.readFileSync(new URL('web/assets/' + f, root))).digest('hex').slice(0, 8);

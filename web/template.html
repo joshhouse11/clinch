@@ -461,6 +461,20 @@ nav.tabs i.lg, nav.tabs i.sm { font-style: normal; } nav.tabs i.sm { display: no
 .ck.ck-pi { background: color-mix(in srgb, var(--gold) 12%, transparent); color: var(--gold); } .ck.ck-o { background: var(--surface-2); color: var(--muted); }
 .cklegend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); }
 .cklegend .ck { margin-right: 4px; }
+.grpgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .grpgrid { grid-template-columns: 1fr; } }
+.chatcard { padding: 14px; display: grid; gap: 8px; }
+.chatlist { height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; padding: 4px 2px; }
+.chatempty { margin: auto; text-align: center; }
+.cmsg { max-width: 85%; align-self: flex-start; margin-top: 8px; } .cmsg.cont { margin-top: 2px; }
+.cmsg.me { align-self: flex-end; text-align: right; }
+.cwho { font-size: 11px; font-weight: 800; color: var(--muted); margin: 0 6px 2px; } .cwho span { font-weight: 500; opacity: .8; }
+.cbody { position: relative; display: inline-block; text-align: left; padding: 8px 12px; border-radius: 14px; background: var(--surface-2); font-size: 14px; line-height: 1.35; white-space: pre-wrap; word-break: break-word; }
+.cmsg.me .cbody { background: color-mix(in srgb, var(--accent) 22%, var(--surface-2)); }
+.cdel { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 9px; line-height: 1; cursor: pointer; display: none; padding: 0; }
+.cmsg:hover .cdel { display: grid; place-items: center; }
+@media (hover: none) { .cdel { display: grid; place-items: center; } }
+.chatform { display: flex; gap: 8px; } .chatform input { flex: 1; min-width: 0; }
 .chnote { margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); color: var(--muted); font-size: 13px; }
 .chnote.warn { color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--surface-2)); }
 .chsave { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 14px; }
@@ -1794,7 +1808,7 @@ async function chLoad(force) {
 async function chOpenGroup(id) {
   const g = ch.groups.find((x) => x.id === id);
   if (!g) return;
-  ch.group = g; ch.members = []; render();
+  ch.group = g; ch.members = []; render(); chatLoad(id);
   const [m, s] = await Promise.all([
     sb.from('group_members').select('user_id,display_name,paid,joined_at').eq('group_id', id).order('joined_at'),
     sb.rpc('group_bracket_status', { g: id }),
@@ -1873,6 +1887,7 @@ async function setEmails(on) {
   ch.emails = on; toast(on ? 'Bracket emails on' : 'Bracket emails off'); render();
 }
 document.addEventListener('change', (e) => { if (e.target.id === 'chEmails') setEmails(e.target.checked); });
+/*__GROUPCHAT__*/
 function chGroupView() {
   const g = ch.group, own = user && g.owner === user.id, locked = chLocked();
   const unpaid = ch.members.filter((m) => !m.paid);
@@ -1897,10 +1912,12 @@ function chGroupView() {
   </div>
   ${g.dues ? `<div class="chdues"><div><b class="num">$${got}</b><span>of $${pot} paid</span></div><div class="meter"><i style="width:${pot ? Math.round((got / pot) * 100) : 0}%"></i></div>${g.dues_note ? `<small>Pay: ${esc(g.dues_note)}</small>` : ''}</div>` : ''}
   </section>
+  <div class="grpgrid"><div>
   <div class="card scroll"><table class="t chmembers"><thead><tr>${locked ? '<th>#</th>' : ''}<th>Member</th><th>Bracket</th>${locked ? '<th>Champion</th><th>Pts</th>' : ''}${g.dues ? '<th>Dues</th>' : ''}${own ? '<th></th>' : ''}</tr></thead><tbody>${rows || '<tr><td>Loading…</td></tr>'}</tbody></table></div>
   <div class="row-btns" style="justify-content:flex-start;margin-top:12px">
     ${own ? `<button class="btn" data-act="chedit">Group settings</button>${chPhase().k === 'open' && ch.members.some((m) => !ch.hasBracket.has(m.user_id)) ? `<button class="btn primary" data-act="chnudge">Copy bracket reminder (${ch.members.filter((m) => !ch.hasBracket.has(m.user_id)).length})</button>` : ''}${g.dues && unpaid.length ? `<button class="btn" data-act="chremind">Copy dues reminder (${unpaid.length})</button>` : ''}` : '<button class="btn danger" data-act="chleave">Leave group</button>'}
   </div>
+  </div>${chatHtml()}</div>
   <p class="hint chlegal">Clinch doesn't collect or hold money. The commissioner marks who's paid.</p>`;
 }
 
@@ -1951,7 +1968,7 @@ document.addEventListener('click', async (e) => {
   }
   const act = b.dataset.act;
   if (!act || !act.startsWith('ch')) return;
-  if (act === 'chback') { ch.group = null; render(); return; }
+  if (act === 'chback') { ch.group = null; chatStop(); render(); return; }
   if (act === 'chfav' || act === 'chclear') {
     if (act === 'chclear') ch.picks = {};
     else playBracket(CH_SEEDS, (round, hi, lo, neutral) => { const k = pairKey(round, hi, lo); if (ch.picks[k] !== hi && ch.picks[k] !== lo) ch.picks[k] = poWinProb(STRENGTH, hi, lo, neutral) >= 0.5 ? hi : lo; return ch.picks[k]; });
@@ -1988,12 +2005,12 @@ document.addEventListener('click', async (e) => {
     if (!confirmTwice(b)) return;
     const { error } = await sb.from('bgroups').delete().eq('id', ch.group.id);
     if (error) return toast(error.message);
-    ch.groups = ch.groups.filter((x) => x.id !== ch.group.id); ch.group = null; closeModal(); render(); return;
+    ch.groups = ch.groups.filter((x) => x.id !== ch.group.id); ch.group = null; chatStop(); closeModal(); render(); return;
   }
   if (act === 'chleave') {
     if (!confirmTwice(b)) return;
     await sb.from('group_members').delete().eq('group_id', ch.group.id).eq('user_id', user.id);
-    ch.groups = ch.groups.filter((x) => x.id !== ch.group.id); ch.group = null; render(); return;
+    ch.groups = ch.groups.filter((x) => x.id !== ch.group.id); ch.group = null; chatStop(); render(); return;
   }
   if (act === 'chjoin') return chJoinDialog('');
   if (act === 'chlookup') { const v = ($('#cjCode').value || '').trim(); const code = (v.match(/join=([a-z0-9]+)/i) || [, v])[1].toLowerCase(); return chJoinDialog(code); }

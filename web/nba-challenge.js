@@ -264,7 +264,7 @@ async function chLoad(force) {
 async function chOpenGroup(id) {
   const g = ch.groups.find((x) => x.id === id);
   if (!g) return;
-  ch.group = g; ch.members = []; render();
+  ch.group = g; ch.members = []; render(); chatLoad(id);
   const [m, s] = await Promise.all([
     sb.from('group_members').select('user_id,display_name,paid,joined_at').eq('group_id', id).order('joined_at'),
     sb.rpc('group_bracket_status', { g: id }),
@@ -339,6 +339,7 @@ async function setEmails(on) {
   ch.emails = on; toast(on ? 'Bracket emails on' : 'Bracket emails off'); render();
 }
 document.addEventListener('change', (e) => { if (e.target.id === 'chEmails') setEmails(e.target.checked); });
+/*__GROUPCHAT__*/
 function chGroupView() {
   const g = ch.group, own = user && g.owner === user.id, locked = chLocked();
   const unpaid = ch.members.filter((m) => !m.paid);
@@ -363,10 +364,12 @@ function chGroupView() {
   </div>
   ${g.dues ? `<div class="chdues"><div><b class="num">$${got}</b><span>of $${pot} paid</span></div><div class="meter"><i style="width:${pot ? Math.round((got / pot) * 100) : 0}%"></i></div>${g.dues_note ? `<small>Pay: ${esc(g.dues_note)}</small>` : ''}</div>` : ''}
   </section>
+  <div class="grpgrid"><div>
   <div class="card scroll"><table class="t chmembers"><thead><tr>${locked ? '<th>#</th>' : ''}<th>Member</th><th>Bracket</th>${locked ? '<th>Champion</th><th>Pts</th>' : ''}${g.dues ? '<th>Dues</th>' : ''}${own ? '<th></th>' : ''}</tr></thead><tbody>${rows || '<tr><td>Loading…</td></tr>'}</tbody></table></div>
   <div class="row-btns" style="justify-content:flex-start;margin-top:12px">
     ${chPhase().k === 'open' && ch.members.some((m) => !ch.hasBracket.has(m.user_id)) ? `<button class="btn primary" data-act="chnudge">Copy bracket reminder (${ch.members.filter((m) => !ch.hasBracket.has(m.user_id)).length})</button>` : ''}${own ? `<button class="btn" data-act="chedit">Group settings</button>${g.dues && unpaid.length ? `<button class="btn" data-act="chremind">Copy dues reminder (${unpaid.length})</button>` : ''}` : '<button class="btn danger" data-act="chleave">Leave group</button>'}
   </div>
+  </div>${chatHtml()}</div>
   <p class="hint chlegal">Clinch doesn't collect or hold money. The commissioner marks who's paid.</p>`;
 }
 function chGroupForm(g) {
@@ -440,7 +443,7 @@ document.addEventListener('click', async (e) => {
   }
   if (act === 'oauth') { store.set('lastPath', location.pathname); const { error } = await sb.auth.signInWithOAuth({ provider: b.dataset.provider, options: { redirectTo: location.origin + location.pathname } }); if (error) toast('Sign-in failed: ' + error.message); return; }
   if (!act || !act.startsWith('ch')) return;
-  if (act === 'chback') { ch.group = null; render(); return; }
+  if (act === 'chback') { ch.group = null; chatStop(); render(); return; }
   if (act === 'chfav' || act === 'chclear') {
     const mode = b.dataset.mode, seeds = mode === 'practice' ? practiceSeeds() : CH_SEEDS;
     const src = act === 'chclear' ? {} : { ...(mode === 'practice' ? ch.practice : ch.picks) };
@@ -477,12 +480,12 @@ document.addEventListener('click', async (e) => {
     if (!confirmTwice(b)) return;
     const { error } = await sb.from('bgroups').delete().eq('id', ch.group.id);
     if (error) return toast(error.message);
-    ch.groups = ch.groups.filter((x) => x.id !== ch.group.id); ch.group = null; closeModal(); render(); return;
+    ch.groups = ch.groups.filter((x) => x.id !== ch.group.id); ch.group = null; chatStop(); closeModal(); render(); return;
   }
   if (act === 'chleave') {
     if (!confirmTwice(b)) return;
     await sb.from('group_members').delete().eq('group_id', ch.group.id).eq('user_id', user.id);
-    ch.groups = ch.groups.filter((x) => x.id !== ch.group.id); ch.group = null; render(); return;
+    ch.groups = ch.groups.filter((x) => x.id !== ch.group.id); ch.group = null; chatStop(); render(); return;
   }
   if (act === 'chjoin') return chJoinDialog('');
   if (act === 'chlookup') { const v = ($('#cjCode').value || '').trim(); const code = (v.match(/join=([a-z0-9]+)/i) || [, v])[1].toLowerCase(); return chJoinDialog(code); }
