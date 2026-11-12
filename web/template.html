@@ -62,7 +62,8 @@ nav.tabs button[aria-selected="true"]::after { content: ''; position: absolute; 
   nav.tabs button { padding: 0 8px; }
   nav.tabs button[aria-selected="true"]::after { left: 8px; right: 8px; }
 }
-@media (max-width: 560px) { .hbtn span { display: none; } .hbtn { padding: 8px; } }
+@media (max-width: 1260px) { .hbtn span { display: none; } .hbtn { padding: 8px; } .top-inner { gap: 20px; } }
+@media (max-width: 560px) { .top-inner { gap: 8px 10px; } .hdr-actions { gap: 0; } .hbtn { padding: 7px; } .brand { font-size: 20px; } .brand .mark { width: 26px; height: 26px; } #acctBtn { padding: 6px 10px; font-size: 13px; } }
 
 main { max-width: 1180px; margin: 0 auto; padding: 16px; }
 .teams { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 12px; scrollbar-width: thin; }
@@ -425,7 +426,7 @@ nav.tabs .chtab { color: var(--gold); margin-left: 10px; }
 nav.tabs .chtab::before { content: ''; position: absolute; left: -6px; top: 30%; bottom: 30%; width: 1px; background: var(--line); }
 nav.tabs .chtab span { font-size: 13px; }
 nav.tabs i.lg { font-style: normal; }
-@media (max-width: 560px) { nav.tabs i.lg { display: none; } nav.tabs button { padding: 0 7px; font-size: 13px; } nav.tabs .chtab { margin-left: 6px; } }
+@media (max-width: 560px) { nav.tabs i.lg { display: none; } nav.tabs button { padding: 0 5px; font-size: 12.5px; } nav.tabs .chtab { margin-left: 4px; } }
 .chhero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: center; padding: 26px; border-radius: 20px; margin: 4px 0 16px;
   background: radial-gradient(90% 120% at 0% 0%, color-mix(in srgb, var(--accent) 22%, var(--surface)) 0%, var(--surface) 55%), radial-gradient(70% 100% at 100% 100%, color-mix(in srgb, var(--gold) 18%, transparent), transparent);
   border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); }
@@ -474,6 +475,18 @@ nav.tabs i.lg { font-style: normal; }
 .meter { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; } .meter i { display: block; height: 100%; background: var(--accent); }
 .chlegal { margin-top: 18px; font-size: 12px; }
 
+
+.sport { position: relative; flex: none; }
+.sportbtn { border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 999px; padding: 6px 12px; font-weight: 800; font-size: 13px; cursor: pointer; font-family: inherit; }
+.sportbtn span { color: var(--muted); font-size: 10px; margin-left: 2px; }
+.sportmenu { position: absolute; top: calc(100% + 8px); left: 0; z-index: 20; min-width: 210px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px; display: grid; gap: 2px; box-shadow: 0 16px 40px rgba(0,0,0,.45); }
+.sportmenu[hidden] { display: none; }
+.sportmenu b { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); padding: 4px 8px; }
+.sportmenu a, .sportmenu span { padding: 8px; border-radius: 8px; font-weight: 700; font-size: 14px; color: var(--muted); text-decoration: none; display: flex; justify-content: space-between; }
+.sportmenu a.on { color: var(--text); background: var(--surface-2); }
+.sportmenu em { font-style: normal; font-size: 11px; color: var(--muted); opacity: .7; }
+@media (max-width: 900px) { .sportbtn { padding: 5px 9px; font-size: 12px; } }
+
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -481,8 +494,10 @@ nav.tabs i.lg { font-style: normal; }
 <header class="top">
   <div class="top-inner">
     <a class="brand" href="./" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span id="brandName">clinch</span></a>
-    <nav class="tabs" role="tablist" aria-label="Sections">
-      <button role="tab" data-tab="league">League</button>
+    <div class="sport"><button class="sportbtn" data-act="sportmenu" aria-haspopup="true" aria-expanded="false">🏈 NFL <span aria-hidden="true">▾</span></button>
+      <div class="sportmenu" hidden><b>Sports</b><a class="on" href="./">🏈 NFL</a><span>🏀 NBA <em>soon</em></span><span>⚾ MLB <em>soon</em></span><span>🏒 NHL <em>soon</em></span><span>🎓 College football <em>soon</em></span></div></div>
+    <nav class="tabs" role="tablist" aria-label="NFL sections">
+      <button role="tab" data-tab="league">Scenarios</button>
       <button role="tab" data-tab="team">My team</button>
       <button role="tab" data-tab="odds">Playoffs</button>
       <button role="tab" data-tab="draft">Draft<i class="lg"> order</i></button>
@@ -507,7 +522,7 @@ nav.tabs i.lg { font-style: normal; }
       <a class="brand" href="./" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk2)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span>clinch</span></a>
       <p>Every NFL playoff scenario, odds and tiebreaker, updated through the season.</p>
     </div>
-    <nav class="sf-col" aria-label="Tools"><b>Tools</b><a href="#league">League picker</a><a href="#team">My team</a><a href="#odds">Playoffs &amp; odds</a><a href="#challenge">Bracket Challenge</a><a href="#draft">Draft order</a></nav>
+    <nav class="sf-col" aria-label="NFL"><b>NFL</b><a href="#league">Playoff scenarios</a><a href="#team">My team</a><a href="#odds">Playoff bracket &amp; odds</a><a href="#draft">Draft order</a><a href="#challenge">Bracket Challenge</a></nav>
     <nav class="sf-col" aria-label="Company"><b>Clinch</b><a href="mailto:hello@clinchscenarios.com">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></nav>
   </div>
   <div class="sf-base"><span>© <span id="yr">2026</span> Clinch</span><span>Odds are simulations, not betting advice. Not affiliated with the NFL or any team.</span></div>
@@ -1038,7 +1053,7 @@ function render() {
   const viewing = state.viewingShare ? `<div class="card viewing"><b>Shared scenario</b><span>You're looking at someone's picks${state.viewingShare.team ? ` for the ${TEAM_NAMES[state.viewingShare.team]}` : ''}. Change anything you like.</span><button class="btn" data-act="restoremine">Back to my picks</button></div>` : '';
   $('#view').innerHTML = viewing + banner + (state.tab === 'league' ? renderLeague(cur) : state.tab === 'team' ? renderScenarios(cur) : state.tab === 'odds' ? renderOdds() : state.tab === 'challenge' ? renderChallenge() : renderDraft());
   { const n = Object.keys(state.picks).length, f = nFlips(), q = nPo(); $('#pickCount').textContent = n || f || q ? `Your scenario: ${n} pick${n === 1 ? '' : 's'}${f ? `, ${f} do-over${f === 1 ? '' : 's'}` : ''}${q ? `, ${q} playoff pick${q === 1 ? '' : 's'}` : ''}` : ''; }
-  $('#season').textContent = `${RAW.season} season · through Week ${lastFinalWeek}`;
+  $('#season').textContent = `NFL ${RAW.season} season · through Week ${lastFinalWeek}`;
   const wb = document.querySelector('.weekbar'), on = wb && wb.querySelector('[aria-pressed="true"]');
   if (on) wb.scrollLeft = on.offsetLeft - (wb.clientWidth - on.offsetWidth) / 2;
 }
@@ -1504,7 +1519,7 @@ document.addEventListener('click', async (e) => {
 
 // ---------- Playoff Bracket Challenge ----------
 // Free to play. Groups track dues with checkmarks; Clinch never collects or holds money.
-const CH_PTS = { WC: 2, DIV: 4, CON: 8, SB: 16 };
+const CH_PTS = { WC: 4, DIV: 5, CON: 6, SB: 8 }; // flatter than doubling so the champion pick doesn't decide every pool
 const RO = ['WC', 'DIV', 'CON', 'SB'];
 const REG_DONE = unplayed.length === 0;
 const REAL_SEEDS = REG_DONE ? evaluate(ctx, G.map((g) => g.fixed)).seeds.map((x) => x.slice(0, 7)) : null;
@@ -1536,7 +1551,7 @@ function realRounds() {
   }
   return (_rr = { won, out, games });
 }
-// Points: 2 / 4 / 8 / 16 per correct winner by round, plus 1 per seed of difference when a lower seed you picked pulls the upset.
+// Points: 4 / 5 / 6 / 8 per correct winner by round, plus 1 per seed of difference when a lower seed you picked pulls the upset.
 function scoreBracket(b) {
   const picked = { WC: new Set(), DIV: new Set(), CON: new Set(), SB: new Set() };
   const seedOf = new Map();
@@ -1784,6 +1799,11 @@ document.addEventListener('click', async (e) => {
     const msg = `🏈 ${g.name}: $${g.dues} dues still owed by ${unpaid.join(', ')}.${g.dues_note ? ` Pay: ${g.dues_note}.` : ''} Make your bracket: ${inviteUrl(g.code)}`;
     try { await navigator.clipboard.writeText(msg); toast('Reminder copied. Paste it in your group chat'); } catch { toast(msg); }
   }
+});
+document.addEventListener('click', (e) => {
+  const menu = document.querySelector('.sportmenu'), btn = e.target.closest('[data-act="sportmenu"]');
+  if (btn) { menu.hidden = !menu.hidden; btn.setAttribute('aria-expanded', String(!menu.hidden)); return; }
+  if (menu && !menu.hidden && !e.target.closest('.sportmenu')) { menu.hidden = true; document.querySelector('.sportbtn').setAttribute('aria-expanded', 'false'); }
 });
 // Destructive buttons need a second tap.
 function confirmTwice(b) {
