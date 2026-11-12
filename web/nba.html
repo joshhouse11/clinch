@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clinch · NBA Standings, Playoff Odds &amp; Draft Lottery</title>
+<meta name="description" content="NBA standings with playoff and play-in odds, a draft lottery simulator and every tiebreaker, updated daily.">
+<meta name="theme-color" content="#0f1422">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<!--__SEO__-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<style>/*__CSS__*/
+/* NBA additions */
+.nst { width: 100%; }
+.nst td.sd { width: 28px; text-align: center; font-family: var(--display); font-weight: 800; color: var(--muted); }
+.nst tr.cutline td { border-bottom: 2px dashed var(--line); }
+.nst th:nth-child(2), .nst td:nth-child(2) { text-align: left; }
+.drawc .chip, .hcard .chip, .tn .chip { opacity: 1; }
+.drawc .chip { width: 42px; height: 42px; font-size: 12px; border: 2px solid rgba(255,255,255,.5); }
+.nst tr.pi td.sd { color: var(--gold); }
+.nst tr.me td { background: color-mix(in srgb, var(--tc) 18%, transparent); }
+.nst .tn a { color: var(--text); text-decoration: none; } .nst .tn a:hover { color: var(--accent); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin: 6px 0 12px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.ngrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+@media (max-width: 1000px) { .ngrid { grid-template-columns: 1fr; } }
+.lot td.hm { text-align: center; font-size: 12px; min-width: 38px; }
+.lotbtn { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 4px 0 14px; }
+.draw { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 6px 0 18px; }
+@media (max-width: 700px) { .draw { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.drawc { border-radius: 16px; padding: 14px; min-height: 120px; display: grid; gap: 4px; align-content: start; background: var(--surface); border: 1px solid var(--line); }
+.drawc.on { background: radial-gradient(120% 100% at 100% 0%, color-mix(in srgb, var(--tc) 80%, #fff 0%) 0%, color-mix(in srgb, var(--tc) 45%, #05070d) 100%); border-color: transparent; color: #fff; animation: pop .45s ease-out; }
+.drawc b { font-family: var(--display); font-size: 13px; opacity: .8; }
+.drawc .nm { font-family: var(--display); font-weight: 800; font-size: 22px; }
+.drawc .jump { font-size: 12px; font-weight: 700; }
+@keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.ugames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.ug { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px 12px; }
+.ug .tm { display: flex; align-items: center; gap: 8px; font-weight: 700; } .ug .tm .chip { opacity: 1; width: 26px; height: 26px; font-size: 9px; }
+.ug .p { text-align: right; color: var(--muted); font-weight: 700; font-size: 13px; align-self: center; }
+.ug .p.fav { color: var(--accent); }
+.ug small { grid-column: 1 / -1; color: var(--muted); font-size: 11px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <a class="brand" href="/" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span id="brandName">clinch</span></a>
+    <div class="sport"><button class="sportbtn" data-act="sportmenu" aria-haspopup="true" aria-expanded="false">🏀 NBA <span aria-hidden="true">▾</span></button>
+      <div class="sportmenu" hidden><b>Sports</b><a href="/">🏈 NFL</a><a class="on" href="/nba/">🏀 NBA</a><span>⚾ MLB <em>soon</em></span><span>🏒 NHL <em>soon</em></span></div></div>
+    <nav class="tabs" role="tablist" aria-label="NBA sections">
+      <a role="tab" data-tab="standings" href="/nba/">Standings</a>
+      <a role="tab" data-tab="odds" href="/nba/playoff-odds/">Playoff odds</a>
+      <a role="tab" data-tab="lottery" href="/nba/draft-lottery/">Draft lottery</a>
+      <a role="tab" data-tab="team" href="/nba/teams/">My team</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="pagehead"><h1 class="pageh1" id="pageH1"></h1><p class="pagesum" id="pageSum"></p></div>
+  <div class="subbar"><span id="season"></span><span></span></div>
+  <div class="teams" id="teams" aria-label="Pick your team"></div>
+  <div id="view"></div>
+</main>
+<footer class="site-foot">
+  <div class="sf-inner">
+    <div class="sf-brand">
+      <a class="brand" href="/" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk2)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span>clinch</span></a>
+      <p>NBA standings, playoff and play-in odds, and a draft lottery simulator, updated every day.</p>
+    </div>
+    <nav class="sf-col" aria-label="NBA"><b>NBA</b><a href="/nba/">Standings</a><a href="/nba/playoff-odds/">Playoff odds</a><a href="/nba/draft-lottery/">Draft lottery simulator</a></nav>
+    <nav class="sf-col" aria-label="NFL"><b>NFL</b><a href="/nfl/playoff-scenarios/">Playoff scenarios</a><a href="/nfl/playoff-odds/">Playoff bracket &amp; odds</a><a href="/nfl/bracket-challenge/">Bracket Challenge</a></nav>
+    <nav class="sf-col" aria-label="Company"><b>Clinch</b><a href="mailto:hello@clinchscenarios.com">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></nav>
+  </div>
+  <nav class="sf-teams" id="sfTeams" aria-label="NBA team playoff pages"></nav>
+  <div class="sf-base"><span>© <span id="yr">2026</span> Clinch</span><span>Odds are simulations, not betting advice. Not affiliated with the NBA or any team.</span></div>
+</footer>
+<div class="toast" id="toast"></div>
+<script type="module">
+/*__ENGINE__*/
+
+const RAW = /*__DATA__*/;
+const CONFIG = /*__CONFIG__*/;
+/*__APP__*/
+</script>
+</body>
+</html>

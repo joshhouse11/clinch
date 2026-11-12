@@ -224,7 +224,7 @@ table.t { width: 100%; border-collapse: collapse; }
 .scroll { overflow-x: auto; }
 .pad { padding: 12px 14px; }
 .site-foot { border-top: 1px solid var(--line); margin-top: 40px; background: color-mix(in srgb, var(--surface) 55%, var(--bg)); }
-.sf-inner { max-width: 1180px; margin: 0 auto; padding: 32px 16px 20px; display: grid; grid-template-columns: minmax(0, 2fr) 1fr 1fr; gap: 24px; }
+.sf-inner { max-width: 1180px; margin: 0 auto; padding: 32px 16px 20px; display: grid; grid-template-columns: minmax(0, 2fr) 1fr 1fr 1fr; gap: 24px; }
 .sf-brand .brand { display: inline-flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 800; font-size: 20px; }
 .sf-brand .mark { width: 28px; height: 28px; }
 .sf-brand p { color: var(--muted); font-size: 13px; margin: 10px 0 0; max-width: 40ch; line-height: 1.5; }
@@ -518,7 +518,7 @@ a.chip { text-decoration: none; }
   <div class="top-inner">
     <a class="brand" href="/" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span id="brandName">clinch</span></a>
     <div class="sport"><button class="sportbtn" data-act="sportmenu" aria-haspopup="true" aria-expanded="false">🏈 NFL <span aria-hidden="true">▾</span></button>
-      <div class="sportmenu" hidden><b>Sports</b><a class="on" href="/">🏈 NFL</a><span>🏀 NBA <em>soon</em></span><span>⚾ MLB <em>soon</em></span><span>🏒 NHL <em>soon</em></span><span>🎓 College football <em>soon</em></span></div></div>
+      <div class="sportmenu" hidden><b>Sports</b><a class="on" href="/">🏈 NFL</a><a href="/nba/">🏀 NBA</a><span>⚾ MLB <em>soon</em></span><span>🏒 NHL <em>soon</em></span><span>🎓 College football <em>soon</em></span></div></div>
     <nav class="tabs" role="tablist" aria-label="NFL sections">
       <a role="tab" data-tab="league" href="/nfl/playoff-scenarios/">Scenarios</a>
       <a role="tab" data-tab="team" href="/nfl/teams/">My team</a>
@@ -547,6 +547,7 @@ a.chip { text-decoration: none; }
       <p>Every NFL playoff scenario, odds and tiebreaker, updated through the season.</p>
     </div>
     <nav class="sf-col" aria-label="NFL"><b>NFL</b><a href="/nfl/playoff-scenarios/">Playoff scenarios</a><a href="/nfl/playoff-odds/">Playoff bracket &amp; odds</a><a href="/nfl/draft-order/">Draft order</a><a href="/nfl/bracket-challenge/">Bracket Challenge</a></nav>
+    <nav class="sf-col" aria-label="NBA"><b>NBA</b><a href="/nba/">Standings &amp; playoff odds</a><a href="/nba/draft-lottery/">Draft lottery simulator</a></nav>
     <nav class="sf-col" aria-label="Company"><b>Clinch</b><a href="mailto:hello@clinchscenarios.com">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></nav>
   </div>
   <nav class="sf-teams" id="sfTeams" aria-label="NFL team playoff pages"></nav>

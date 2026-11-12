@@ -62,8 +62,8 @@ const seoTags = (m) => url ? [
     '@context': 'https://schema.org', '@type': 'WebPage', name: m.title, description: m.desc, url: url + m.path,
     breadcrumb: { '@type': 'BreadcrumbList', itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Clinch', item: url + '/' },
-      ...(m.path === '/' ? [] : [{ '@type': 'ListItem', position: 2, name: 'NFL', item: url + '/nfl/playoff-scenarios/' }]),
-      ...(m.path.startsWith('/nfl/') && m.path !== '/nfl/playoff-scenarios/' ? [{ '@type': 'ListItem', position: 3, name: m.h1, item: url + m.path }] : []),
+      ...(m.path === '/' ? [] : [m.path.startsWith('/nba') ? { '@type': 'ListItem', position: 2, name: 'NBA', item: url + '/nba/' } : { '@type': 'ListItem', position: 2, name: 'NFL', item: url + '/nfl/playoff-scenarios/' }]),
+      ...(/^\/(nfl|nba)\/./.test(m.path) && m.path !== '/nfl/playoff-scenarios/' ? [{ '@type': 'ListItem', position: 3, name: m.h1, item: url + m.path }] : []),
     ] },
   }).replace(/</g, '\\u003c')}</script>`,
 ].join('\n') : '';
@@ -76,40 +76,20 @@ fs.writeFileSync(new URL('site.webmanifest', outDir), JSON.stringify({ name: 'Cl
 fs.writeFileSync(new URL('404.html', outDir), html.replace('<!--__SEO__-->', '<meta name="robots" content="noindex">'));
 
 // Pre-render every page (home, each section, 32 teams) so search engines get real content without running JavaScript.
-// The app runs once in a simulated browser; each page's finished HTML is written to its own folder.
-const { JSDOM, VirtualConsole } = await import('jsdom');
-const snapHtml = html.replace('<script type="module">', '<script>').replace(JSON.stringify(config), JSON.stringify({ ...config, supabaseUrl: '', supabaseAnonKey: '' }));
-const vc = new VirtualConsole(); vc.on('jsdomError', (e) => console.warn('prerender:', e.message));
-const dom = new JSDOM(snapHtml, { url: (url || 'https://localhost') + '/', runScripts: 'dangerously', pretendToBeVisual: true, virtualConsole: vc });
-const W = dom.window;
-for (let i = 0; i < 300 && !(W.__clinch && W.__clinch.ready()); i++) await new Promise((r) => setTimeout(r, 100));
-if (!W.__clinch || !W.__clinch.ready()) throw new Error('Pre-render: the app never finished its odds simulation');
-const paths = W.__clinch.paths();
-const swap = (h, re, v) => { if (!re.test(h)) throw new Error('Pre-render marker missing: ' + re); return h.replace(re, () => v); };
-for (const pth of paths) {
-  const s = W.__clinch.snap(pth), m = s.m;
-  let page = html;
-  page = swap(page, /<title>[^<]*<\/title>/, `<title>${escA(m.title)}</title>`);
-  page = swap(page, /<meta name="description" content="[^"]*">/, `<meta name="description" content="${escA(m.desc)}">`);
-  page = swap(page, /<!--__SEO__-->/, seoTags(m));
-  page = swap(page, /<div id="view"><\/div>/, `<div id="view">${s.view}</div>`);
-  page = swap(page, /<h1 class="pageh1" id="pageH1"><\/h1>/, `<h1 class="pageh1" id="pageH1">${escA(m.h1)}</h1>`);
-  page = swap(page, /<p class="pagesum" id="pageSum"><\/p>/, `<p class="pagesum" id="pageSum">${escA(m.sum)}</p>`);
-  page = swap(page, /<nav class="sf-teams" id="sfTeams" aria-label="NFL team playoff pages"><\/nav>/, `<nav class="sf-teams" id="sfTeams" aria-label="NFL team playoff pages">${s.foot}</nav>`);
-  page = swap(page, /<nav class="tabs" role="tablist" aria-label="NFL sections">[\s\S]*?<\/nav>/, `<nav class="tabs" role="tablist" aria-label="NFL sections">${s.tabs}</nav>`);
-  if (pth.startsWith('/nfl/teams/')) page = swap(page, /<div class="teams" id="teams" aria-label="Pick your team"><\/div>/, `<div class="teams" id="teams" aria-label="Pick your team">${s.teams}</div>`);
-  const dir = new URL('.' + pth, outDir);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(new URL('index.html', dir), page);
-}
-W.close();
+const { prerender } = await import('./prerender.js');
+const paths = await prerender({ html, config, url, outDir, seoTags, escA, label: 'NFL' });
+
+// ---------- NBA ----------
+const { buildNBA } = await import('./build-nba.js');
+const nbaPaths = await buildNBA({ root, outDir, config, url, seoTags, escA, V, prerender });
+const allPaths = [...paths, ...nbaPaths];
 
 fs.writeFileSync(new URL('robots.txt', outDir), `User-agent: *\nAllow: /\n${url ? `Sitemap: ${url}/sitemap.xml\n` : ''}`);
 if (url) {
   const day = data.built.slice(0, 10);
-  fs.writeFileSync(new URL('sitemap.xml', outDir), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${paths.map((p) => `<url><loc>${url}${p}</loc><lastmod>${day}</lastmod><changefreq>daily</changefreq><priority>${p === '/' ? '1.0' : p.startsWith('/nfl/teams/') ? '0.8' : '0.9'}</priority></url>`).join('\n')}\n</urlset>\n`);
+  fs.writeFileSync(new URL('sitemap.xml', outDir), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${allPaths.map((p) => `<url><loc>${url}${p}</loc><lastmod>${day}</lastmod><changefreq>daily</changefreq><priority>${p === '/' ? '1.0' : /\/teams\//.test(p) ? '0.8' : '0.9'}</priority></url>`).join('\n')}\n</urlset>\n`);
   fs.writeFileSync(new URL('CNAME', outDir), new URL(url).host + '\n');
 }
-console.log(`pre-rendered ${paths.length} pages`);
+console.log(`pre-rendered ${allPaths.length} pages (${paths.length} NFL, ${nbaPaths.length} NBA)`);
 const final = games.filter((g) => g[4] !== null).length;
 console.log(`built ${SEASON} season: ${games.length} games, ${final} final, ${trades.traded.length + trades.conditional.length} pick trades, accounts ${config.supabaseUrl ? 'ON' : 'off (no Supabase configured)'}`);
