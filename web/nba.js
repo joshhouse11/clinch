@@ -56,8 +56,14 @@ function recompute() {
   clearTimeout(simTimer); const gen = ++simGen;
   simTimer = setTimeout(() => { const o = nbaSimulate(ctx, RATING, { sims: 3000, rules: RULES, picks }); if (gen === simGen) { odds = o; render(); } }, 350);
 }
+// Weeks run Monday-Sunday, numbered from the season's first week.
+const dayNum = (d) => Math.floor(Date.parse(d + 'T12:00:00Z') / 864e5);
+const FIRST_MON = (() => { const d0 = dayNum(G.map((g) => g.date).sort()[0]); return d0 - ((d0 + 3) % 7); })(); // 1970-01-05 was a Monday: (n+3)%7 = days since Monday
+const weekOf = (d) => Math.floor((dayNum(d) - FIRST_MON) / 7) + 1;
+G.forEach((g) => { g.wk = weekOf(g.date); });
+const WEEKS = [...new Set(G.map((g) => g.wk))].sort((a, b) => a - b);
 const FUT_DAYS = [...new Set(G.filter((g) => !g.played).map((g) => g.date))].sort();
-state.day = FUT_DAYS[0];
+state.week = FUT_DAYS.length ? weekOf(FUT_DAYS[0]) : WEEKS.at(-1);
 
 // ---- standings ----
 function gb(c, i) { const top = ST.seeds[c][0]; return ((ST.R.W[top] - ST.R.W[i]) + (ST.R.L[i] - ST.R.L[top])) / 2; }
@@ -83,21 +89,31 @@ function gameCard(g, focus) {
   return `<div class="card game${mine ? ' mine' : ''}" style="--tc:${COLORS[T[focus ?? g.h]]}"><div class="gmeta"><span>${focus !== undefined ? new Date(g.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' : ''}${tm}</span><span>${pk === undefined ? 'Tap the winner' : 'Your pick'}</span></div>
     ${side(g.a, 'a', 1 - p)}<div class="mid"><span class="at">@</span></div>${side(g.h, 'h', p)}</div>`;
 }
+function miniGame(g) {
+  const pk = g.played ? (g.hs > g.as ? 1 : -1) : picks[g.k], p = nbaWinProb(RATING, g.h, g.a);
+  const st = (side) => (pk === undefined ? '' : (pk === 1) === (side === 'h') ? 'win' : 'loss');
+  const btn = (t, side, q) => `<button class="ms" ${g.played ? 'disabled' : `data-g="${g.k}" data-pick="${side === 'h' ? 1 : -1}"`} data-state="${st(side)}" style="--tc:${COLORS[T[t]]}" aria-label="${FULL[T[t]]} win">${chip(T[t])}<span class="mn">${AB(T[t])}</span><span class="mp num">${g.played ? (side === 'h' ? g.hs : g.as) : pct(q)}</span></button>`;
+  return `<div class="mg${g.played ? ' final' : ''}">${btn(g.a, 'a', 1 - p)}<span class="mat">@</span>${btn(g.h, 'h', p)}</div>`;
+}
 function picker() {
-  if (!FUT_DAYS.length) return '<div class="card empty">Regular season complete.</div>';
-  const di = Math.max(0, FUT_DAYS.indexOf(state.day)), day = FUT_DAYS[di];
-  const list = G.filter((g) => !g.played && g.date === day).sort((a, b) => (a.when || '').localeCompare(b.when || ''));
-  const done = list.filter((g) => picks[g.k] !== undefined).length;
-  const d = new Date(day + 'T12:00:00');
+  const wi = Math.max(0, WEEKS.indexOf(state.week)), wk = WEEKS[wi];
+  const list = G.filter((g) => g.wk === wk).sort((a, b) => (a.when || a.date).localeCompare(b.when || b.date));
+  const open = list.filter((g) => !g.played), done = open.filter((g) => picks[g.k] !== undefined).length;
+  const days = [...new Set(list.map((g) => g.date))];
+  const fmt = (d, o) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', o);
+  const range = days.length ? `${fmt(days[0], { month: 'short', day: 'numeric' })} – ${fmt(days.at(-1), { month: 'short', day: 'numeric' })}` : '';
+  const chips = WEEKS.map((w) => { const n = G.filter((g) => g.wk === w), past = n.every((g) => g.played), all = !past && n.filter((g) => !g.played).every((g) => picks[g.k] !== undefined);
+    return `<button data-week="${w}" aria-pressed="${w === wk}" class="${past ? 'pastw' : ''}">Wk ${w}${past ? ' <span class="final">✓</span>' : all ? ' <span class="picked">✓</span>' : ''}</button>`; }).join('');
   return `<div class="wkstep">
-      <button class="arr" data-day="${FUT_DAYS[di - 1] ?? ''}" ${di > 0 ? '' : 'disabled'} aria-label="Previous day">${ARR(0)}</button>
-      <div class="wl"><b>${d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</b><small class="num">${list.length} game${list.length === 1 ? '' : 's'} · ${done} picked · day ${di + 1} of ${FUT_DAYS.length}</small></div>
-      <button class="arr" data-day="${FUT_DAYS[di + 1] ?? ''}" ${di < FUT_DAYS.length - 1 ? '' : 'disabled'} aria-label="Next day">${ARR(1)}</button>
+      <button class="arr" data-week="${WEEKS[wi - 1] ?? ''}" ${wi > 0 ? '' : 'disabled'} aria-label="Previous week">${ARR(0)}</button>
+      <div class="wl"><b>Week ${wk}</b><small class="num">${range} · ${open.length ? `${done} of ${open.length} picked` : 'Final'}</small></div>
+      <button class="arr" data-week="${WEEKS[wi + 1] ?? ''}" ${wi < WEEKS.length - 1 ? '' : 'disabled'} aria-label="Next week">${ARR(1)}</button>
     </div>
-    <div class="section-head pickbar"><span class="hint num">${nPicks() ? `${nPicks()} game${nPicks() === 1 ? '' : 's'} picked this season` : 'Pick winners and watch the standings, odds and lottery move'}</span>
-      <button class="btn" data-pact="favday">Favorites win today</button><button class="btn" data-pact="clearday">Clear day</button>
-      <button class="btn" data-pact="favall">Favorites win out</button>${nPicks() ? '<button class="btn" data-pact="clearall">Reset all picks</button>' : ''}</div>
-    <div class="games two">${list.map((g) => gameCard(g)).join('')}</div>`;
+    <div class="seg weekbar" style="margin-bottom:10px">${chips}</div>
+    <div class="section-head pickbar"><span class="hint num">${nPicks() ? `${nPicks()} game${nPicks() === 1 ? '' : 's'} picked this season` : 'Tap a winner · standings, odds and lottery update as you go'}</span>
+      ${open.length ? '<button class="btn" data-pact="favweek">Favorites win this week</button><button class="btn" data-pact="clearweek">Clear week</button>' : ''}
+      <button class="btn" data-pact="favall">Favorites win out</button>${nPicks() ? '<button class="btn" data-pact="clearall">Reset all</button>' : ''}</div>
+    <div class="wkgrid">${days.map((d) => `<section class="wday"><h4>${fmt(d, { weekday: 'short', month: 'short', day: 'numeric' })}</h4>${list.filter((g) => g.date === d).map(miniGame).join('')}</section>`).join('')}</div>`;
 }
 function renderStandings() {
   return `<div class="npick"><div class="pmain">${picker()}</div>
@@ -282,15 +298,15 @@ document.addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b) return;
   if (b.dataset.g !== undefined) { const k = +b.dataset.g, v = +b.dataset.pick; if (picks[k] === v) delete picks[k]; else picks[k] = v; recompute(); render(); return; }
-  if (b.dataset.day !== undefined) { if (b.dataset.day) { state.day = b.dataset.day; render(); } return; }
+  if (b.dataset.week !== undefined) { if (b.dataset.week) { state.week = +b.dataset.week; render(); const c = document.querySelector('.weekbar [aria-pressed="true"]'); if (c) c.scrollIntoView({ block: 'nearest', inline: 'center' }); } return; }
   if (b.dataset.pact) {
     const a = b.dataset.pact, ti = NBA_IDX[state.team];
     const fav = (g) => (nbaWinProb(RATING, g.h, g.a) >= 0.5 ? 1 : -1);
     const open = G.filter((g) => !g.played);
-    const day = open.filter((g) => g.date === state.day), team = open.filter((g) => g.h === ti || g.a === ti);
+    const week = open.filter((g) => g.wk === state.week), team = open.filter((g) => g.h === ti || g.a === ti);
     if (a === 'clearall' && !confirm('Reset all ' + nPicks() + ' picks?')) return;
-    if (a === 'favday') day.forEach((g) => { picks[g.k] = fav(g); });
-    if (a === 'clearday') day.forEach((g) => { delete picks[g.k]; });
+    if (a === 'favweek') week.forEach((g) => { picks[g.k] = fav(g); });
+    if (a === 'clearweek') week.forEach((g) => { delete picks[g.k]; });
     if (a === 'favall') open.forEach((g) => { if (picks[g.k] === undefined) picks[g.k] = fav(g); });
     if (a === 'clearall') for (const k in picks) delete picks[k];
     if (a === 'winout' || a === 'loseout') team.forEach((g) => { const w = a === 'winout'; picks[g.k] = (g.h === ti) === w ? 1 : -1; });
