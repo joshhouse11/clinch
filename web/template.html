@@ -126,7 +126,34 @@ main { max-width: 1180px; margin: 0 auto; padding: 16px; }
 .game { gap: 6px; }
 @media (max-width: 520px) { .side .nm { font-size: 13px; } .game .side { padding: 7px; gap: 6px; } .game .side .chip { width: 28px; height: 28px; font-size: 9px; } .game { padding: 8px; } }
 .side .pr { font-size: 12px; color: var(--muted); }
-.wknav { margin-left: auto; display: flex; gap: 6px; }
+.side-col.stack { display: grid; gap: 12px; }
+.wkstep { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; align-items: center; gap: 8px; margin: 4px 0 10px; }
+.wkstep .arr { height: 56px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--text); display: grid; place-items: center; cursor: pointer; }
+.wkstep .arr:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.wkstep .arr:disabled { opacity: .25; cursor: default; }
+.wkstep .arr svg { width: 26px; height: 26px; }
+.wkstep .wl { text-align: center; line-height: 1.15; }
+.wkstep .wl b { display: block; font-family: var(--display); font-size: 26px; letter-spacing: -0.4px; }
+.wkstep .wl small { color: var(--muted); font-size: 13px; }
+@media (max-width: 520px) { .wkstep { grid-template-columns: 48px minmax(0, 1fr) 48px; } .wkstep .arr { height: 48px; } .wkstep .wl b { font-size: 22px; } }
+/* Wide screens, League tab: AFC standings left, games in the middle, NFC right. */
+@media (min-width: 1360px) {
+  main:has(.lg3) { max-width: 1480px; }
+  .top-inner { max-width: 1480px; }
+  .grid.lg3 { grid-template-columns: 300px minmax(0, 1fr) 300px; grid-template-rows: auto 1fr; }
+  .grid.lg3 > :first-child { grid-column: 2; grid-row: 1; }
+  .grid.lg3 > .side-col { display: contents; }
+  .grid.lg3 > .side-col > .stand { position: sticky; top: 76px; align-self: start; grid-row: 1 / span 2; max-height: calc(100vh - 92px); overflow-y: auto; }
+  .grid.lg3 > .side-col > .stand:first-child { grid-column: 1; }
+  .grid.lg3 > .side-col > .stand:last-child { grid-column: 3; }
+  .grid.lg3 > .tb-slot { grid-column: 2; grid-row: 2; }
+  .grid.lg3 .dtable .cf { display: none; }
+  .grid.lg3 .stand { padding: 12px 10px; }
+  .grid.lg3 .row { grid-template-columns: 16px 26px minmax(0, 1fr) auto 40px; gap: 6px; padding: 5px 4px; }
+  .grid.lg3 .row .chip { width: 26px; height: 26px; font-size: 9px; }
+  .grid.lg3 .row .rn { font-size: 14px; }
+  .grid.lg3 .row .tag { padding: 1px 4px; font-size: 9px; letter-spacing: .2px; }
+}
 .side .ln { font-weight: 700; color: var(--text); opacity: .75; margin-left: 2px; }
 .side[data-state="win"] .ln { color: var(--accent); opacity: 1; }
 .side[data-state="win"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface-2)); }
@@ -666,10 +693,10 @@ function renderLeague(cur) {
   const wk = state.lweek ?? weeks[0];
   const lv = state.lview === 'grid' ? 'grid' : 'week';
   const views = `<div class="seg"><button data-lview="week" aria-pressed="${lv === 'week'}">Week by week</button><button data-lview="grid" aria-pressed="${lv === 'grid'}">Season grid</button></div>`;
-  const sidebar = `<div class="sticky side-col" style="display:grid;gap:12px">${standingsCard(cur, 0, true)}${standingsCard(cur, 1, true)}</div>`;
+  const sidebar = `<div class="sticky side-col stack">${standingsCard(cur, 0, true)}${standingsCard(cur, 1, true)}</div>`;
   if (lv === 'grid') {
     const gc = state.gridConf ?? 'all';
-    return `<div class="grid has-tb"><div>
+    return `<div class="grid has-tb lg3"><div>
       <div class="section-head" style="margin-top:4px"><h2>Every remaining game</h2>${views}
         <div class="seg"><button data-gconf="all" aria-pressed="${gc === 'all'}">All</button><button data-gconf="0" aria-pressed="${gc === 0}">AFC</button><button data-gconf="1" aria-pressed="${gc === 1}">NFC</button></div></div>
       ${gridView(cur)}</div>${sidebar}<div class="tb-slot">${tiebreakSection(cur, gc === 'all' ? [0, 1] : [gc])}</div></div>`;
@@ -681,9 +708,18 @@ function renderLeague(cur) {
   const flippedHere = list.filter((g) => state.flips[g.k] !== undefined).length;
   const wi = ALL_WEEKS.indexOf(wk);
   const byes = TEAMS.filter((t, i) => !G.some((g) => g.week === wk && (g.h === i || g.a === i)));
-  return `<div class="grid has-tb"><div>
-    <div class="section-head" style="margin-top:4px"><h2>Week ${wk}</h2>${views}
-      <span class="wknav">${wi > 0 ? `<button class="btn" data-lweek="${ALL_WEEKS[wi - 1]}" aria-label="Previous week">← Wk ${ALL_WEEKS[wi - 1]}</button>` : ''}${wi < ALL_WEEKS.length - 1 ? `<button class="btn primary" data-lweek="${ALL_WEEKS[wi + 1]}" aria-label="Next week">Wk ${ALL_WEEKS[wi + 1]} →</button>` : ''}</span></div>
+  const ARR = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d ? 'M9 5l7 7-7 7' : 'M15 5l-7 7 7 7'}"/></svg>`;
+  const days = list.map((g) => g.day).filter(Boolean).sort();
+  const fmt = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const range = days.length ? (fmt(days[0]) === fmt(days[days.length - 1]) ? fmt(days[0]) : `${fmt(days[0])} – ${fmt(days[days.length - 1])}`) : '';
+  const status = past ? 'Final' : `${picked} of ${open.length} picked`;
+  return `<div class="grid has-tb lg3"><div>
+    <div class="section-head" style="margin-top:4px">${views}</div>
+    <div class="wkstep">
+      <button class="arr" data-lweek="${ALL_WEEKS[wi - 1] ?? ''}" ${wi > 0 ? '' : 'disabled'} aria-label="Previous week">${ARR(0)}</button>
+      <div class="wl"><b>Week ${wk}</b><small class="num">${range}${range ? ' · ' : ''}${status}</small></div>
+      <button class="arr" data-lweek="${ALL_WEEKS[wi + 1] ?? ''}" ${wi < ALL_WEEKS.length - 1 ? '' : 'disabled'} aria-label="Next week">${ARR(1)}</button>
+    </div>
     <div class="seg weekbar" style="margin-bottom:10px">${ALL_WEEKS.map((w) => { const n = G.filter((g) => g.week === w); const isPast = n.every((g) => g.played); const fl = n.some((g) => state.flips[g.k] !== undefined); const done = !isPast && n.filter((g) => !g.played).every((g) => state.picks[g.k] !== undefined); return `<button data-lweek="${w}" aria-pressed="${w === wk}" class="${isPast ? 'pastw' : ''}">Wk ${w}${fl ? ' <span class="flipdot" title="has a do-over">●</span>' : isPast ? ' <span class="final" title="final">✓</span>' : done ? ' <span class="picked" title="all games picked">✓</span>' : ''}</button>`; }).join('')}</div>
     <div class="section-head" style="margin:4px 0 10px">
       ${past
@@ -764,6 +800,8 @@ function render() {
   $('#view').innerHTML = viewing + banner + (state.tab === 'league' ? renderLeague(cur) : state.tab === 'team' ? renderScenarios(cur) : state.tab === 'odds' ? renderOdds() : renderDraft());
   { const n = Object.keys(state.picks).length, f = nFlips(); $('#pickCount').textContent = n || f ? `Your scenario: ${n} pick${n === 1 ? '' : 's'}${f ? `, ${f} do-over${f === 1 ? '' : 's'}` : ''}` : ''; }
   $('#season').textContent = `${RAW.season} season · through Week ${lastFinalWeek}`;
+  const wb = document.querySelector('.weekbar'), on = wb && wb.querySelector('[aria-pressed="true"]');
+  if (on) wb.scrollLeft = on.offsetLeft - (wb.clientWidth - on.offsetWidth) / 2;
 }
 
 // ---------- simulation scheduling ----------
