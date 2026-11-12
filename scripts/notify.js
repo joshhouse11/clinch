@@ -61,16 +61,17 @@ function email(S, event, u, groups, lockAt) {
   const lock = lockAt ? new Date(lockAt).toLocaleString('en-US', { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York', timeZoneName: 'short' }) : `the ${S.start}`;
   const g = groups.length === 1 ? esc(groups[0]) : `your ${groups.length} groups`;
   const copy = {
-    open: [`${S.emoji} ${S.label} brackets are open`, (S.done ? `Brackets are open for ${g}. Seeds are set: make your picks before brackets lock ${lock}.` : `Brackets are open for ${g}. Seeds are projected from the current standings and go final when ${S.end} ends, so you can fill yours out now and tweak it later.`), 'Make my bracket'],
-    final: [`${S.emoji} Final seeds are set: check your ${S.label} bracket`, `${S.label} seeds are final, and some of your matchups changed since you submitted. Take a minute to check your picks and tap Update bracket before brackets lock ${lock}.`, 'Check my bracket'],
-    lock24: [`⏰ ${S.label} brackets lock in less than a day`, `You haven't submitted a bracket for ${g} yet. Brackets lock ${lock}.`, 'Make my bracket'],
+    open: [`${S.label} brackets are open for ${groups.length === 1 ? groups[0] : 'your groups'}`, (S.done ? `Brackets are open for ${g}. Seeds are set: make your picks before brackets lock ${lock}.` : `Brackets are open for ${g}. Seeds are projected from the current standings and go final when ${S.end} ends, so you can fill yours out now and tweak it later.`), 'Make my bracket'],
+    final: [`Final ${S.label} seeds are set: check your bracket`, `${S.label} seeds are final, and some of your matchups changed since you submitted. Take a minute to check your picks and tap Update bracket before brackets lock ${lock}.`, 'Check my bracket'],
+    lock24: [`Your ${S.label} bracket locks in less than a day`, `You haven't submitted a bracket for ${g} yet. Brackets lock ${lock}.`, 'Make my bracket'],
   }[event];
   const html = `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#111">
     <p style="font-size:16px">${u.name ? `Hey ${esc(u.name)},` : 'Hey,'}</p>
     <p style="font-size:16px;line-height:1.5">${copy[1]}</p>
     <p style="margin:24px 0"><a href="${url}" style="background:#1fc9a6;color:#062a22;font-weight:700;padding:12px 20px;border-radius:10px;text-decoration:none">${copy[2]}</a></p>
     <p style="font-size:12px;color:#777">You're getting this because you're in a Clinch ${S.label} Bracket Challenge group. <a href="${off}" style="color:#777">Turn off bracket emails</a>.</p></div>`;
-  return { from: FROM, to: [u.email], subject: copy[0], html, headers: { 'List-Unsubscribe': `<${off}>` } };
+  const text = `${u.name ? `Hey ${u.name},` : 'Hey,'}\n\n${copy[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&')}\n\n${copy[2]}: ${url}\n\nYou're getting this because you're in a Clinch ${S.label} Bracket Challenge group. Turn off bracket emails: ${off}`;
+  return { from: FROM, to: [u.email], reply_to: 'hello@clinchscenarios.com', subject: copy[0], html, text, headers: { 'List-Unsubscribe': `<mailto:hello@clinchscenarios.com?subject=unsubscribe>, <${off}>` } };
 }
 
 let sent = 0;
