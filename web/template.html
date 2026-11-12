@@ -1114,17 +1114,11 @@ function computeRooting() {
   }, 20);
 }
 
-function rootingView() {
+// The rooting guide's ranked games for the current team and week (shared by the page and the share image).
+function rootingData() {
   const i0 = IDX[state.team], t = state.team, C = CONF_OF[i0];
-  const weekSeg = `<div class="seg">${weeks.map((w) => `<button data-week="${w}" aria-pressed="${w === state.week}">Wk ${w}</button>`).join('')}</div>`;
-  if (!rooting || rootingWeek !== state.week || rooting.team !== t) {
-    setTimeout(computeRooting, 0);
-    if (rootCache.has(t + ':' + state.week)) setTimeout(render, 0);
-    return `${weekSeg}<div class="card empty" style="margin-top:12px">Running the Week ${state.week} numbers for the ${TEAM_NAMES[t]}…</div>`;
-  }
   const R = rooting;
   const tank = (state.rootMode ?? (R.tankDefault ? 'tank' : 'playoffs')) === 'tank';
-  const modeSeg = `<div class="seg"><button data-rmode="playoffs" aria-pressed="${!tank}">Playoff push</button><button data-rmode="tank" aria-pressed="${tank}">Tank watch</button></div>`;
   // One playoff score covers everything: getting in counts most, winning the division and the #1 seed add to it.
   const score = (v) => v[0] + 0.5 * v[1] + 0.5 * v[2];
   const curPct = (i) => PCT_NOW[i];
@@ -1163,6 +1157,19 @@ function rootingView() {
   });
   const order = rows.filter((x) => !x.own).sort((a, b) => (a.rootHome === null) - (b.rootHome === null) || b.level - a.level || Math.abs(b.swing) - Math.abs(a.swing));
   const own = rows.find((x) => x.own);
+  return { R, tank, order, own, rows };
+}
+
+function rootingView() {
+  const i0 = IDX[state.team], t = state.team, C = CONF_OF[i0];
+  const weekSeg = `<div class="seg">${weeks.map((w) => `<button data-week="${w}" aria-pressed="${w === state.week}">Wk ${w}</button>`).join('')}</div>`;
+  if (!rooting || rootingWeek !== state.week || rooting.team !== t) {
+    setTimeout(computeRooting, 0);
+    if (rootCache.has(t + ':' + state.week)) setTimeout(render, 0);
+    return `${weekSeg}<div class="card empty" style="margin-top:12px">Running the Week ${state.week} numbers for the ${TEAM_NAMES[t]}…</div>`;
+  }
+  const { R, tank, order, own } = rootingData();
+  const modeSeg = `<div class="seg"><button data-rmode="playoffs" aria-pressed="${!tank}">Playoff push</button><button data-rmode="tank" aria-pressed="${tank}">Tank watch</button></div>`;
   const LV = ['', 'Small', 'Medium', 'Big'];
   const card = (x) => {
     const g = x.g, a = TEAMS[g.a], h = TEAMS[g.h];
@@ -1182,7 +1189,7 @@ function rootingView() {
     ? `Every Week ${state.week} result, ranked by how much it helps the ${TEAM_NAMES[t]}' draft position (projected pick ${R.bases[3].toFixed(1)}).${gone ? ` <b class="warn">Heads-up: the ${TEAM_NAMES[t]}' 1st-round pick is owned by ${gone}, so a better draft slot mostly helps them, not ${t}.</b>` : ''}`
     : `Every Week ${state.week} result, ranked by how much it helps the ${TEAM_NAMES[t]}' playoff chances (${pct(R.bases[0])} to make it, ${pct(R.bases[1])} to win the division, ${pct(R.bases[2])} for the #1 seed).`;
   return `${weekSeg}
-    <div class="section-head" style="margin:12px 0 4px">${modeSeg}</div>
+    <div class="section-head" style="margin:12px 0 4px">${modeSeg}<span style="margin-left:auto">${shareBtn('root', `Share ${t} rooting guide`, true)}</span></div>
     <p class="hint">${intro} Based on the real standings, not your picks. Gold marks the side to root for.</p>
     <div class="games">${own ? card(own) : ''}${order.map(card).join('')}</div>`;
 }
@@ -2028,14 +2035,54 @@ function cardDraft(cur) {
   return c;
 }
 
+
+function ensureRooting() {
+  return new Promise((resolve) => {
+    const key = state.team + ':' + state.week;
+    const ready = () => rooting && rootingWeek === state.week && rooting.team === state.team;
+    if (ready()) return resolve(true);
+    computeRooting();
+    let n = 0; const iv = setInterval(() => {
+      if (rootCache.has(key)) { rooting = rootCache.get(key); rootingWeek = state.week; }
+      if (ready() || ++n > 80) { clearInterval(iv); resolve(ready()); }
+    }, 100);
+  });
+}
+function cardRooting() {
+  const t = state.team, tc = COLORS[t];
+  const [c, x] = cv(); cFrame(x, tc);
+  const { R, tank, order, own } = rootingData();
+  cHead(x, `Week ${state.week} rooting guide`, `${TEAM_NAMES[t]} fans: root for`, tank ? `Tank watch · projected pick ${R.bases[3].toFixed(1)}` : `Playoff push · ${pct(R.bases[0])} to make the playoffs right now`);
+  const list = [own, ...order].filter((r) => r && r.rootHome !== null).slice(0, 8);
+  const LV = ['', 'Small', 'Medium', 'Big'];
+  list.forEach((r, k) => {
+    const g = r.g, root = r.rootHome ? g.h : g.a, other = r.rootHome ? g.a : g.h, ry = 418 + k * 92;
+    rr(x, 64, ry - 38, CARD.W - 128, 80, 20);
+    x.fillStyle = r.own ? tc + '40' : CARD.surf; x.fill(); x.strokeStyle = r.own ? tc : CARD.line; x.lineWidth = 2; x.stroke();
+    cChip(x, TEAMS[root], 116, ry + 2, 28);
+    x.textAlign = 'left'; x.textBaseline = 'middle';
+    const nm = TEAM_NAMES[TEAMS[root]]; x.font = F(800, 34); x.fillStyle = CARD.text; x.fillText(nm, 160, ry - 8);
+    const vs = `${root === g.h ? 'vs' : 'at'} ${TEAM_NAMES[TEAMS[other]]}`;
+    x.font = F(600, 22, 'DM'); x.fillStyle = CARD.muted; x.fillText(r.own ? (tank ? 'Your game · a loss helps the pick' : 'Your game') : vs, 162, ry + 22);
+    // impact meter
+    const mx = CARD.W - 360;
+    for (let b = 0; b < 3; b++) { rr(x, mx + b * 22, ry - 10 - b * 6 + 12, 16, 16 + b * 6, 4); x.fillStyle = b < r.level ? (r.level === 3 ? CARD.gold : CARD.lime) : CARD.line; x.fill(); }
+    x.font = F(800, 26, 'DM'); x.fillStyle = r.level === 3 ? CARD.gold : CARD.text; x.textAlign = 'left'; x.fillText(LV[r.level], mx + 76, ry - 2);
+    if (r.detail) { const d = r.detail.replace(' of ', ' · '); fitText(x, d, CARD.W - 96 - (mx + 76), 500, 20, 'DM'); x.fillStyle = CARD.muted; x.fillText(d, mx + 76, ry + 24); }
+  });
+  if (!list.length) { x.font = F(700, 34, 'DM'); x.fillStyle = CARD.muted; x.fillText('No games this week move the needle.', 64, 460); }
+  return c;
+}
+
 const CARD_KINDS = [
-  { k: 'picture', label: 'Playoff picture' }, { k: 'team', label: 'My team' }, { k: 'bracket', label: 'Bracket' }, { k: 'draft', label: 'Tank watch' },
+  { k: 'picture', label: 'Playoff picture' }, { k: 'team', label: 'My team' }, { k: 'root', label: 'Rooting guide' }, { k: 'bracket', label: 'Bracket' }, { k: 'draft', label: 'Tank watch' },
 ];
-const defaultCard = () => ({ league: 'picture', team: 'team', odds: 'bracket', challenge: 'bracket', draft: 'draft' })[state.tab] || 'picture';
+const defaultCard = () => (state.tab === 'team' && state.view === 'root' ? 'root' : null) || ({ league: 'picture', team: 'team', odds: 'bracket', challenge: 'bracket', draft: 'draft' })[state.tab] || 'picture';
 async function makeCard(kind) {
   try { await Promise.all([document.fonts.load(F(800, 40)), document.fonts.load(F(700, 30, 'DM')), document.fonts.load(F(500, 30, 'DM'))]); } catch {}
   const cur = evaluate(ctx, outcomes());
   if (kind === 'team') return cardTeam(cur);
+  if (kind === 'root') { if (!weeks.length || !(await ensureRooting())) return cardTeam(cur); return cardRooting(); }
   if (kind === 'draft') return cardDraft(cur);
   if (kind === 'bracket') {
     if (state.tab === 'challenge' && REAL_SEEDS) {
@@ -2065,7 +2112,7 @@ async function drawPreview() {
   cardBlob = await new Promise((r) => c.toBlob(r, 'image/png'));
   const img = $('#cardImg'); if (img) img.src = URL.createObjectURL(cardBlob);
 }
-const shareText = () => ({ picture: 'My NFL playoff picture 👀', team: `My ${TEAM_NAMES[state.team]} scenario 👀`, bracket: 'My NFL playoff bracket 🏆', draft: 'Tank watch: the NFL draft order 📉' })[cardKind] + ' Make yours at clinchscenarios.com';
+const shareText = () => ({ picture: 'My NFL playoff picture 👀', root: `Week ${state.week}: who ${TEAM_NAMES[state.team]} fans should root for 🙏`, team: `My ${TEAM_NAMES[state.team]} scenario 👀`, bracket: 'My NFL playoff bracket 🏆', draft: 'Tank watch: the NFL draft order 📉' })[cardKind] + ' Make yours at clinchscenarios.com';
 document.addEventListener('click', async (e) => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.act === 'sharecard') return share(b.dataset.card);
