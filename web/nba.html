@@ -53,7 +53,13 @@
 .bl .pil { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin-bottom: -4px; }
 .chh-pts.n5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .chhero .chh1 { font-family: var(--display); font-size: 34px; letter-spacing: -1px; line-height: 1.05; margin: 10px 0 8px; }
-@container (min-width: 1300px) { .bcols.n4 { min-width: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@container (min-width: 760px) { .bcols.n4 { min-width: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+/* NBA: four rounds per side is too wide for side-by-side conferences; stack East, West, then the Finals */
+@container (min-width: 1300px) {
+  .bracket:has(.bconf.nb) { grid-template-columns: 1fr; grid-template-areas: "afc" "nfc" "sb"; }
+  .bconf.nb + .bsb + .bconf.nb .bcols { direction: ltr; }
+}
+.bracket:has(.bconf.nb) .bsb { max-width: 520px; width: 100%; justify-self: center; }
 @media (max-width: 600px) { .chh-pts.n5 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .chhero .chh1 { font-size: 26px; } }
 @keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .npick { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr); } .npick > * { min-width: 0; }

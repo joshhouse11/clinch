@@ -122,8 +122,14 @@ function renderStandings() {
 }
 
 // ---- odds ----
+function oddsBracket() {
+  const seeds = practiceSeeds(), n = countPicks(seeds, ch.practice);
+  return `<div class="section-head"><h2>Playoff bracket</h2><span class="hint">Seeds as if the season ended today${nPicks() ? ', with your game picks' : ''} · tap a team to advance it</span>
+    <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="btn" data-act="chfav" data-mode="practice">Favorites win</button>${n ? '<button class="btn" data-act="chclear" data-mode="practice">Clear bracket</button>' : ''}</span></div>
+    ${nbaBracketHtml(seeds, ch.practice, { mode: 'practice' })}`;
+}
 function renderOdds() {
-  if (!odds) return '<div class="card empty">Running 5,000 seasons…</div>';
+  if (!odds) return `${oddsBracket()}<div class="card empty" style="margin-top:16px">Running 5,000 seasons…</div>`;
   const top = T.map((t, i) => ({ t, i, ...odds[i] })).sort((a, b) => b.title - a.title).slice(0, 6);
   const hero = `<section class="ohero" style="margin-top:4px"><div class="ohead"><h2>Title odds</h2><span class="hint">From 5,000 simulated seasons, play-ins and playoffs</span></div>
     <div class="hcards">${top.map((x) => `<div class="hcard" style="--tc:${COLORS[x.t]}">${chip(x.t)}<span class="nm">${NICK[x.t]}</span><b class="big num">${pct(x.title)}</b><span class="sub num">Finals ${pct(x.finals)}</span></div>`).join('')}</div></section>`;
@@ -132,7 +138,7 @@ function renderOdds() {
     return `<section class="card scroll"><div class="stand-head" style="padding:14px 14px 0"><h3>${c ? 'West' : 'East'}</h3></div><table class="t"><thead><tr><th>Team</th><th>Record</th><th>Proj. W</th><th>Playoffs</th><th>Top 6</th><th>Play-in</th><th>#1 seed</th><th>Conf. finals</th><th>Finals</th><th>Title</th></tr></thead><tbody>
       ${list.map((x) => `<tr class="${x.t === state.team ? 'me' : ''}" style="--tc:${COLORS[x.t]}"><td><span class="tn">${chip(x.t)}<a href="${pathFor('team', x.t)}" style="color:inherit;text-decoration:none">${NICK[x.t]}</a></span></td><td class="num">${rec(x.i)}</td><td class="num">${x.avgWins.toFixed(1)}</td><td><span class="bar"><i><b style="width:${Math.round(x.playoffs * 100)}%"></b></i><span class="num">${pct(x.playoffs)}</span></span></td><td class="num">${pct(x.top6)}</td><td class="num">${pct(x.playIn)}</td><td class="num">${pct(x.one)}</td><td class="num">${pct(x.conf)}</td><td class="num">${pct(x.finals)}</td><td class="num po champ">${pct(x.title)}</td></tr>`).join('')}</tbody></table></section>`;
   };
-  return `${hero}<div class="section-head" style="margin-top:22px"><h2>Every team's chances</h2></div><div style="display:grid;gap:16px">${tbl(0)}${tbl(1)}</div>`;
+  return `${oddsBracket()}<div style="margin-top:22px">${hero}</div><div class="section-head" style="margin-top:22px"><h2>Every team's chances</h2></div><div style="display:grid;gap:16px">${tbl(0)}${tbl(1)}</div>`;
 }
 
 // ---- draft lottery (2027+: "3-2-1", 16 teams, all 16 picks drawn; traded picks resolved) ----
@@ -251,8 +257,8 @@ function pageMeta() {
   }
   if (state.tab === 'odds') {
     const top = odds ? T.map((t, i) => ({ t, ...odds[i] })).sort((a, b) => b.title - a.title).slice(0, 3) : [];
-    const sum = top.length ? `NBA title odds through ${through}: ${top.map((x) => `${NICK[x.t]} ${pct(x.title)}`).join(', ')}. Every team's chances to make the playoffs, finish top 6, reach the play-in and win the Finals.` : 'NBA playoff and title odds for every team.';
-    return { title: `NBA Playoff Odds ${yr}: Title, Play-In & Top-6 Chances | Clinch`, h1: 'NBA playoff odds', desc: sum, sum, path: TAB_PATH.odds };
+    const sum = top.length ? `NBA title odds through ${through}: ${top.map((x) => `${NICK[x.t]} ${pct(x.title)}`).join(', ')}. Every team's chances to make the playoffs, finish top 6, reach the play-in and win the Finals, plus a bracket you can fill out.` : 'NBA playoff and title odds for every team, plus a bracket you can fill out.';
+    return { title: `NBA Playoff Odds & Bracket ${yr}: Title, Play-In & Top-6 Chances | Clinch`, h1: 'NBA playoff odds & bracket', desc: sum, sum, path: TAB_PATH.odds };
   }
   if (state.tab === 'challenge') {
     const sum = `Free ${RAW.season} NBA Playoff Bracket Challenge: pick the play-in and every series through the Finals, start a group with friends, and track dues. Points for every round, plus a bonus for calling upsets.`;

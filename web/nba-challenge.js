@@ -223,7 +223,7 @@ function nbaBracketHtml(seeds, src, { mode = 'ch', readOnly = false } = {}) {
   };
   const champ = br.f.w;
   const fin = `<section class="bsb${champ != null ? ' done' : ''}" style="${champ != null ? `--tc:${COLORS[T[champ]]}` : ''}"><h3>NBA Finals</h3>${mu(br.f, 'East champion', 'West champion')}
-    ${champ != null ? `<div class="trophy">${chip(T[champ])}<div><small>${mode === 'ch' ? 'Your champion' : 'Practice champion'}</small><b>${NICK[T[champ]]}</b></div></div>` : '<p class="hint">Pick every round to crown a champion.</p>'}</section>`;
+    ${champ != null ? `<div class="trophy">${chip(T[champ])}<div><small>${mode === 'ch' ? 'Your pick' : 'Your champion'}</small><b>${NICK[T[champ]]}</b></div></div>` : '<p class="hint">Pick every round to crown a champion.</p>'}</section>`;
   return `<div class="bwrap"><div class="bracket">${block(0)}${fin}${block(1)}</div></div>`;
 }
 
@@ -294,10 +294,7 @@ function renderChallenge() {
   </section>`;
   let mine;
   if (ph.k === 'pre') {
-    const seeds = practiceSeeds();
-    mine = `<div class="card chcard wide"><div class="section-head" style="margin-top:0"><h3>Practice bracket</h3>${bracketHead(seeds, ch.practice, 'practice')}</div>
-      <p class="hint" style="margin:0 0 10px">Seeds come from today's standings${nPicks() ? ' plus your game picks' : ''}. The real bracket opens the night the regular season ends and locks at the first play-in tip.</p>
-      ${nbaBracketHtml(seeds, ch.practice, { mode: 'practice' })}</div>`;
+    mine = `<div class="card chcard"><h3>Your bracket</h3><p>Seeds aren't set until the regular season ends. Brackets open that night and lock at the first play-in tip.</p><p class="hint">Want to practice? Build a what-if bracket on the <a href="/nba/playoff-odds/">Playoff odds tab</a>.</p></div>`;
   } else if (ph.k === 'open') {
     const n = countPicks(REAL_SEEDS, ch.picks), done = n === TOTAL_PICKS;
     mine = `<div class="card chcard wide"><div class="section-head" style="margin-top:0"><h3>Your bracket</h3>
