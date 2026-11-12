@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Clinch · NFL Playoff Scenarios, Odds &amp; Tiebreakers</title>
 <meta name="description" content="Pick every remaining NFL game and see playoff seeds, clinching scenarios, playoff odds, tiebreakers and the draft order update live. Free, updated after every game.">
-<meta name="theme-color" content="#0d0f12">
+<meta name="theme-color" content="#0f1422">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -16,16 +16,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* Stadium night: charcoal surfaces, electric lime for "your side", coral for the other side.
+  /* Night-game dark: deep navy surfaces, mint for "your side", coral for the other side.
      Layout: one column on phones; on desktop, games on the left and live standings pinned right. */
-  --bg: #0d0f12;
-  --surface: #16191e;
-  --surface-2: #1f242b;
-  --line: #2b313a;
-  --text: #eef1f4;
-  --muted: #8b939e;
-  --accent: #c6f24e;
-  --accent-ink: #1b2400;
+  --bg: #0f1422;
+  --surface: #182033;
+  --surface-2: #212b42;
+  --line: #2c3854;
+  --text: #eaf0fb;
+  --muted: #8693b0;
+  --accent: #35e3bf;
+  --accent-ink: #062a22;
   --coral: #ff6f8e;
   --gold: #ffc861;
   --display: "Poppins", "Segoe UI", system-ui, sans-serif;
@@ -494,13 +494,17 @@ nav.tabs i.lg { font-style: normal; }
 .cardseg { margin: 4px 0 12px; }
 .cardprev { background: #000; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); aspect-ratio: 1080 / 1350; max-height: 58vh; margin: 0 auto; }
 .cardprev img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.btn.sharecta { display: inline-flex; align-items: center; gap: 6px; }
+.btn.sharecta svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.btn.sharecta.hot { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: var(--accent); color: var(--accent); }
+.bsb .sharecta { justify-self: center; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
 <header class="top">
   <div class="top-inner">
-    <a class="brand" href="./" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#9fd420"/><stop offset="1" stop-color="#e2ff8a"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk)"/><path d="M16 33 L24.5 41.5" stroke="#1b2400" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#1b2400" stroke-width="8" stroke-linecap="round"/></svg><span id="brandName">clinch</span></a>
+    <a class="brand" href="./" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span id="brandName">clinch</span></a>
     <div class="sport"><button class="sportbtn" data-act="sportmenu" aria-haspopup="true" aria-expanded="false">🏈 NFL <span aria-hidden="true">▾</span></button>
       <div class="sportmenu" hidden><b>Sports</b><a class="on" href="./">🏈 NFL</a><span>🏀 NBA <em>soon</em></span><span>⚾ MLB <em>soon</em></span><span>🏒 NHL <em>soon</em></span><span>🎓 College football <em>soon</em></span></div></div>
     <nav class="tabs" role="tablist" aria-label="NFL sections">
@@ -526,7 +530,7 @@ nav.tabs i.lg { font-style: normal; }
 <footer class="site-foot">
   <div class="sf-inner">
     <div class="sf-brand">
-      <a class="brand" href="./" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#9fd420"/><stop offset="1" stop-color="#e2ff8a"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk2)"/><path d="M16 33 L24.5 41.5" stroke="#1b2400" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#1b2400" stroke-width="8" stroke-linecap="round"/></svg><span>clinch</span></a>
+      <a class="brand" href="./" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk2)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span>clinch</span></a>
       <p>Every NFL playoff scenario, odds and tiebreaker, updated through the season.</p>
     </div>
     <nav class="sf-col" aria-label="NFL"><b>NFL</b><a href="#league">Playoff scenarios</a><a href="#team">My team</a><a href="#odds">Playoff bracket &amp; odds</a><a href="#draft">Draft order</a><a href="#challenge">Bracket Challenge</a></nav>
@@ -670,6 +674,7 @@ function heroCard(cur, slim = false) {
       <button class="btn" data-act="loseout">${t} lose out</button>
       <button class="btn" data-act="favorites">Fill rest with favorites</button>
       <button class="btn" data-act="reset">Clear all picks</button>
+      ${shareBtn('team', `Share my ${t} scenario`, true)}
     </div>
   </section>`;
 }
@@ -916,6 +921,7 @@ function renderLeague(cur) {
       <button class="btn" data-weekact="fav">Favorites win</button>
       <button class="btn" data-weekact="clear">Clear week</button>`}
       ${clearAllHtml()}
+      <span style="margin-left:auto">${shareBtn('picture', 'Share my playoff picture', Object.keys(state.picks).length > 0)}</span>
     </div>`}</div>
     ${isPO ? `<div class="pobody">${bracketHead()}${bracketHtml(cur.seeds)}</div>` : `<div class="games two">${list.map(gameCard).join('')}</div>`}
   </div>${sidebar}<div class="tb-slot">${tiebreakSection(cur, [0, 1])}</div></div>`;
@@ -946,6 +952,8 @@ function renderScenarios(cur) {
 }
 
 
+// Inline share buttons: each one opens the share window on a specific image.
+const shareBtn = (card, label, primary = false) => `<button class="btn sharecta${primary ? ' hot' : ''}" data-act="sharecard" data-card="${card}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>${label}</button>`;
 // ---------- playoffs ----------
 const seedingNote = () => {
   const left = unplayed.filter((g) => outcomes()[g.k] == null).length;
@@ -998,13 +1006,13 @@ function bracketHtml(seeds, mode = 'po', readOnly = false, picksSrc = null) {
   const champ = sb && sb.w != null ? sb.w : null;
   const sbHtml = `<section class="bsb${champ != null ? ' done' : ''}" style="${champ != null ? `--tc:${COLORS[TEAMS[champ]]}` : ''}">
     <h3>Super Bowl</h3>${sb ? mu('SB', sb) : `<div class="mu tbd sbm"><div class="bt ghost"><span class="sd">AFC</span><span class="bn">Champion</span></div><div class="bt ghost"><span class="sd">NFC</span><span class="bn">Champion</span></div></div>`}
-    ${champ != null ? `<div class="trophy">${chip(TEAMS[champ])}<div><small>${ch ? 'Your pick' : 'Your champion'}</small><b>${TEAM_NAMES[TEAMS[champ]]}</b></div></div>` : '<p class="hint">Pick every round to crown a champion.</p>'}
+    ${champ != null ? `<div class="trophy">${chip(TEAMS[champ])}<div><small>${ch ? 'Your pick' : 'Your champion'}</small><b>${TEAM_NAMES[TEAMS[champ]]}</b></div></div>${shareBtn('bracket', 'Post this bracket', true)}` : '<p class="hint">Pick every round to crown a champion.</p>'}
   </section>`;
   return `<div class="bwrap"><div class="bracket">${confBlock(0)}${sbHtml}${confBlock(1)}</div></div>`;
 }
 function bracketHead() {
   return `<div class="section-head"><h2>Playoff bracket</h2><span class="hint">${seedingNote()} · tap a team to advance it</span>
-    <span style="margin-left:auto;display:flex;gap:6px"><button class="btn" data-act="pofav">Favorites win</button>${nPo() ? '<button class="btn" data-act="poclear">Clear bracket</button>' : ''}</span></div>`;
+    <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="btn" data-act="pofav">Favorites win</button>${nPo() ? '<button class="btn" data-act="poclear">Clear bracket</button>' : ''}${shareBtn('bracket', 'Share bracket', nPo() > 0)}</span></div>`;
 }
 function oddsHero(src) {
   const top = [...src].sort((a, b) => b.champ - a.champ).slice(0, 6);
@@ -1046,7 +1054,7 @@ function renderDraft() {
     const mine = own === state.team || (orig === state.team && !traded);
     return `<tr class="${mine ? 'me' : ''}" style="--tc:${COLORS[own]}"><td class="num">${k + 1}</td><td class="tm"><span class="tn">${chip(own)}<span>${TEAM_NAMES[own]}${traded ? `<span class="via" title="${dealFor(orig, own)}">via ${orig}</span>` : ''}</span></span></td><td class="num">${recStr(cur.R, i)}</td><td class="num">${cur.R.sos[i].toFixed(3).replace(/^0/, '')}</td><td class="num">${o ? o.avgPick.toFixed(1) : '…'}</td><td class="num">${o ? pct(o.pick1) : '…'}</td><td class="num">${o ? pct(o.top5) : '…'}</td></tr>`;
   }).join('');
-  return `<div class="section-head"><h2>${DRAFT_YEAR} draft order if the season ended ${hasPicks() ? 'after your picks' : 'today'}</h2>${hasPicks() ? '<button class="btn" data-act="reset">Clear picks</button>' : ''}</div>
+  return `<div class="section-head"><h2>${DRAFT_YEAR} draft order if the season ended ${hasPicks() ? 'after your picks' : 'today'}</h2>${hasPicks() ? '<button class="btn" data-act="reset">Clear picks</button>' : ''}<span style="margin-left:auto">${shareBtn('draft', 'Share tank watch')}</span></div>
     <p class="hint">Ties go to the team with the easier schedule (lower SOS). Picks 19–32 belong to playoff teams and are projected by record. Traded picks show the team that owns them now, with the original team after "via". Record, SOS and odds describe the original team, since its results set the pick.</p>
     <div class="card scroll"><table class="t"><thead><tr><th>Pick</th><th class="tm">Team</th><th>Record</th><th>SOS</th><th>Avg pick</th><th>#1 pick</th><th>Top 5</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
 }
@@ -1688,6 +1696,7 @@ function renderChallenge() {
         <label>Name on leaderboards <input type="text" id="chName" maxlength="40" value="${esc(ch.entry?.display_name || myName())}"></label>
         <button class="btn primary big" data-act="chsave" ${done ? '' : 'disabled'}>${user ? (ch.entry ? 'Update bracket' : 'Submit bracket') : 'Sign in to submit'}</button></div>
       ${done ? '' : '<p class="hint" style="margin:6px 0 0">Pick every game through the Super Bowl to submit.</p>'}
+      ${ch.entry ? `<div class="row-btns" style="justify-content:flex-start;margin-top:10px">${shareBtn('bracket', 'Share my picks', true)}</div>` : ''}
     </div>`;
   } else {
     const sc = ch.entry ? scoreBracket(ch.entry) : null;
@@ -1857,7 +1866,7 @@ function confirmTwice(b) {
 
 
 // ---------- share images: 1080x1350 cards for Instagram / X, drawn on a canvas ----------
-const CARD = { W: 1080, H: 1350, bg: '#0d0f12', surf: '#16191e', line: '#2b313a', text: '#eef1f4', muted: '#8b939e', lime: '#c6f24e', gold: '#ffc861' };
+const CARD = { W: 1080, H: 1350, bg: '#0f1422', surf: '#182033', line: '#2c3854', text: '#eaf0fb', muted: '#8693b0', lime: '#35e3bf', gold: '#ffc861' }; // 'lime' = brand accent (mint)
 function cv() { const c = document.createElement('canvas'); c.width = CARD.W; c.height = CARD.H; return [c, c.getContext('2d')]; }
 function rr(x, cx, cy, w, h, r) { x.beginPath(); x.moveTo(cx + r, cy); x.arcTo(cx + w, cy, cx + w, cy + h, r); x.arcTo(cx + w, cy + h, cx, cy + h, r); x.arcTo(cx, cy + h, cx, cy, r); x.arcTo(cx, cy, cx + w, cy, r); x.closePath(); }
 const F = (w, s, fam = 'Poppins') => `${w} ${s}px ${fam === 'Poppins' ? '"Poppins"' : '"DM Sans"'}, system-ui, sans-serif`;
@@ -1869,9 +1878,9 @@ function cChip(x, t, cx, cy, r, dim = false) {
   x.restore();
 }
 function cLogo(x, lx, ly, s) {
-  const g = x.createLinearGradient(lx, ly + s, lx + s, ly); g.addColorStop(0, '#9fd420'); g.addColorStop(1, '#e2ff8a');
+  const g = x.createLinearGradient(lx, ly + s, lx + s, ly); g.addColorStop(0, '#1fc9a6'); g.addColorStop(1, '#7ff5dd');
   rr(x, lx, ly, s, s, s * 0.28); x.fillStyle = g; x.fill();
-  x.strokeStyle = '#1b2400'; x.lineWidth = s * 0.125; x.lineCap = 'round';
+  x.strokeStyle = '#062a22'; x.lineWidth = s * 0.125; x.lineCap = 'round';
   x.beginPath(); x.moveTo(lx + s * 0.25, ly + s * 0.515); x.lineTo(lx + s * 0.383, ly + s * 0.648); x.stroke();
   x.beginPath(); x.moveTo(lx + s * 0.516, ly + s * 0.672); x.lineTo(lx + s * 0.758, ly + s * 0.344); x.stroke();
 }
@@ -1925,7 +1934,7 @@ function cardPicture(cur) {
 function cardTeam(cur) {
   const i0 = IDX[state.team], T = state.team, tc = COLORS[T];
   const [c, x] = cv(); cFrame(x, tc);
-  const band = x.createLinearGradient(0, 180, CARD.W, 700); band.addColorStop(0, tc); band.addColorStop(1, '#0d0f12');
+  const band = x.createLinearGradient(0, 180, CARD.W, 700); band.addColorStop(0, tc); band.addColorStop(1, '#0f1422');
   rr(x, 40, 160, CARD.W - 80, 600, 36); x.fillStyle = band; x.fill();
   const o = oddsFor(T, hasPicks() ? pickOdds || baseOdds : baseOdds);
   const sd = cur.seeds[CONF_OF[i0]].indexOf(i0);
@@ -1991,7 +2000,7 @@ function cardBracket(seeds, decide, title, sub) {
   const sb = br.sb, champ = sb && sb.w != null ? sb.w : null;
   const by = 1040;
   rr(x, 64, by - 10, CARD.W - 128, 150, 30);
-  const gg = x.createLinearGradient(64, by, CARD.W - 64, by + 150); gg.addColorStop(0, (champ != null ? COLORS[TEAMS[champ]] : '#2b313a') + 'cc'); gg.addColorStop(1, '#16191e');
+  const gg = x.createLinearGradient(64, by, CARD.W - 64, by + 150); gg.addColorStop(0, (champ != null ? COLORS[TEAMS[champ]] : '#2c3854') + 'cc'); gg.addColorStop(1, '#182033');
   x.fillStyle = gg; x.fill(); x.strokeStyle = CARD.gold; x.lineWidth = 3; x.stroke();
   x.textAlign = 'left'; x.textBaseline = 'alphabetic';
   if (champ != null) {
@@ -2059,6 +2068,7 @@ async function drawPreview() {
 const shareText = () => ({ picture: 'My NFL playoff picture 👀', team: `My ${TEAM_NAMES[state.team]} scenario 👀`, bracket: 'My NFL playoff bracket 🏆', draft: 'Tank watch: the NFL draft order 📉' })[cardKind] + ' Make yours at clinchscenarios.com';
 document.addEventListener('click', async (e) => {
   const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.act === 'sharecard') return share(b.dataset.card);
   if (b.dataset.card) { cardKind = b.dataset.card; document.querySelectorAll('.cardseg button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.card === cardKind))); return drawPreview(); }
   if (b.dataset.act === 'carddl' && cardBlob) { const a = document.createElement('a'); a.href = URL.createObjectURL(cardBlob); a.download = `clinch-${cardKind}.png`; a.click(); return; }
   if (b.dataset.act === 'cardshare' && cardBlob) {
