@@ -62,6 +62,10 @@
 .bracket:has(.bconf.nb) .bsb { max-width: 520px; width: 100%; justify-self: center; }
 @media (max-width: 600px) { .chh-pts.n5 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .chhero .chh1 { font-size: 26px; } }
 @keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.gday { grid-column: 1 / -1; margin: 8px 2px -2px; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+.gday:first-child { margin-top: 0; }
+.stand .rn a { color: var(--text); text-decoration: none; } .stand .rn a:hover { color: var(--accent); }
+.nbalg .weekbar button { white-space: nowrap; }
 .npick3 { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "main" "east" "west"; align-items: start; }
 .npick3 > * { min-width: 0; } .npick3 .pmain { grid-area: main; } .npick3 .peast { grid-area: east; } .npick3 .pwest { grid-area: west; }
 @media (min-width: 1000px) and (max-width: 1299px) { .npick3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "main main" "east west"; } }

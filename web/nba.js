@@ -81,12 +81,13 @@ function standingsTable(c) {
 }
 const ARR = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d ? 'M9 5l7 7-7 7' : 'M15 5l-7 7 7 7'}"/></svg>`;
 function gameCard(g, focus) {
-  const pk = picks[g.k], p = nbaWinProb(RATING, g.h, g.a);
+  const pk = g.played ? (g.hs > g.as ? 1 : -1) : picks[g.k], p = nbaWinProb(RATING, g.h, g.a);
   const st = (side) => (pk === undefined ? '' : (pk === 1) === (side === 'h') ? 'win' : 'loss');
-  const side = (t, s, q) => `<button class="side${s === 'h' ? ' home' : ''}" data-g="${g.k}" data-pick="${s === 'h' ? 1 : -1}" data-state="${st(s)}" aria-label="${FULL[T[t]]} win">${chip(T[t])}<span><div class="nm">${NICK[T[t]]}</div><div class="pr num">${pct(q)} to win</div></span></button>`;
-  const tm = g.when ? new Date(g.when).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
+  const side = (t, s, q) => `<button class="side${s === 'h' ? ' home' : ''}" ${g.played ? 'disabled' : `data-g="${g.k}" data-pick="${s === 'h' ? 1 : -1}"`} data-state="${st(s)}" aria-label="${FULL[T[t]]} win">${chip(T[t])}<span><div class="nm">${NICK[T[t]]}</div><div class="pr num">${g.played ? (s === 'h' ? g.hs : g.as) : `${pct(q)} · ${rec(t)}`}</div></span></button>`;
+  const tm = g.when ? new Date(g.when).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }) : '';
+  const day = new Date(g.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   const mine = focus !== undefined && (g.h === focus || g.a === focus);
-  return `<div class="card game${mine ? ' mine' : ''}" style="--tc:${COLORS[T[focus ?? g.h]]}"><div class="gmeta"><span>${focus !== undefined ? new Date(g.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' : ''}${tm}</span><span>${pk === undefined ? 'Tap the winner' : 'Your pick'}</span></div>
+  return `<div class="card game${g.played ? ' past' : ''}${mine ? ' mine' : ''}" style="--tc:${COLORS[T[focus ?? g.h]]}"><div class="gmeta"><span>${day}${tm && !g.played ? ' ' + tm : ''}</span><span>${g.played ? 'Final' : pk === undefined ? '' : 'Your pick'}</span></div>
     ${side(g.a, 'a', 1 - p)}<div class="mid"><span class="at">@</span></div>${side(g.h, 'h', p)}</div>`;
 }
 function miniGame(g) {
@@ -94,6 +95,18 @@ function miniGame(g) {
   const st = (side) => (pk === undefined ? '' : (pk === 1) === (side === 'h') ? 'win' : 'loss');
   const btn = (t, side, q) => `<button class="ms" ${g.played ? 'disabled' : `data-g="${g.k}" data-pick="${side === 'h' ? 1 : -1}"`} data-state="${st(side)}" style="--tc:${COLORS[T[t]]}" aria-label="${FULL[T[t]]} win">${chip(T[t])}<span class="mn">${AB(T[t])}</span><span class="mp num">${g.played ? (side === 'h' ? g.hs : g.as) : pct(q)}</span></button>`;
   return `<div class="mg${g.played ? ' final' : ''}">${btn(g.a, 'a', 1 - p)}<span class="mat">@</span>${btn(g.h, 'h', p)}</div>`;
+}
+function standCard(c) {
+  const list = ST.seeds[c];
+  const row = (i, k) => `<div class="row${T[i] === state.team ? ' me' : ''}" style="--tc:${COLORS[T[i]]}"><span class="seed">${k + 1}</span>${chip(T[i])}<span class="rn"><a href="${pathFor('team', T[i])}">${NICK[T[i]]}</a>${ST.divWinners.has(i) && k < 6 ? ' <span class="tag div">div</span>' : ''}</span><span class="rec num">${rec(i)}</span>${playoffPill(i)}</div>`;
+  return `<section class="card stand"><div class="stand-head"><h3>${c ? 'West' : 'East'}</h3></div>
+    <div class="rows">${list.slice(0, 6).map(row).join('')}<div class="cut"><span>play-in</span></div>${list.slice(6, 10).map((i, k) => row(i, k + 6)).join('')}<div class="cut"><span>lottery</span></div>${list.slice(10).map((i, k) => row(i, k + 10)).join('')}</div></section>`;
+}
+function playoffPill(i) {
+  const o = odds && odds[i];
+  if (!o) return '<span class="op">…</span>';
+  const p = o.playoffs, cls = p >= 0.67 ? 'hi' : p >= 0.2 ? 'mid' : 'lo';
+  return `<span class="op ${cls}" title="Playoff odds">${pct(p)}</span>`;
 }
 function picker() {
   const wi = Math.max(0, WEEKS.indexOf(state.week)), wk = WEEKS[wi];
@@ -103,22 +116,23 @@ function picker() {
   const fmt = (d, o) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', o);
   const range = days.length ? `${fmt(days[0], { month: 'short', day: 'numeric' })} – ${fmt(days.at(-1), { month: 'short', day: 'numeric' })}` : '';
   const chips = WEEKS.map((w) => { const n = G.filter((g) => g.wk === w), past = n.every((g) => g.played), all = !past && n.filter((g) => !g.played).every((g) => picks[g.k] !== undefined);
-    return `<button data-week="${w}" aria-pressed="${w === wk}" class="${past ? 'pastw' : ''}">Wk ${w}${past ? ' <span class="final">✓</span>' : all ? ' <span class="picked">✓</span>' : ''}</button>`; }).join('');
-  return `<div class="wkstep">
+    return `<button data-week="${w}" aria-pressed="${w === wk}" class="${past ? 'pastw' : ''}">Wk ${w}${past ? ' <span class="final" title="final">✓</span>' : all ? ' <span class="picked" title="all games picked">✓</span>' : ''}</button>`; }).join('');
+  const head = `<div class="lhead">
+    <div class="wkstep">
       <button class="arr" data-week="${WEEKS[wi - 1] ?? ''}" ${wi > 0 ? '' : 'disabled'} aria-label="Previous week">${ARR(0)}</button>
       <div class="wl"><b>Week ${wk}</b><small class="num">${range} · ${open.length ? `${done} of ${open.length} picked` : 'Final'}</small></div>
       <button class="arr" data-week="${WEEKS[wi + 1] ?? ''}" ${wi < WEEKS.length - 1 ? '' : 'disabled'} aria-label="Next week">${ARR(1)}</button>
     </div>
     <div class="seg weekbar" style="margin-bottom:10px">${chips}</div>
-    <div class="section-head pickbar"><span class="hint num">${nPicks() ? `${nPicks()} game${nPicks() === 1 ? '' : 's'} picked this season` : 'Tap a winner · standings, odds and lottery update as you go'}</span>
-      ${open.length ? '<button class="btn" data-pact="favweek">Favorites win this week</button><button class="btn" data-pact="clearweek">Clear week</button>' : ''}
-      <button class="btn" data-pact="favall">Favorites win out</button>${nPicks() ? '<button class="btn" data-pact="clearall">Reset all</button>' : ''}</div>
-    <div class="wkgrid">${days.map((d) => `<section class="wday"><h4>${fmt(d, { weekday: 'short', month: 'short', day: 'numeric' })}</h4>${list.filter((g) => g.date === d).map(miniGame).join('')}</section>`).join('')}</div>`;
+    <div class="section-head" style="margin:4px 0 10px">
+      ${open.length ? `<span class="hint num">${done} of ${open.length} games picked</span><button class="btn" data-pact="favweek">Favorites win</button><button class="btn" data-pact="clearweek">Clear week</button>` : '<span class="hint num">Final scores</span>'}
+      <span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap"><button class="btn" data-pact="favall">Favorites win out</button>${nPicks() ? `<button class="btn" data-pact="clearall">Reset all ${nPicks()} picks</button>` : ''}</span>
+    </div></div>`;
+  const games = `<div class="games two">${days.map((d) => `<h4 class="gday">${fmt(d, { weekday: 'long', month: 'short', day: 'numeric' })}</h4>${list.filter((g) => g.date === d).map((g) => gameCard(g)).join('')}`).join('')}</div>`;
+  return head + games;
 }
 function renderStandings() {
-  const legend = '<div class="legend"><span><i style="background:var(--accent)"></i>Seeds 1-6: playoffs</span><span><i style="background:var(--gold)"></i>7-10: play-in</span><span><i style="background:var(--line)"></i>11-15: lottery</span></div>';
-  return `<div class="npick3"><div class="pmain">${picker()}</div>
-    <div class="peast">${legend}${standingsTable(0)}</div><div class="pwest">${standingsTable(1)}</div></div>`;
+  return `<div class="grid lg3 nbalg"><div class="lmain">${picker()}</div><div class="side-col stack">${standCard(0)}${standCard(1)}</div></div>`;
 }
 
 // ---- odds ----
@@ -138,7 +152,7 @@ function renderOdds() {
     return `<section class="card scroll"><div class="stand-head" style="padding:14px 14px 0"><h3>${c ? 'West' : 'East'}</h3></div><table class="t"><thead><tr><th>Team</th><th>Record</th><th>Proj. W</th><th>Playoffs</th><th>Top 6</th><th>Play-in</th><th>#1 seed</th><th>Conf. finals</th><th>Finals</th><th>Title</th></tr></thead><tbody>
       ${list.map((x) => `<tr class="${x.t === state.team ? 'me' : ''}" style="--tc:${COLORS[x.t]}"><td><span class="tn">${chip(x.t)}<a href="${pathFor('team', x.t)}" style="color:inherit;text-decoration:none">${NICK[x.t]}</a></span></td><td class="num">${rec(x.i)}</td><td class="num">${x.avgWins.toFixed(1)}</td><td><span class="bar"><i><b style="width:${Math.round(x.playoffs * 100)}%"></b></i><span class="num">${pct(x.playoffs)}</span></span></td><td class="num">${pct(x.top6)}</td><td class="num">${pct(x.playIn)}</td><td class="num">${pct(x.one)}</td><td class="num">${pct(x.conf)}</td><td class="num">${pct(x.finals)}</td><td class="num po champ">${pct(x.title)}</td></tr>`).join('')}</tbody></table></section>`;
   };
-  return `${hero}<div style="margin-top:22px">${oddsBracket()}</div><div class="section-head" style="margin-top:22px"><h2>Every team's chances</h2></div><div style="display:grid;gap:16px">${tbl(0)}${tbl(1)}</div>`;
+  return `${hero}<div class="section-head" style="margin-top:22px"><h2>Every team's chances</h2></div><div style="display:grid;gap:16px">${tbl(0)}${tbl(1)}</div><div style="margin-top:26px">${oddsBracket()}</div>`;
 }
 
 // ---- draft lottery (2027+: "3-2-1", 16 teams, all 16 picks drawn; traded picks resolved) ----
@@ -289,6 +303,8 @@ function render() {
   $('#season').textContent = `NBA ${seasonLabel} season · through ${fmtDate(lastDate)} · ${played} games played`;
   $('#view').innerHTML = state.tab === 'odds' ? renderOdds() : state.tab === 'lottery' ? renderLottery() : state.tab === 'challenge' ? renderChallenge() : state.tab === 'team' ? renderTeam() : renderStandings();
   paintMeta();
+  const wb = $('.weekbar'), on = wb && wb.querySelector('[aria-pressed="true"]');
+  if (on) wb.scrollLeft = on.offsetLeft - wb.clientWidth / 2 + on.clientWidth / 2;
 }
 function go(tab, team) {
   if (team) { state.team = team; store.set('team', team); }
@@ -304,7 +320,7 @@ document.addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b) return;
   if (b.dataset.g !== undefined) { const k = +b.dataset.g, v = +b.dataset.pick; if (picks[k] === v) delete picks[k]; else picks[k] = v; recompute(); render(); return; }
-  if (b.dataset.week !== undefined) { if (b.dataset.week) { state.week = +b.dataset.week; render(); const c = document.querySelector('.weekbar [aria-pressed="true"]'); if (c) c.scrollIntoView({ block: 'nearest', inline: 'center' }); } return; }
+  if (b.dataset.week !== undefined) { if (b.dataset.week) { state.week = +b.dataset.week; render(); } return; }
   if (b.dataset.pact) {
     const a = b.dataset.pact, ti = NBA_IDX[state.team];
     const fav = (g) => (nbaWinProb(RATING, g.h, g.a) >= 0.5 ? 1 : -1);
