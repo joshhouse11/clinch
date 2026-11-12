@@ -1042,13 +1042,14 @@ const localList = () => store.get(LOCAL_KEY, []);
 const setLocalList = (l) => store.set(LOCAL_KEY, l);
 function saveDialog() {
   if (!hasPicks()) return toast('Make a pick or a do-over first, then save it');
+  if (ACCOUNTS && !user) { store.set('pending', 'save'); return signInDialog('save'); }
   const n = Object.keys(state.picks).length, f = nFlips();
   const where = user ? 'to your account' : ACCOUNTS ? 'on this device. Sign in to keep scenarios on every device' : 'on this device';
   openModal(`<h3>Save this scenario</h3>
     <p>${n} pick${n === 1 ? '' : 's'}${f ? ` and ${f} do-over${f === 1 ? '' : 's'}` : ''}. Saving ${where}.</p>
     <label for="scnName" class="hint">Name</label>
     <input type="text" id="scnName" maxlength="80" value="${esc(TEAM_NAMES[state.team] + ' scenario')}">
-    <div class="row-btns">${ACCOUNTS && !user ? '<button class="btn" data-act="signin-save">Sign in instead</button>' : ''}<button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="dosave">Save</button></div>`);
+    <div class="row-btns"><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="dosave">Save</button></div>`);
   $('#scnName').select();
 }
 async function doSave() {
@@ -1064,6 +1065,7 @@ async function doSave() {
 }
 const scnRow = (r, src) => `<div class="scn"><b>${esc(r.name)}</b><small>${r.team ? esc(TEAM_NAMES[r.team] || r.team) + ' · ' : ''}${Object.keys(r.picks).length} picks${Object.keys(r.flips).length ? ', ' + Object.keys(r.flips).length + ' do-overs' : ''} · ${new Date(r.updated_at).toLocaleDateString()}</small><span class="acts"><button class="btn primary" data-act="loadscn" data-src="${src}" data-id="${r.id}">Load</button><button class="btn danger" data-act="delscn" data-src="${src}" data-id="${r.id}" aria-label="Delete ${esc(r.name)}">✕</button></span></div>`;
 async function myScenarios() {
+  if (ACCOUNTS && !user) return signInDialog('saved');
   let cloud = [];
   if (user) {
     const { data, error } = await sb.from('scenarios').select('id,name,team,picks,flips,updated_at').eq('season', RAW.season).order('updated_at', { ascending: false });
@@ -1081,7 +1083,7 @@ function paintAccount() {
   const b = $('#acctBtn');
   const n = localList().length;
   const savedBtn = document.querySelector('.hbtn[data-act="myscn"] span');
-  if (savedBtn) savedBtn.innerHTML = n && !user ? `Saved <span class="badge">${n}</span>` : 'Saved';
+  if (savedBtn) savedBtn.innerHTML = n && !user && !ACCOUNTS ? `Saved <span class="badge">${n}</span>` : 'Saved';
   if (user) {
     const name = user.user_metadata?.full_name || user.email || 'You';
     b.classList.add('in'); b.innerHTML = `<span class="av">${esc(name[0].toUpperCase())}</span>${esc(name.split(' ')[0])}`;
@@ -1091,15 +1093,26 @@ function paintAccount() {
 // ---- sign-in (Supabase; Google / Apple) ----
 const GOOGLE_SVG = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.1 1.4-4.9 2.3-8.2 2.3-6.2 0-11.5-4.1-13.4-9.8l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>';
 const APPLE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.1-1.2 2.9-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.5-1-2.4-3.9zM14 5.5c.7-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.5 2.8-1.3z"/></svg>';
-function signInDialog() {
+function signInDialog(why) {
   if (!ACCOUNTS) {
     return openModal(`<h3>Accounts are almost here</h3><p>Sign-in with Google is coming in the next few days. Until then, Save keeps your scenarios on this device and Share makes a link you can send anywhere.</p><div class="row-btns"><button class="btn primary" data-act="close">Got it</button></div>`);
   }
-  openModal(`<h3>Sign in to Clinch</h3>
-    <p>Keep your saved scenarios on every device. No password, no spam.</p>
+  const head = why === 'save' ? ['Sign in to save', 'Saving needs a free account so your scenarios follow you to every device. Your picks stay right where they are while you sign in.']
+    : why === 'saved' ? ['Sign in to see your saves', 'Saved scenarios live in your account, on every device. You can still Share any scenario as a link without signing in.']
+    : ['Sign in to Clinch', 'Save scenarios and pick them up on any device. No password, no spam.'];
+  openModal(`<h3>${head[0]}</h3>
+    <p>${head[1]}</p>
     ${(CONFIG.providers || ['google']).includes('google') ? `<button class="oauth" data-act="oauth" data-provider="google">${GOOGLE_SVG}Continue with Google</button>` : ''}
     ${(CONFIG.providers || []).includes('apple') ? `<button class="oauth apple" data-act="oauth" data-provider="apple">${APPLE_SVG}Continue with Apple</button>` : ''}
-    <div class="row-btns"><button class="btn" data-act="close">Not now</button></div>`);
+    <div class="row-btns"><button class="btn" data-act="notnow">Not now</button></div>`);
+}
+// Scenarios saved on this device before accounts existed move into the account on first sign-in.
+async function migrateLocal() {
+  const l = localList();
+  if (!user || !l.length) return;
+  const rows = l.map(({ season, name, team, picks, flips }) => ({ season, name, team, picks, flips }));
+  const { error } = await sb.from('scenarios').insert(rows);
+  if (!error) { setLocalList([]); paintAccount(); toast(`Moved ${rows.length} saved scenario${rows.length === 1 ? '' : 's'} to your account`); }
 }
 function loadSupabase() {
   return new Promise((resolve, reject) => {
@@ -1125,6 +1138,7 @@ async function initAccounts() {
       sb.auth.onAuthStateChange((_e, session) => { user = session?.user || null; paintAccount(); });
       paintAccount();
       const pending = store.get('pending', null);
+      if (user) await migrateLocal();
       if (pending && user) { store.set('pending', null); if (pending === 'save') saveDialog(); }
     } catch (err) { console.warn(err); }
   }
@@ -1140,6 +1154,7 @@ document.addEventListener('click', async (e) => {
   if (act === 'signin') return signInDialog();
   if (act === 'signin-save') { store.set('pending', 'save'); return signInDialog(); }
   if (act === 'close') return closeModal();
+  if (act === 'notnow') { store.set('pending', null); return closeModal(); }
   if (act === 'oauth') return oauth(b.dataset.provider);
   if (act === 'save') return saveDialog();
   if (act === 'dosave') return doSave();
