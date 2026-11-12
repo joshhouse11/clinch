@@ -15,6 +15,8 @@ if (rows.length < 250) throw new Error(`Season ${SEASON} has only ${rows.length}
 const num = (v) => (v === '' || v == null ? null : +v);
 const games = rows.map((r) => [r.game_id, +r.week, r.away_team, r.home_team, num(r.away_score), num(r.home_score), num(r.spread_line), r.gameday, r.gametime]);
 
+// Real postseason results (once the playoffs start): [round, away, home, away_score, home_score]
+const post = all.filter((r) => +r.season === SEASON && ['WC', 'DIV', 'CON', 'SB'].includes(r.game_type)).map((r) => [r.game_type, r.away_team, r.home_team, num(r.away_score), num(r.home_score)]);
 const trades = JSON.parse(fs.readFileSync(new URL('data/pick_trades.json', root), 'utf8'))[String(SEASON + 1)] || { traded: [], conditional: [] };
 
 const site = fs.existsSync(new URL('data/site.json', root)) ? JSON.parse(fs.readFileSync(new URL('data/site.json', root), 'utf8')) : {};
@@ -28,7 +30,7 @@ const config = {
 };
 if (process.env.LOCAL_PREVIEW) { config.supabaseUrl = ''; config.supabaseAnonKey = ''; }
 
-const data = { season: SEASON, built: new Date().toISOString(), games, trades };
+const data = { season: SEASON, built: new Date().toISOString(), games, post, trades };
 const engine = fs.readFileSync(new URL('engine/engine.js', root), 'utf8').replace(/^export /gm, '');
 let html = fs.readFileSync(new URL('web/template.html', root), 'utf8');
 html = html

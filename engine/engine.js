@@ -491,6 +491,48 @@ export function homeWinProbs(ctx) {
   return homeMargins(ctx).map((m) => (m === null ? null : normCdf(m / 13.5)));
 }
 
+
+// ---------- playoffs ----------
+// Team strength for playoff games: same blend as regular-season margins (75% market, 25% point differential).
+export function teamStrength(ctx) {
+  const pd = teamRatings(ctx), mk = marketRatings(ctx);
+  const r = new Float64Array(N);
+  for (let i = 0; i < N; i++) r[i] = mk ? 0.75 * mk.r[i] + 0.25 * pd[i] : pd[i];
+  return { r, hfa: mk ? mk.hfa : 1.5 };
+}
+export const pairKey = (round, a, b) => `${round}:${a < b ? a : b}-${a < b ? b : a}`; // a, b = team indices
+export function poWinProb(st, hi, lo, neutral) { return normCdf((st.r[hi] - st.r[lo] + (neutral ? 0 : st.hfa)) / 13.5); }
+
+// NFL format since 2020: 7 seeds per conference, #1 has a bye, wild card 2v7 3v6 4v5,
+// divisional round reseeds (#1 hosts the lowest seed left), higher seed hosts, Super Bowl neutral.
+// decide(round, hi, lo, neutral) returns the winner's index, or null if unknown.
+export function playBracket(seeds, decide) {
+  const conf = [0, 1].map((c) => {
+    const s = seeds[c].slice(0, 7);
+    const wc = [[1, 6], [2, 5], [3, 4]].map(([h, l]) => ({ hi: s[h], lo: s[l], hs: h + 1, ls: l + 1 }));
+    for (const m of wc) m.w = decide('WC', m.hi, m.lo, false);
+    let div = null, con = null, champ = null;
+    if (wc.every((m) => m.w != null)) {
+      const alive = [{ t: s[0], sd: 1 }, ...wc.map((m) => ({ t: m.w, sd: m.w === m.hi ? m.hs : m.ls }))].sort((x, y) => x.sd - y.sd);
+      div = [[0, 3], [1, 2]].map(([h, l]) => ({ hi: alive[h].t, lo: alive[l].t, hs: alive[h].sd, ls: alive[l].sd }));
+      for (const m of div) m.w = decide('DIV', m.hi, m.lo, false);
+      if (div.every((m) => m.w != null)) {
+        const left = div.map((m) => ({ t: m.w, sd: m.w === m.hi ? m.hs : m.ls })).sort((x, y) => x.sd - y.sd);
+        con = { hi: left[0].t, lo: left[1].t, hs: left[0].sd, ls: left[1].sd };
+        con.w = decide('CON', con.hi, con.lo, false);
+        if (con.w != null) champ = { t: con.w, sd: con.w === con.hi ? con.hs : con.ls };
+      }
+    }
+    return { seeds: s, wc, div, con, champ };
+  });
+  let sb = null;
+  if (conf[0].champ && conf[1].champ) {
+    sb = { hi: conf[0].champ.t, lo: conf[1].champ.t, hs: conf[0].champ.sd, ls: conf[1].champ.sd, neutral: true };
+    sb.w = decide('SB', sb.hi, sb.lo, true);
+  }
+  return { conf, sb };
+}
+
 function gauss(rand) {
   const u = Math.max(rand(), 1e-12), v = rand();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
@@ -501,7 +543,9 @@ function gauss(rand) {
 // odds reflect uncertainty about how good teams really are, not just game luck.
 // track: { team, games: [gameIndex...] } -> result.track[k] = playoff odds for `team`
 // when the home side wins game k vs when the away side wins (from the same simulations).
-export function simulate(ctx, { sims = 10000, picks = {}, seed = 12345, ratingNoise = 3, track = null } = {}) {
+export function simulate(ctx, { sims = 10000, picks = {}, seed = 12345, ratingNoise = 3, track = null, poPicks = {} } = {}) {
+  const st = teamStrength(ctx);
+  const reach = [1, 2, 3, 4].map(() => new Int16Array(N)); // divisional round, conference game, Super Bowl, champion
   let s = seed >>> 0;
   const rand = () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
   const margins = homeMargins(ctx);
@@ -538,6 +582,18 @@ export function simulate(ctx, { sims = 10000, picks = {}, seed = 12345, ratingNo
       if (k < 5) top5[t]++;
     });
     for (let i = 0; i < N; i++) winsSum[i] += res.R.W[i] + 0.5 * res.R.T[i];
+    const br = playBracket(res.seeds, (round, hi, lo, neutral) => {
+      const fixed = poPicks[pairKey(round, hi, lo)];
+      if (fixed === hi || fixed === lo) return fixed;
+      return rand() < normCdf((st.r[hi] + noise[hi] - st.r[lo] - noise[lo] + (neutral ? 0 : st.hfa)) / 13.5) ? hi : lo;
+    });
+    for (const c of br.conf) {
+      reach[0][c.seeds[0]]++;
+      for (const m of c.wc) reach[0][m.w]++;
+      for (const m of c.div) reach[1][m.w]++;
+      reach[2][c.con.w]++;
+    }
+    reach[3][br.sb.w]++;
     if (tr.length) {
       const c = CONF_OF[track.team];
       const sd = res.seeds[c].indexOf(track.team);
@@ -560,6 +616,10 @@ export function simulate(ctx, { sims = 10000, picks = {}, seed = 12345, ratingNo
     avgPick: draftSum[i] / sims,
     pick1: pick1[i] / sims,
     top5: top5[i] / sims,
+    divRound: reach[0][i] / sims,
+    confGame: reach[1][i] / sims,
+    superBowl: reach[2][i] / sims,
+    champ: reach[3][i] / sims,
   }));
   if (track) out.track = Object.fromEntries(tr.map((x) => [x.k, { home: x.h.map((v) => (x.hN ? v / x.hN : null)), away: x.a.map((v) => (x.aN ? v / x.aN : null)), n: Math.min(x.hN, x.aN) }]));
   return out;

@@ -138,7 +138,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 16px; }
 @media (max-width: 520px) { .wkstep { grid-template-columns: 48px minmax(0, 1fr) 48px; } .wkstep .arr { height: 48px; } .wkstep .wl b { font-size: 22px; } }
 /* Wide screens, League tab: AFC standings left, games in the middle, NFC right. */
 @media (min-width: 1360px) {
-  main:has(.lg3) { max-width: 1480px; }
+  main:has(.lg3), main:has(.ohero) { max-width: 1480px; }
   .top-inner { max-width: 1480px; }
   .grid.lg3 { grid-template-columns: 300px minmax(0, 1fr) 300px; grid-template-rows: auto auto 1fr; row-gap: 0; }
   .grid.lg3 > .lmain { display: contents; }
@@ -350,6 +350,79 @@ details.tb li b { display: block; font-weight: 700; }
 .viewing b { color: var(--accent); font-family: var(--display); }
 .viewing span { flex: 1; min-width: 200px; }
 .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 10px 16px; border-radius: 999px; display: none; }
+
+/* ---------- playoffs ---------- */
+.ohero { margin: 4px 0 8px; }
+.ohead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.ohead h2 { font-family: var(--display); font-size: 28px; margin: 0; letter-spacing: -0.5px; }
+.hcards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 900px) { .hcards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.hcard { position: relative; overflow: hidden; border-radius: 18px; padding: 16px 16px 14px; color: #fff; display: grid; gap: 2px; min-height: 178px;
+  background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--tc) 95%, #fff 5%) 0%, color-mix(in srgb, var(--tc) 70%, #000) 55%, color-mix(in srgb, var(--tc) 35%, #05070d) 100%);
+  box-shadow: 0 10px 30px -12px color-mix(in srgb, var(--tc) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.18); }
+.hcard .chip { position: absolute; right: 14px; top: 14px; width: 44px; height: 44px; font-size: 13px; opacity: 1; border: 2px solid rgba(255,255,255,.55); }
+.hcard .rank { font-size: 12px; font-weight: 800; letter-spacing: .6px; opacity: .8; }
+.hcard .big { font-family: var(--display); font-size: 60px; font-weight: 800; line-height: 1; letter-spacing: -2px; margin-top: 18px; text-shadow: 0 2px 18px rgba(0,0,0,.25); }
+.hcard .lbl { font-size: 13px; font-weight: 600; opacity: .85; }
+.hcard .nm { font-family: var(--display); font-size: 19px; font-weight: 800; margin-top: 8px; }
+.hcard .sub { font-size: 12px; opacity: .8; }
+@media (max-width: 520px) { .hcard { min-height: 150px; padding: 12px; } .hcard .big { font-size: 44px; margin-top: 14px; } .hcard .nm { font-size: 16px; } .hcard .chip { width: 34px; height: 34px; font-size: 10px; } }
+.cfav { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.cfav span { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px 6px 14px; font-size: 13px; color: var(--muted); }
+.cfav .chip { width: 24px; height: 24px; font-size: 8px; opacity: 1; }
+.cfav b { color: var(--text); } .cfav em { font-style: normal; color: var(--accent); font-weight: 800; }
+
+.bwrap { container-type: inline-size; }
+.bracket { display: grid; gap: 14px; grid-template-areas: "afc" "nfc" "sb"; }
+.bconf { grid-area: afc; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px; overflow-x: auto; }
+.bconf + .bsb + .bconf { grid-area: nfc; }
+.bconf h3, .bsb h3 { font-family: var(--display); font-size: 15px; margin: 0 0 8px; }
+.bcols { display: grid; grid-template-columns: repeat(3, minmax(170px, 1fr)); gap: 10px; min-width: 540px; }
+.bcol { display: flex; flex-direction: column; }
+.bcol h4 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); font-weight: 700; }
+.bl { flex: 1; display: flex; flex-direction: column; justify-content: space-around; gap: 8px; }
+.mu { position: relative; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); overflow: hidden; }
+.mu.real { border-color: color-mix(in srgb, var(--muted) 50%, var(--line)); }
+.mu small { position: absolute; right: 8px; bottom: -1px; font-size: 9px; color: var(--muted); }
+.bt { width: 100%; display: grid; grid-template-columns: 14px 24px minmax(0, 1fr) auto; gap: 7px; align-items: center; padding: 7px 9px; border: 0; background: transparent; color: var(--text); text-align: left; cursor: pointer; font: inherit; }
+.bt + .bt { border-top: 1px solid var(--line); }
+.bt:disabled { cursor: default; }
+.bt .sd { font-family: var(--display); font-weight: 800; font-size: 12px; color: var(--muted); text-align: center; }
+.bt .chip { width: 24px; height: 24px; font-size: 8px; opacity: 1; pointer-events: none; }
+.bt .bn { font-weight: 700; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bt .bp { font-size: 12px; color: var(--muted); font-weight: 700; }
+.bt:hover:not(:disabled):not(.ghost) { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.bt.win { background: color-mix(in srgb, var(--accent) 16%, transparent); box-shadow: inset 3px 0 0 var(--accent); }
+.bt.win .bp { color: var(--accent); }
+.bt.loss { opacity: .4; }
+.bt.me .bn { color: color-mix(in srgb, var(--tc) 55%, #fff); }
+.mu.bye .bt { cursor: default; }
+.mu.tbd { border-style: dashed; background: transparent; }
+.bt.ghost { cursor: default; color: var(--muted); }
+.bt.ghost .bn { font-weight: 500; font-size: 12px; }
+.cchamp { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--tc) 25%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--tc) 60%, transparent); }
+.cchamp .chip { width: 28px; height: 28px; font-size: 9px; opacity: 1; }
+.cchamp span { font-weight: 800; font-size: 13px; line-height: 1.2; } .cchamp small { display: block; font-weight: 600; color: var(--muted); font-size: 11px; }
+.bsb { grid-area: sb; align-self: center; background: linear-gradient(160deg, color-mix(in srgb, var(--gold) 18%, var(--surface)), var(--surface)); border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; }
+.bsb h3 { text-align: center; color: var(--gold); letter-spacing: .4px; }
+.bsb.done { background: radial-gradient(100% 80% at 50% 0%, color-mix(in srgb, var(--tc) 45%, var(--surface)), var(--surface)); border-color: color-mix(in srgb, var(--tc) 70%, var(--gold)); }
+.trophy { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.trophy .chip { width: 44px; height: 44px; font-size: 13px; opacity: 1; border: 2px solid var(--gold); }
+.trophy small { display: block; color: var(--gold); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; }
+.trophy b { font-family: var(--display); font-size: 22px; }
+.bsb .hint { text-align: center; margin: 0; }
+@container (min-width: 1300px) {
+  .bracket { grid-template-columns: minmax(0, 1fr) 230px minmax(0, 1fr); grid-template-areas: "afc sb nfc"; align-items: stretch; }
+  .bcols { min-width: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .bconf + .bsb + .bconf .bcols { direction: rtl; }
+  .bconf + .bsb + .bconf .bcol { direction: ltr; }
+  .bconf + .bsb + .bconf h3 { text-align: right; }
+}
+.weekbar .pochip { color: var(--gold); font-weight: 800; }
+.weekbar .pochip[aria-pressed="true"] { color: var(--gold); }
+.pobody .section-head { margin-top: 0; }
+.t td.po { color: var(--text); } .t td.champ { color: var(--gold); font-weight: 800; }
+
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -458,12 +531,26 @@ const state = {
   picks: store.get('picks:' + RAW.season, {}),
   flips: store.get('flips:' + RAW.season, {}),
   oddsConf: null,
+  po: store.get('po:' + RAW.season, {}), // playoff picks: pairKey(round, a, b) -> winner index
 };
 if (!TEAMS.includes(state.team)) state.team = 'CHI';
 // drop stale picks for games that are now final
 for (const k of Object.keys(state.picks)) if (!G[k] || G[k].played) delete state.picks[k];
 for (const k of Object.keys(state.flips)) if (!G[k] || !G[k].played || G[k].fixed === state.flips[k]) delete state.flips[k];
 const ALL_WEEKS = [...new Set(G.map((g) => g.week))].sort((a, b) => a - b);
+const STEPS = [...ALL_WEEKS, 'PO'];
+const STRENGTH = teamStrength(ctx);
+// Real playoff results, once they exist, lock those games.
+const REAL_PO = {};
+for (const [round, aw, hm, as, hs] of RAW.post || []) {
+  if (as == null || hs == null || as === hs) continue;
+  const a = IDX[normTeam(aw)], h = IDX[normTeam(hm)];
+  if (a !== undefined && h !== undefined) REAL_PO[pairKey(round, a, h)] = hs > as ? h : a;
+}
+for (const k of Object.keys(state.po)) if (REAL_PO[k] !== undefined) delete state.po[k];
+const nPo = () => Object.keys(state.po).length;
+const poAll = () => ({ ...Object.fromEntries(Object.entries(state.po).map(([k, v]) => [k, +v])), ...REAL_PO });
+const poDecide = (round, hi, lo) => { const k = pairKey(round, hi, lo); const w = REAL_PO[k] ?? state.po[k]; return w === hi || w === lo ? w : null; };
 
 let baseOdds = null, pickOdds = null, rooting = {}, rootingWeek = null;
 
@@ -473,7 +560,7 @@ const ord = (n) => n + (['th','st','nd','rd'][(n % 100 - 20) % 10] || ['th','st'
 
 function outcomes() { return G.map((g, k) => (g.played ? (state.flips[k] ?? g.fixed) : state.picks[k] !== undefined ? state.picks[k] : null)); }
 const nFlips = () => Object.keys(state.flips).length;
-function hasPicks() { return Object.keys(state.picks).length > 0 || nFlips() > 0; }
+function hasPicks() { return Object.keys(state.picks).length > 0 || nFlips() > 0 || nPo() > 0; }
 function allChoices() { return { ...state.picks, ...state.flips }; }
 function oddsFor(team, src) { return src ? src.find((o) => o.team === team) : null; }
 
@@ -704,12 +791,13 @@ function gridView(cur) {
 }
 
 function clearAllHtml() {
-  const n = Object.keys(state.picks).length + nFlips();
+  const n = Object.keys(state.picks).length + nFlips() + nPo();
   if (!n) return '';
   if (!state.confirmClear) return `<button class="btn danger" data-act="askclear">Clear all</button>`;
   const parts = [];
   if (Object.keys(state.picks).length) parts.push(`${Object.keys(state.picks).length} pick${Object.keys(state.picks).length > 1 ? 's' : ''}`);
   if (nFlips()) parts.push(`${nFlips()} do-over${nFlips() > 1 ? 's' : ''}`);
+  if (nPo()) parts.push(`${nPo()} playoff pick${nPo() > 1 ? 's' : ''}`);
   return `<span class="confirm" role="alertdialog" aria-label="Confirm clear all">Clear ${parts.join(' and ')} across every week?
     <button class="btn danger solid" data-act="resetall">Yes, clear all</button><button class="btn" data-act="cancelclear">Cancel</button></span>`;
 }
@@ -731,30 +819,31 @@ function renderLeague(cur) {
   const open = list.filter((g) => !g.played);
   const picked = open.filter((g) => state.picks[g.k] !== undefined).length;
   const flippedHere = list.filter((g) => state.flips[g.k] !== undefined).length;
-  const wi = ALL_WEEKS.indexOf(wk);
+  const wi = STEPS.indexOf(wk);
+  const isPO = wk === 'PO';
   const byes = TEAMS.filter((t, i) => !G.some((g) => g.week === wk && (g.h === i || g.a === i)));
   const ARR = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d ? 'M9 5l7 7-7 7' : 'M15 5l-7 7 7 7'}"/></svg>`;
   const days = list.map((g) => g.day).filter(Boolean).sort();
   const fmt = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const range = days.length ? (fmt(days[0]) === fmt(days[days.length - 1]) ? fmt(days[0]) : `${fmt(days[0])} – ${fmt(days[days.length - 1])}`) : '';
-  const status = past ? 'Final' : `${picked} of ${open.length} picked`;
+  const status = isPO ? `${nPo()} playoff pick${nPo() === 1 ? '' : 's'}` : past ? 'Final' : `${picked} of ${open.length} picked`;
   return `<div class="grid has-tb lg3"><div class="lmain"><div class="lhead">
     <div class="section-head" style="margin-top:4px">${views}</div>
     <div class="wkstep">
-      <button class="arr" data-lweek="${ALL_WEEKS[wi - 1] ?? ''}" ${wi > 0 ? '' : 'disabled'} aria-label="Previous week">${ARR(0)}</button>
-      <div class="wl"><b>Week ${wk}</b><small class="num">${range}${range ? ' · ' : ''}${status}</small></div>
-      <button class="arr" data-lweek="${ALL_WEEKS[wi + 1] ?? ''}" ${wi < ALL_WEEKS.length - 1 ? '' : 'disabled'} aria-label="Next week">${ARR(1)}</button>
+      <button class="arr" data-lweek="${STEPS[wi - 1] ?? ''}" ${wi > 0 ? '' : 'disabled'} aria-label="Previous week">${ARR(0)}</button>
+      <div class="wl"><b>${isPO ? 'Playoffs' : `Week ${wk}`}</b><small class="num">${isPO ? 'Wild Card to Super Bowl' : range}${range || isPO ? ' · ' : ''}${status}</small></div>
+      <button class="arr" data-lweek="${STEPS[wi + 1] ?? ''}" ${wi < STEPS.length - 1 ? '' : 'disabled'} aria-label="${STEPS[wi + 1] === 'PO' ? 'Playoffs' : 'Next week'}">${ARR(1)}</button>
     </div>
-    <div class="seg weekbar" style="margin-bottom:10px">${ALL_WEEKS.map((w) => { const n = G.filter((g) => g.week === w); const isPast = n.every((g) => g.played); const fl = n.some((g) => state.flips[g.k] !== undefined); const done = !isPast && n.filter((g) => !g.played).every((g) => state.picks[g.k] !== undefined); return `<button data-lweek="${w}" aria-pressed="${w === wk}" class="${isPast ? 'pastw' : ''}">Wk ${w}${fl ? ' <span class="flipdot" title="has a do-over">●</span>' : isPast ? ' <span class="final" title="final">✓</span>' : done ? ' <span class="picked" title="all games picked">✓</span>' : ''}</button>`; }).join('')}</div>
-    <div class="section-head" style="margin:4px 0 10px">
+    <div class="seg weekbar" style="margin-bottom:10px">${ALL_WEEKS.map((w) => { const n = G.filter((g) => g.week === w); const isPast = n.every((g) => g.played); const fl = n.some((g) => state.flips[g.k] !== undefined); const done = !isPast && n.filter((g) => !g.played).every((g) => state.picks[g.k] !== undefined); return `<button data-lweek="${w}" aria-pressed="${w === wk}" class="${isPast ? 'pastw' : ''}">Wk ${w}${fl ? ' <span class="flipdot" title="has a do-over">●</span>' : isPast ? ' <span class="final" title="final">✓</span>' : done ? ' <span class="picked" title="all games picked">✓</span>' : ''}</button>`; }).join('')}<button data-lweek="PO" aria-pressed="${isPO}" class="pochip">Playoffs${nPo() ? ' <span class="picked">●</span>' : ''}</button></div>
+    ${isPO ? '' : `<div class="section-head" style="margin:4px 0 10px">
       ${past
         ? `<span class="hint num">Final scores · tap a loser for a do-over${flippedHere ? ` · ${flippedHere} do-over${flippedHere > 1 ? 's' : ''}` : ''}${byes.length ? ` · Bye: ${byes.join(', ')}` : ''}</span>${flippedHere ? '<button class="btn" data-weekact="real">Restore real results</button>' : ''}`
         : `<span class="hint num">${picked} of ${open.length} games picked${byes.length ? ` · Bye: ${byes.join(', ')}` : ''}</span>
       <button class="btn" data-weekact="fav">Favorites win</button>
       <button class="btn" data-weekact="clear">Clear week</button>`}
       ${clearAllHtml()}
-    </div></div>
-    <div class="games two">${list.map(gameCard).join('')}</div>
+    </div>`}</div>
+    ${isPO ? `<div class="pobody">${bracketHead()}${bracketHtml(cur)}</div>` : `<div class="games two">${list.map(gameCard).join('')}</div>`}
   </div>${sidebar}<div class="tb-slot">${tiebreakSection(cur, [0, 1])}</div></div>`;
 }
 
@@ -782,21 +871,81 @@ function renderScenarios(cur) {
   </div>`;
 }
 
+
+// ---------- playoffs ----------
+const seedingNote = () => {
+  const left = unplayed.filter((g) => outcomes()[g.k] == null).length;
+  return left ? `Seeds as if the season ended today${Object.keys(state.picks).length ? ', with your picks' : ''} · ${left} regular-season game${left === 1 ? '' : 's'} unpicked` : 'Seeds set by your full-season picks';
+};
+function bracketHtml(cur) {
+  const br = playBracket(cur.seeds, poDecide);
+  const i0 = IDX[state.team];
+  const ROUND = { WC: 'Wild Card', DIV: 'Divisional', CON: 'Conference', SB: 'Super Bowl' };
+  const trow = (t, sd, p, key, m, real) => {
+    const st = m.w == null ? '' : m.w === t ? 'win' : 'loss';
+    return `<button class="bt ${st}${t === i0 ? ' me' : ''}" style="--tc:${COLORS[TEAMS[t]]}" ${real ? 'disabled' : `data-po="${key}" data-pw="${t}"`} aria-label="${TEAM_NAMES[TEAMS[t]]} win">
+      <span class="sd">${sd}</span>${chip(TEAMS[t])}<span class="bn">${TEAM_NAMES[TEAMS[t]]}</span><span class="bp num">${real ? (m.w === t ? 'W' : 'L') : pct(p)}</span></button>`;
+  };
+  const mu = (round, m) => {
+    const key = pairKey(round, m.hi, m.lo), real = REAL_PO[key] !== undefined;
+    const p = poWinProb(STRENGTH, m.hi, m.lo, round === 'SB');
+    return `<div class="mu${real ? ' real' : ''}">${trow(m.hi, m.hs, p, key, m, real)}${trow(m.lo, m.ls, 1 - p, key, m, real)}${real ? '<small>Final</small>' : ''}</div>`;
+  };
+  const tbd = (a, b) => `<div class="mu tbd"><div class="bt ghost"><span class="sd"></span><span class="bn">${a}</span></div><div class="bt ghost"><span class="sd"></span><span class="bn">${b}</span></div></div>`;
+  const confBlock = (c) => {
+    const C = br.conf[c], s = C.seeds;
+    const bye = `<div class="mu bye"><div class="bt win" style="--tc:${COLORS[TEAMS[s[0]]]}"><span class="sd">1</span>${chip(TEAMS[s[0]])}<span class="bn">${TEAM_NAMES[TEAMS[s[0]]]}</span><span class="bp">BYE</span></div></div>`;
+    const div = C.div ? C.div.map((m) => mu('DIV', m)).join('') : `${tbd(`${TEAMS[s[0]]} hosts lowest seed left`, '')}${tbd('Winner', 'Winner')}`;
+    const con = C.con ? mu('CON', C.con) : tbd('Winner', 'Winner');
+    return `<section class="bconf"><h3>${c ? 'NFC' : 'AFC'}</h3><div class="bcols">
+      <div class="bcol"><h4>${ROUND.WC}</h4><div class="bl">${bye}${C.wc.map((m) => mu('WC', m)).join('')}</div></div>
+      <div class="bcol"><h4>${ROUND.DIV}</h4><div class="bl">${div}</div></div>
+      <div class="bcol"><h4>${c ? 'NFC' : 'AFC'} title</h4><div class="bl">${con}${C.champ ? `<div class="cchamp" style="--tc:${COLORS[TEAMS[C.champ.t]]}">${chip(TEAMS[C.champ.t])}<span>${TEAM_NAMES[TEAMS[C.champ.t]]}<small>${c ? 'NFC' : 'AFC'} champion</small></span></div>` : ''}</div></div>
+    </div></section>`;
+  };
+  const sb = br.sb;
+  const champ = sb && sb.w != null ? sb.w : null;
+  const sbHtml = `<section class="bsb${champ != null ? ' done' : ''}" style="${champ != null ? `--tc:${COLORS[TEAMS[champ]]}` : ''}">
+    <h3>Super Bowl</h3>${sb ? mu('SB', sb) : tbd('AFC champion', 'NFC champion')}
+    ${champ != null ? `<div class="trophy">${chip(TEAMS[champ])}<div><small>Your champion</small><b>${TEAM_NAMES[TEAMS[champ]]}</b></div></div>` : '<p class="hint">Pick every round to crown a champion.</p>'}
+  </section>`;
+  return `<div class="bwrap"><div class="bracket">${confBlock(0)}${sbHtml}${confBlock(1)}</div></div>`;
+}
+function bracketHead() {
+  return `<div class="section-head"><h2>Playoff bracket</h2><span class="hint">${seedingNote()} · tap a team to advance it</span>
+    <span style="margin-left:auto;display:flex;gap:6px"><button class="btn" data-act="pofav">Favorites win</button>${nPo() ? '<button class="btn" data-act="poclear">Clear bracket</button>' : ''}</span></div>`;
+}
+function oddsHero(src) {
+  const top = [...src].sort((a, b) => b.champ - a.champ).slice(0, 4);
+  const conf = [0, 1].map((c) => [...src].filter((o) => CONF_OF[IDX[o.team]] === c).sort((a, b) => b.superBowl - a.superBowl)[0]);
+  const card = (o, k) => `<div class="hcard" style="--tc:${COLORS[o.team]};--ti:${ink(COLORS[o.team])}">
+    <span class="rank">#${k + 1}</span>${chip(o.team)}
+    <b class="big num">${pct(o.champ)}</b><span class="lbl">to win the Super Bowl</span>
+    <span class="nm">${TEAM_NAMES[o.team]}</span>
+    <span class="sub num">Playoffs ${pct(o.playoffs)} · Conf. title ${pct(o.superBowl)}</span></div>`;
+  return `<section class="ohero">
+    <div class="ohead"><h2>Super Bowl odds</h2><span class="hint">${hasPicks() ? 'With your picks' : 'From 10,000 simulated seasons and playoffs'}</span></div>
+    <div class="hcards">${top.map(card).join('')}</div>
+    <div class="cfav">${conf.map((o, c) => `<span>${c ? 'NFC' : 'AFC'} favorite ${chip(o.team)}<b>${TEAM_NAMES[o.team]}</b><em class="num">${pct(o.superBowl)}</em></span>`).join('')}</div>
+  </section>`;
+}
+
 function renderOdds() {
   const src = hasPicks() ? pickOdds : baseOdds;
   if (!src) return `<div class="card empty">Running 10,000 seasons…</div>`;
   const i0 = IDX[state.team];
   const conf = state.oddsConf ?? CONF_OF[i0];
   const cur = evaluate(ctx, outcomes());
-  const rowsHtml = src.filter((o) => CONF_OF[IDX[o.team]] === conf).sort((x, y) => y.playoffs - x.playoffs || y.avgWins - x.avgWins).map((o) => {
+  const rowsHtml = src.filter((o) => CONF_OF[IDX[o.team]] === conf).sort((x, y) => y.playoffs - x.playoffs || y.champ - x.champ).map((o) => {
     const i = IDX[o.team];
     const bar = (v) => `<span class="bar"><i><b style="width:${Math.round(v * 100)}%"></b></i><span class="num">${pct(v)}</span></span>`;
-    return `<tr class="${i === i0 ? 'me' : ''}" style="--tc:${COLORS[o.team]}"><td><span class="tn">${chip(o.team)}${TEAM_NAMES[o.team]}</span></td><td class="num">${recStr(cur.R, i)}</td><td class="num">${o.avgWins.toFixed(1)}</td><td>${bar(o.playoffs)}</td><td class="num">${pct(o.division)}</td><td class="num">${pct(o.bye)}</td><td><span class="sos ${sosClass(REM_SOS[i])}">${sosFmt(REM_SOS[i])}</span></td></tr>`;
+    return `<tr class="${i === i0 ? 'me' : ''}" style="--tc:${COLORS[o.team]}"><td><span class="tn">${chip(o.team)}${TEAM_NAMES[o.team]}</span></td><td class="num">${recStr(cur.R, i)}</td><td class="num">${o.avgWins.toFixed(1)}</td><td>${bar(o.playoffs)}</td><td class="num">${pct(o.division)}</td><td class="num">${pct(o.bye)}</td><td class="num po">${pct(o.divRound)}</td><td class="num po">${pct(o.confGame)}</td><td class="num po">${pct(o.superBowl)}</td><td class="num po champ">${pct(o.champ)}</td><td><span class="sos ${sosClass(REM_SOS[i])}">${sosFmt(REM_SOS[i])}</span></td></tr>`;
   }).join('');
-  return `<div class="section-head"><h2>${conf ? 'NFC' : 'AFC'} playoff odds${hasPicks() ? ' with your picks' : ''}</h2>
+  return `${oddsHero(src)}${bracketHead()}${bracketHtml(cur)}
+    <div class="section-head" style="margin-top:28px"><h2>${conf ? 'NFC' : 'AFC'} odds by round${hasPicks() ? ' with your picks' : ''}</h2>
     <div class="seg"><button data-conf="0" aria-pressed="${conf === 0}">AFC</button><button data-conf="1" aria-pressed="${conf === 1}">NFC</button></div>
     ${hasPicks() ? '<button class="btn" data-act="reset">Clear picks</button>' : ''}</div>
-    <div class="card scroll"><table class="t"><thead><tr><th>Team</th><th>Record</th><th>Proj. wins</th><th>Playoffs</th><th>Division</th><th>#1 seed</th><th title="Average current win % of remaining opponents">Rem. SOS</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
+    <div class="card scroll"><table class="t"><thead><tr><th>Team</th><th>Record</th><th>Proj. wins</th><th>Playoffs</th><th>Division</th><th>#1 seed</th><th title="Reach the divisional round (bye or wild card win)">Div. round</th><th title="Reach the conference championship">Conf. game</th><th title="Reach the Super Bowl">Super Bowl</th><th title="Win the Super Bowl">Win it all</th><th title="Average current win % of remaining opponents">Rem. SOS</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
 }
 
 function renderDraft() {
@@ -823,7 +972,7 @@ function render() {
   const banner = nFlips() ? `<div class="card whatif"><b>DO-OVER</b><span>${nFlips()} result${nFlips() > 1 ? 's' : ''} changed · standings, odds and draft use your version</span><button class="btn" data-act="resetflips">Back to real results</button></div>` : '';
   const viewing = state.viewingShare ? `<div class="card viewing"><b>Shared scenario</b><span>You're looking at someone's picks${state.viewingShare.team ? ` for the ${TEAM_NAMES[state.viewingShare.team]}` : ''}. Change anything you like.</span><button class="btn" data-act="restoremine">Back to my picks</button></div>` : '';
   $('#view').innerHTML = viewing + banner + (state.tab === 'league' ? renderLeague(cur) : state.tab === 'team' ? renderScenarios(cur) : state.tab === 'odds' ? renderOdds() : renderDraft());
-  { const n = Object.keys(state.picks).length, f = nFlips(); $('#pickCount').textContent = n || f ? `Your scenario: ${n} pick${n === 1 ? '' : 's'}${f ? `, ${f} do-over${f === 1 ? '' : 's'}` : ''}` : ''; }
+  { const n = Object.keys(state.picks).length, f = nFlips(), q = nPo(); $('#pickCount').textContent = n || f || q ? `Your scenario: ${n} pick${n === 1 ? '' : 's'}${f ? `, ${f} do-over${f === 1 ? '' : 's'}` : ''}${q ? `, ${q} playoff pick${q === 1 ? '' : 's'}` : ''}` : ''; }
   $('#season').textContent = `${RAW.season} season · through Week ${lastFinalWeek}`;
   const wb = document.querySelector('.weekbar'), on = wb && wb.querySelector('[aria-pressed="true"]');
   if (on) wb.scrollLeft = on.offsetLeft - (wb.clientWidth - on.offsetWidth) / 2;
@@ -837,7 +986,7 @@ function recomputePickOdds() {
   $('#view').classList.add('busy');
   const token = ++simToken;
   simTimer = setTimeout(() => {
-    const res = simulate(ctx, { sims: 5000, picks: allChoices() });
+    const res = simulate(ctx, { sims: 5000, picks: allChoices(), poPicks: poAll() });
     if (token !== simToken) return;
     pickOdds = res;
     $('#view').classList.remove('busy');
@@ -944,7 +1093,7 @@ function rootingView() {
 }
 
 // ---------- events ----------
-function savePicks() { store.set('picks:' + RAW.season, state.picks); store.set('flips:' + RAW.season, state.flips); }
+function savePicks() { store.set('picks:' + RAW.season, state.picks); store.set('flips:' + RAW.season, state.flips); store.set('po:' + RAW.season, state.po); }
 function setPick(k, o) {
   if (G[k].played) {
     // rewriting history: tapping the real result (or the current flip) restores what actually happened
@@ -986,7 +1135,12 @@ document.addEventListener('click', async (e) => {
     return;
   }
   if (b.dataset.gconf) { state.gridConf = b.dataset.gconf === 'all' ? 'all' : +b.dataset.gconf; render(); return; }
-  if (b.dataset.lweek) { state.lweek = +b.dataset.lweek; render(); window.scrollTo({ top: 0 }); return; }
+  if (b.dataset.lweek) { state.lweek = b.dataset.lweek === 'PO' ? 'PO' : +b.dataset.lweek; render(); window.scrollTo({ top: 0 }); return; }
+  if (b.dataset.po) {
+    const w = +b.dataset.pw;
+    if (state.po[b.dataset.po] === w) delete state.po[b.dataset.po]; else state.po[b.dataset.po] = w;
+    savePicks(); render(); recomputePickOdds(); return;
+  }
   if (b.dataset.lview) { state.lview = b.dataset.lview; store.set('lview', state.lview); render(); return; }
   if (b.dataset.weekact) {
     const wk = state.lweek ?? weeks[0];
@@ -1007,12 +1161,21 @@ document.addEventListener('click', async (e) => {
     for (const g of unplayed) if (g.h === i0 || g.a === i0) state.picks[g.k] = (g.h === i0) === win ? 1 : -1;
   } else if (act === 'favorites') {
     for (const g of unplayed) if (state.picks[g.k] === undefined) state.picks[g.k] = baseProbs[g.k] >= 0.5 ? 1 : -1;
+  } else if (act === 'pofav') {
+    playBracket(evaluate(ctx, outcomes()).seeds, (round, hi, lo, neutral) => {
+      const k = pairKey(round, hi, lo);
+      if (REAL_PO[k] !== undefined) return REAL_PO[k];
+      if (state.po[k] !== hi && state.po[k] !== lo) state.po[k] = poWinProb(STRENGTH, hi, lo, neutral) >= 0.5 ? hi : lo;
+      return state.po[k];
+    });
+  } else if (act === 'poclear') {
+    state.po = {};
   } else if (act === 'reset') {
-    state.picks = {};
+    state.picks = {}; state.po = {};
   } else if (act === 'resetflips') {
     state.flips = {};
   } else if (act === 'resetall') {
-    state.picks = {}; state.flips = {}; state.confirmClear = false; toast('Cleared. Back to the real standings');
+    state.picks = {}; state.flips = {}; state.po = {}; state.confirmClear = false; toast('Cleared. Back to the real standings');
   } else if (act === 'askclear' || act === 'cancelclear') {
     state.confirmClear = act === 'askclear'; render(); return;
   } else if (act === 'copy') {
@@ -1055,6 +1218,17 @@ function packScenario() {
   });
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
+// Playoff picks in links: 4 chars each = round letter + both team indices (base 32) + which one won.
+const PO_R = { WC: 'W', DIV: 'D', CON: 'C', SB: 'S' }, PO_RR = { W: 'WC', D: 'DIV', C: 'CON', S: 'SB' };
+const packPo = (po) => Object.entries(po).map(([k, w]) => { const [r, ab] = k.split(':'); const [a, b] = ab.split('-').map(Number); return PO_R[r] + a.toString(32) + b.toString(32) + (+w === a ? '0' : '1'); }).join('');
+function unpackPo(str) {
+  const po = {};
+  for (let i = 0; i + 4 <= (str || '').length; i += 4) {
+    const r = PO_RR[str[i]], a = parseInt(str[i + 1], 32), b = parseInt(str[i + 2], 32);
+    if (r && a < N && b < N) po[pairKey(r, a, b)] = str[i + 3] === '0' ? a : b;
+  }
+  return po;
+}
 function unpackScenario(str) {
   const bin = atob(str.replace(/-/g, '+').replace(/_/g, '/'));
   const picks = {}, flips = {};
@@ -1069,15 +1243,16 @@ function unpackScenario(str) {
 const siteBase = () => CONFIG.siteUrl || location.origin + location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '').replace(/\/(index\.html)?$/, '');
 function share() {
   if (!hasPicks()) return toast('Make a pick or a do-over first, then share it');
-  const url = `${siteBase()}/?p=${RAW.season}.${state.team}.${packScenario()}`;
+  const url = `${siteBase()}/?p=${RAW.season}.${state.team}.${packScenario()}${nPo() ? '.' + packPo(state.po) : ''}`;
   openModal(`<h3>Share this scenario</h3><p>Anyone with the link sees exactly these picks and do-overs. They can change them without touching yours.</p>
     <div class="sharebox"><input type="text" id="shareUrl" readonly value="${esc(url)}" aria-label="Share link"><button class="btn primary" data-act="copyshare">Copy</button></div>
     <div class="row-btns"><button class="btn" data-act="close">Done</button></div>`);
   $('#shareUrl').select();
 }
 function applyScenario(sc, team, viaShare) {
-  if (viaShare) store.set('picks:backup', { picks: state.picks, flips: state.flips, team: state.team });
-  state.picks = {}; state.flips = {};
+  if (viaShare) store.set('picks:backup', { picks: state.picks, flips: state.flips, po: state.po, team: state.team });
+  state.picks = {}; state.flips = {}; state.po = {};
+  for (const [k, v] of Object.entries(sc.po || {})) if (REAL_PO[k] === undefined) state.po[k] = +v;
   for (const [k, v] of Object.entries(sc.picks)) if (G[k] && !G[k].played) state.picks[k] = v;
   for (const [k, v] of Object.entries(sc.flips)) if (G[k] && G[k].played && G[k].fixed !== v) state.flips[k] = v;
   if (team && TEAMS.includes(team)) state.team = team;
@@ -1087,10 +1262,10 @@ async function openLinkFromUrl() {
   const q = new URLSearchParams(location.search);
   const clean = () => history.replaceState(null, '', location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '/') + location.hash);
   if (q.get('p')) {
-    const [season, team, data] = q.get('p').split('.');
+    const [season, team, data, po] = q.get('p').split('.');
     clean();
     if (+season !== RAW.season) return toast(`That link is from the ${season} season`);
-    try { applyScenario(unpackScenario(data || ''), team, true); state.viewingShare = { team }; render(); }
+    try { applyScenario({ ...unpackScenario(data || ''), po: unpackPo(po) }, team, true); state.viewingShare = { team }; render(); }
     catch { toast('That share link looks broken'); }
     return;
   }
@@ -1122,7 +1297,7 @@ function saveDialog() {
 }
 async function doSave() {
   const name = ($('#scnName').value || '').trim() || 'My scenario';
-  const rec = { season: RAW.season, name, team: state.team, picks: toIds(state.picks), flips: toIds(state.flips) };
+  const rec = { season: RAW.season, name, team: state.team, picks: { ...toIds(state.picks), ...(nPo() ? { _po: state.po } : {}) }, flips: toIds(state.flips) };
   if (user) {
     const { error } = await sb.from('scenarios').insert(rec);
     if (error) return toast('Could not save: ' + error.message);
@@ -1131,7 +1306,7 @@ async function doSave() {
   }
   closeModal(); toast(`Saved "${name}"`); paintAccount();
 }
-const scnRow = (r, src) => `<div class="scn"><b>${esc(r.name)}</b><small>${r.team ? esc(TEAM_NAMES[r.team] || r.team) + ' · ' : ''}${Object.keys(r.picks).length} picks${Object.keys(r.flips).length ? ', ' + Object.keys(r.flips).length + ' do-overs' : ''} · ${new Date(r.updated_at).toLocaleDateString()}</small><span class="acts"><button class="btn primary" data-act="loadscn" data-src="${src}" data-id="${r.id}">Load</button><button class="btn danger" data-act="delscn" data-src="${src}" data-id="${r.id}" aria-label="Delete ${esc(r.name)}">✕</button></span></div>`;
+const scnRow = (r, src) => `<div class="scn"><b>${esc(r.name)}</b><small>${r.team ? esc(TEAM_NAMES[r.team] || r.team) + ' · ' : ''}${Object.keys(r.picks).filter((k) => k !== '_po').length} picks${r.picks && r.picks._po ? ', bracket' : ''}${Object.keys(r.flips).length ? ', ' + Object.keys(r.flips).length + ' do-overs' : ''} · ${new Date(r.updated_at).toLocaleDateString()}</small><span class="acts"><button class="btn primary" data-act="loadscn" data-src="${src}" data-id="${r.id}">Load</button><button class="btn danger" data-act="delscn" data-src="${src}" data-id="${r.id}" aria-label="Delete ${esc(r.name)}">✕</button></span></div>`;
 async function myScenarios() {
   if (ACCOUNTS && !user) return signInDialog('saved');
   let cloud = [];
@@ -1231,7 +1406,7 @@ document.addEventListener('click', async (e) => {
   if (act === 'loadscn') {
     const list = b.dataset.src === 'cloud' ? myScenarios.cache.cloud : myScenarios.cache.local;
     const r = list.find((x) => x.id === b.dataset.id);
-    if (r) { applyScenario({ picks: fromIds(r.picks), flips: fromIds(r.flips) }, r.team, false); state.viewingShare = null; closeModal(); toast(`Loaded "${r.name}"`); render(); }
+    if (r) { applyScenario({ picks: fromIds(r.picks), flips: fromIds(r.flips), po: r.picks && r.picks._po }, r.team, false); state.viewingShare = null; closeModal(); toast(`Loaded "${r.name}"`); render(); }
     return;
   }
   if (act === 'delscn') {
@@ -1242,7 +1417,7 @@ document.addEventListener('click', async (e) => {
   if (act === 'signout') { await sb.auth.signOut(); user = null; paintAccount(); closeModal(); toast('Signed out'); return; }
   if (act === 'restoremine') {
     const bk = store.get('picks:backup', null);
-    state.picks = bk ? bk.picks : {}; state.flips = bk ? bk.flips : {}; if (bk && bk.team) state.team = bk.team;
+    state.picks = bk ? bk.picks : {}; state.flips = bk ? bk.flips : {}; state.po = bk && bk.po ? bk.po : {}; if (bk && bk.team) state.team = bk.team;
     state.viewingShare = null; savePicks(); render(); recomputePickOdds(); return;
   }
 });
@@ -1252,7 +1427,7 @@ $('#yr').textContent = new Date().getFullYear();
 initAccounts();
 render();
 setTimeout(() => {
-  baseOdds = simulate(ctx, { sims: 10000 });
+  baseOdds = simulate(ctx, { sims: 10000, poPicks: { ...REAL_PO } });
   if (hasPicks()) recomputePickOdds(); else render();
 }, 30);
 </script>
