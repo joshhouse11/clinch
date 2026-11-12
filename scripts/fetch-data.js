@@ -25,3 +25,9 @@ if (!lines[0].startsWith('game_id,season') || lines.length < 5000) {
 const prev = fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : '';
 fs.writeFileSync(out, text);
 console.log(`games.csv: ${lines.length - 1} games${prev === text ? ' (no change)' : ' (updated)'}`);
+
+// Trade log (used only to flag pick trades our own file might be missing; it lags and lacks conditions).
+try {
+  const tr = await download('https://raw.githubusercontent.com/nflverse/nfldata/master/data/trades.csv');
+  if (tr.startsWith('trade_id,')) fs.writeFileSync(new URL('../data/trades.csv', import.meta.url), tr);
+} catch (err) { console.warn('trades.csv download failed:', err.message); }

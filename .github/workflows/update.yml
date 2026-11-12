@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
   pages: write
   id-token: write
 
@@ -35,6 +36,25 @@ jobs:
 
       - name: Fetch latest games, scores and lines
         run: node scripts/fetch-data.js
+
+      - name: Check for draft-pick trades our file is missing (opens a GitHub issue, which emails the owner)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/check-trades.js
+          if [ -s trade-report.md ]; then
+            TITLE="Pick trade check: possible missing draft-pick trade"
+            if [ -z "$(gh issue list --state open --search "$TITLE in:title" --json number -q '.[0].number')" ]; then
+              gh issue create --title "$TITLE" --body-file trade-report.md
+            fi
+          fi
+
+      - name: Set the Bracket Challenge lock time from the NFL schedule
+        continue-on-error: true
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/sync-lock.js
 
       - name: Validate tiebreaker engine against every season since 2002
         run: node scripts/validate.js
