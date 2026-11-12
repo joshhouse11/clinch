@@ -46,10 +46,11 @@ header.top { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb
 .brand .mark { width: 28px; height: 28px; flex: none; }
 .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
 nav.tabs { display: flex; gap: 4px; height: 100%; align-items: stretch; }
-nav.tabs button { border: 0; background: transparent; white-space: nowrap; padding: 0 12px; font-weight: 700; font-size: 14px; color: var(--muted); position: relative; }
-nav.tabs button:hover { color: var(--text); }
-nav.tabs button[aria-selected="true"] { color: var(--text); }
-nav.tabs button[aria-selected="true"]::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--accent); }
+nav.tabs a { display: flex; align-items: center; text-decoration: none; }
+nav.tabs a { border: 0; background: transparent; white-space: nowrap; padding: 0 12px; font-weight: 700; font-size: 14px; color: var(--muted); position: relative; }
+nav.tabs a:hover { color: var(--text); }
+nav.tabs a[aria-selected="true"] { color: var(--text); }
+nav.tabs a[aria-selected="true"]::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--accent); }
 .hdr-actions { margin-left: auto; display: flex; align-items: center; gap: 4px; }
 .hbtn { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: var(--muted); font-weight: 700; font-size: 14px; padding: 8px 10px; border-radius: 10px; }
 .hbtn:hover { color: var(--text); background: var(--surface); }
@@ -59,8 +60,8 @@ nav.tabs button[aria-selected="true"]::after { content: ''; position: absolute; 
 @media (max-width: 900px) {
   .top-inner { height: auto; flex-wrap: wrap; padding: 10px 16px 0; gap: 10px 16px; }
   nav.tabs { order: 3; width: 100%; height: 44px; justify-content: space-between; overflow-x: auto; }
-  nav.tabs button { padding: 0 8px; }
-  nav.tabs button[aria-selected="true"]::after { left: 8px; right: 8px; }
+  nav.tabs a { padding: 0 8px; }
+  nav.tabs a[aria-selected="true"]::after { left: 8px; right: 8px; }
 }
 @media (max-width: 1260px) { .hbtn span { display: none; } .hbtn { padding: 8px; } .top-inner { gap: 20px; } }
 @media (max-width: 560px) { .top-inner { gap: 8px 10px; } .hdr-actions { gap: 0; } .hbtn { padding: 7px; } .brand { font-size: 20px; } .brand .mark { width: 26px; height: 26px; } #acctBtn { padding: 6px 10px; font-size: 13px; } }
@@ -426,7 +427,7 @@ nav.tabs .chtab { color: var(--gold); margin-left: 10px; }
 nav.tabs .chtab::before { content: ''; position: absolute; left: -6px; top: 30%; bottom: 30%; width: 1px; background: var(--line); }
 nav.tabs .chtab span { font-size: 13px; }
 nav.tabs i.lg { font-style: normal; }
-@media (max-width: 560px) { nav.tabs i.lg { display: none; } nav.tabs button { padding: 0 5px; font-size: 12.5px; } nav.tabs .chtab { margin-left: 4px; } }
+@media (max-width: 560px) { nav.tabs i.lg { display: none; } nav.tabs a { padding: 0 5px; font-size: 12.5px; } nav.tabs .chtab { margin-left: 4px; } }
 .chhero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: center; padding: 26px; border-radius: 20px; margin: 4px 0 16px;
   background: radial-gradient(90% 120% at 0% 0%, color-mix(in srgb, var(--accent) 22%, var(--surface)) 0%, var(--surface) 55%), radial-gradient(70% 100% at 100% 100%, color-mix(in srgb, var(--gold) 18%, transparent), transparent);
   border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); }
@@ -498,21 +499,32 @@ nav.tabs i.lg { font-style: normal; }
 .btn.sharecta svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .btn.sharecta.hot { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: var(--accent); color: var(--accent); }
 .bsb .sharecta { justify-self: center; }
+.pagehead { margin: 2px 0 10px; }
+.pageh1 { font-family: var(--display); font-size: 22px; letter-spacing: -0.4px; margin: 0; }
+.pagesum { color: var(--muted); font-size: 13px; margin: 4px 0 0; max-width: 95ch; line-height: 1.5; }
+a.chip { text-decoration: none; }
+.sf-teams { max-width: 1180px; margin: 0 auto; padding: 0 16px 20px; }
+.sf-teams b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 10px; }
+.sf-teams > div { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 20px; }
+.sf-teams span { display: grid; gap: 4px; } .sf-teams i { font-style: normal; font-size: 11px; color: var(--muted); font-weight: 700; }
+.sf-teams a { color: var(--text); text-decoration: none; font-size: 13px; opacity: .85; } .sf-teams a:hover { color: var(--accent); opacity: 1; }
+@media (max-width: 700px) { .sf-teams > div { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1360px) { .sf-teams { max-width: 1480px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
 <header class="top">
   <div class="top-inner">
-    <a class="brand" href="./" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span id="brandName">clinch</span></a>
+    <a class="brand" href="/" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span id="brandName">clinch</span></a>
     <div class="sport"><button class="sportbtn" data-act="sportmenu" aria-haspopup="true" aria-expanded="false">🏈 NFL <span aria-hidden="true">▾</span></button>
-      <div class="sportmenu" hidden><b>Sports</b><a class="on" href="./">🏈 NFL</a><span>🏀 NBA <em>soon</em></span><span>⚾ MLB <em>soon</em></span><span>🏒 NHL <em>soon</em></span><span>🎓 College football <em>soon</em></span></div></div>
+      <div class="sportmenu" hidden><b>Sports</b><a class="on" href="/">🏈 NFL</a><span>🏀 NBA <em>soon</em></span><span>⚾ MLB <em>soon</em></span><span>🏒 NHL <em>soon</em></span><span>🎓 College football <em>soon</em></span></div></div>
     <nav class="tabs" role="tablist" aria-label="NFL sections">
-      <button role="tab" data-tab="league">Scenarios</button>
-      <button role="tab" data-tab="team">My team</button>
-      <button role="tab" data-tab="odds">Playoffs</button>
-      <button role="tab" data-tab="draft">Draft<i class="lg"> order</i></button>
-      <button role="tab" data-tab="challenge" class="chtab"><span>🏆</span> <i class="lg">Bracket </i>Challenge</button>
+      <a role="tab" data-tab="league" href="/nfl/playoff-scenarios/">Scenarios</a>
+      <a role="tab" data-tab="team" href="/nfl/teams/">My team</a>
+      <a role="tab" data-tab="odds" href="/nfl/playoff-odds/">Playoffs</a>
+      <a role="tab" data-tab="draft" href="/nfl/draft-order/">Draft<i class="lg">&nbsp;order</i></a>
+      <a role="tab" data-tab="challenge" href="/nfl/bracket-challenge/" class="chtab"><span>🏆</span>&nbsp;<i class="lg">Bracket&nbsp;</i>Challenge</a>
     </nav>
     <div class="hdr-actions">
       <button class="hbtn" data-act="share" title="Copy a link to these picks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Share</span></button>
@@ -523,6 +535,7 @@ nav.tabs i.lg { font-style: normal; }
   </div>
 </header>
 <main>
+  <div class="pagehead"><h1 class="pageh1" id="pageH1"></h1><p class="pagesum" id="pageSum"></p></div>
   <div class="subbar"><span id="season"></span><span id="pickCount"></span></div>
   <div class="teams" id="teams" aria-label="Pick your team"></div>
   <div id="view"></div>
@@ -530,12 +543,13 @@ nav.tabs i.lg { font-style: normal; }
 <footer class="site-foot">
   <div class="sf-inner">
     <div class="sf-brand">
-      <a class="brand" href="./" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk2)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span>clinch</span></a>
+      <a class="brand" href="/" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk2)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span>clinch</span></a>
       <p>Every NFL playoff scenario, odds and tiebreaker, updated through the season.</p>
     </div>
-    <nav class="sf-col" aria-label="NFL"><b>NFL</b><a href="#league">Playoff scenarios</a><a href="#team">My team</a><a href="#odds">Playoff bracket &amp; odds</a><a href="#draft">Draft order</a><a href="#challenge">Bracket Challenge</a></nav>
+    <nav class="sf-col" aria-label="NFL"><b>NFL</b><a href="/nfl/playoff-scenarios/">Playoff scenarios</a><a href="/nfl/playoff-odds/">Playoff bracket &amp; odds</a><a href="/nfl/draft-order/">Draft order</a><a href="/nfl/bracket-challenge/">Bracket Challenge</a></nav>
     <nav class="sf-col" aria-label="Company"><b>Clinch</b><a href="mailto:hello@clinchscenarios.com">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></nav>
   </div>
+  <nav class="sf-teams" id="sfTeams" aria-label="NFL team playoff pages"></nav>
   <div class="sf-base"><span>© <span id="yr">2026</span> Clinch</span><span>Odds are simulations, not betting advice. Not affiliated with the NFL or any team.</span></div>
 </footer>
 <div class="toast" id="toast"></div>
@@ -598,9 +612,24 @@ const lastFinalWeek = Math.max(0, ...G.filter((g) => g.played).map((g) => g.week
 
 const store = { get(k, d) { try { const v = localStorage.getItem('clinch:' + k); return v ? JSON.parse(v) : d; } catch { return d; } }, set(k, v) { try { localStorage.setItem('clinch:' + k, JSON.stringify(v)); } catch {} } };
 const validTab = (h) => ['league', 'team', 'odds', 'challenge', 'draft'].includes(h) ? h : 'league';
+// ---- real page addresses (one per section and per team) so search engines can index each page ----
+const FULL_NAMES = {ARI:'Arizona Cardinals',ATL:'Atlanta Falcons',BAL:'Baltimore Ravens',BUF:'Buffalo Bills',CAR:'Carolina Panthers',CHI:'Chicago Bears',CIN:'Cincinnati Bengals',CLE:'Cleveland Browns',DAL:'Dallas Cowboys',DEN:'Denver Broncos',DET:'Detroit Lions',GB:'Green Bay Packers',HOU:'Houston Texans',IND:'Indianapolis Colts',JAX:'Jacksonville Jaguars',KC:'Kansas City Chiefs',LA:'Los Angeles Rams',LAC:'Los Angeles Chargers',LV:'Las Vegas Raiders',MIA:'Miami Dolphins',MIN:'Minnesota Vikings',NE:'New England Patriots',NO:'New Orleans Saints',NYG:'New York Giants',NYJ:'New York Jets',PHI:'Philadelphia Eagles',PIT:'Pittsburgh Steelers',SEA:'Seattle Seahawks',SF:'San Francisco 49ers',TB:'Tampa Bay Buccaneers',TEN:'Tennessee Titans',WAS:'Washington Commanders'};
+const slugOf = (t) => FULL_NAMES[t].toLowerCase().replace(/[^a-z0-9]+/g, '-');
+const BY_SLUG = Object.fromEntries(Object.keys(FULL_NAMES).map((t) => [slugOf(t), t]));
+const TAB_PATH = { league: '/nfl/playoff-scenarios/', odds: '/nfl/playoff-odds/', draft: '/nfl/draft-order/', challenge: '/nfl/bracket-challenge/' };
+const pathFor = (tab, team) => (tab === 'team' ? `/nfl/teams/${slugOf(team)}/` : TAB_PATH[tab] || '/');
+function routeOf(pathname, hash) {
+  const m = pathname.match(/^\/nfl\/teams\/([a-z0-9-]+)\/?$/);
+  if (m && BY_SLUG[m[1]]) return { tab: 'team', team: BY_SLUG[m[1]] };
+  if (/^\/nfl\/teams\/?$/.test(pathname)) return { tab: 'team' };
+  for (const [tab, pth] of Object.entries(TAB_PATH)) if (pathname === pth || pathname === pth.slice(0, -1)) return { tab };
+  const h = (hash || '').slice(1);
+  return { tab: validTab(h), fromHash: !!h };
+}
+const ROUTE0 = routeOf(location.pathname, location.hash);
 const state = {
-  team: store.get('team', 'CHI'),
-  tab: validTab(location.hash.slice(1)),
+  team: ROUTE0.team || store.get('team', 'CHI'),
+  tab: ROUTE0.tab,
   view: (v => (v === 'root' ? 'root' : 'mine'))(store.get('view', 'mine')),
   lview: store.get('lview', 'week'),
   standView: store.get('standView', 'conf'),
@@ -644,7 +673,7 @@ function oddsFor(team, src) { return src ? src.find((o) => o.team === team) : nu
 
 // ---------- rendering ----------
 function renderTeams() {
-  $('#teams').innerHTML = TEAMS.slice().sort().map((t) => `<button class="chip" style="--c:${COLORS[t]};--ci:${ink(COLORS[t])}" data-team="${t}" aria-pressed="${t === state.team}" title="${TEAM_NAMES[t]}">${t}</button>`).join('');
+  $('#teams').innerHTML = TEAMS.slice().sort().map((t) => `<a class="chip" href="${pathFor('team', t)}" style="--c:${COLORS[t]};--ci:${ink(COLORS[t])}" aria-pressed="${t === state.team}" title="${FULL_NAMES[t]} playoff chances">${t}</a>`).join('');
 }
 
 function heroCard(cur, slim = false) {
@@ -1059,8 +1088,60 @@ function renderDraft() {
     <div class="card scroll"><table class="t"><thead><tr><th>Pick</th><th class="tm">Team</th><th>Record</th><th>SOS</th><th>Avg pick</th><th>#1 pick</th><th>Top 5</th></tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
 }
 
+
+// ---- page titles, descriptions and headings per address (also used by the build to pre-render pages) ----
+const SITE = () => CONFIG.siteUrl || location.origin;
+function pageMeta() {
+  const cur = evaluate(ctx, G.map((g) => (g.played ? g.fixed : null)));
+  const src = baseOdds, wk = lastFinalWeek, yr = RAW.season;
+  const o = (t) => oddsFor(t, src);
+  const lead = (c) => TEAMS[cur.seeds[c][0]];
+  if (state.tab === 'team') {
+    const t = state.team, i = IDX[t], c = CONF_OF[i], sd = cur.seeds[c].indexOf(i), od = o(t), full = FULL_NAMES[t];
+    const div = DIV_NAMES[DIV_OF[i]], rec = recStr(cur.R, i);
+    const sum = `The ${full} are ${rec} through Week ${wk} and ${sd < 7 ? `hold the ${c ? 'NFC' : 'AFC'}'s #${sd + 1} seed` : `sit ${ord(sd + 1)} in the ${c ? 'NFC' : 'AFC'}, outside the playoff spots`}.` +
+      (od ? ` Clinch gives them ${/^(8|11|18)\d?%|^>/.test(pct(od.playoffs)) ? 'an' : 'a'} ${pct(od.playoffs)} chance to make the playoffs, ${pct(od.division)} to win the ${div} and ${pct(od.bye)} to earn the #1 seed, from 10,000 simulations of the rest of the season.` : '');
+    return { title: `${full} Playoff Chances ${yr}: Odds, Scenarios & Schedule | Clinch`, h1: `${full} playoff chances`, desc: sum.slice(0, 300), sum, path: pathFor('team', t) };
+  }
+  if (state.tab === 'odds') {
+    const top = src ? [...src].sort((a, b) => b.champ - a.champ).slice(0, 3) : [];
+    const sum = top.length ? `Super Bowl odds through Week ${wk}: ${top.map((x) => `${TEAM_NAMES[x.team]} ${pct(x.champ)}`).join(', ')}. Every team's chances to make the playoffs, win the division, earn the bye and reach the Super Bowl, plus a bracket you can fill out.` : `NFL playoff odds and a bracket you can fill out.`;
+    return { title: `NFL Playoff Odds & Bracket ${yr}: Super Bowl Chances for Every Team | Clinch`, h1: `NFL playoff odds & bracket`, desc: sum, sum, path: TAB_PATH.odds };
+  }
+  if (state.tab === 'draft') {
+    const d = cur.draft.slice(0, 3).map((i) => `${TEAM_NAMES[TEAMS[i]]} (${recStr(cur.R, i)})`);
+    const sum = `If the season ended after Week ${wk}, the ${yr + 1} NFL draft would start with the ${d[0]}, the ${d[1]} and the ${d[2]}. Traded first-round picks, tiebreakers by strength of schedule, and odds for the #1 pick.`;
+    return { title: `${yr + 1} NFL Draft Order: Projected First Round & Tank Watch | Clinch`, h1: `${yr + 1} NFL draft order`, desc: sum, sum, path: TAB_PATH.draft };
+  }
+  if (state.tab === 'challenge') {
+    const sum = `Free NFL Playoff Bracket Challenge: pick all 13 playoff games, start a group with friends, and track who's paid their dues. Brackets open when Week 18 ends.`;
+    return { title: `NFL Playoff Bracket Challenge ${yr}–${String(yr + 1).slice(2)}: Free Groups | Clinch`, h1: `NFL Playoff Bracket Challenge`, desc: sum, sum, path: TAB_PATH.challenge };
+  }
+  const sum = `Pick every remaining NFL game and watch the AFC and NFC standings, playoff seeds and tiebreakers update. Through Week ${wk}, the ${TEAM_NAMES[lead(0)]} lead the AFC and the ${TEAM_NAMES[lead(1)]} lead the NFC.`;
+  return { title: `NFL Playoff Scenarios ${yr}: Pick Every Game, See the Seeds | Clinch`, h1: `NFL playoff scenarios`, desc: sum, sum, path: location.pathname === '/' ? '/' : TAB_PATH.league };
+}
+function setMeta(sel, attr, val) { let el = document.head.querySelector(sel); if (!el) { el = document.createElement(sel.startsWith('link') ? 'link' : 'meta'); const m = sel.match(/\[(\w+(?::\w+)?)="([^"]+)"\]/); if (m) el.setAttribute(m[1], m[2]); document.head.appendChild(el); } el.setAttribute(attr, val); }
+function paintMeta() {
+  const m = pageMeta();
+  document.title = m.title;
+  setMeta('meta[name="description"]', 'content', m.desc);
+  setMeta('link[rel="canonical"]', 'href', SITE() + m.path);
+  setMeta('meta[property="og:title"]', 'content', m.title);
+  setMeta('meta[property="og:description"]', 'content', m.desc);
+  setMeta('meta[property="og:url"]', 'content', SITE() + m.path);
+  const h = $('#pageH1'), su = $('#pageSum'); if (h) h.textContent = m.h1; if (su) su.textContent = m.sum;
+  return m;
+}
+function paintFooterTeams() {
+  const el = $('#sfTeams'); if (!el) return;
+  el.innerHTML = '<b>Team playoff chances</b><div>' + DIV_NAMES.map((dn, di) => `<span><i>${dn}</i>${TEAMS.map((t, i) => [t, i]).filter(([, i]) => DIV_OF[i] === di).map(([t]) => `<a href="${pathFor('team', t)}">${FULL_NAMES[t]}</a>`).join('')}</span>`).join('') + '</div>';
+}
+// Used by the build to snapshot each page for search engines.
+window.__clinch = { ready: () => !!baseOdds, snap(path) { const r = routeOf(path, ''); if (r.team) state.team = r.team; state.tab = r.tab; render(); const m = paintMeta(); m.path = path; return { m, view: $('#view').innerHTML, teams: $('#teams').innerHTML, foot: $('#sfTeams').innerHTML, tabs: document.querySelector('nav.tabs').innerHTML }; }, paths: () => ['/', ...Object.values(TAB_PATH), ...TEAMS.map((t) => pathFor('team', t))] };
+
 function render() {
-  document.querySelectorAll('nav.tabs button').forEach((b) => b.setAttribute('aria-selected', b.dataset.tab === state.tab));
+  document.querySelectorAll('nav.tabs a').forEach((b) => { b.setAttribute('aria-selected', String(b.dataset.tab === state.tab)); if (b.dataset.tab === 'team') b.href = pathFor('team', state.team); });
+  paintMeta();
   $('#teams').style.display = state.tab === 'team' ? '' : 'none';
   renderTeams();
   const cur = evaluate(ctx, outcomes(), { explain: true });
@@ -1242,7 +1323,7 @@ document.addEventListener('click', async (e) => {
   }
   if (b.dataset.rmode) { state.rootMode = b.dataset.rmode; render(); return; }
   if (b.dataset.sview) { state.standView = b.dataset.sview; store.set('standView', state.standView); render(); return; }
-  if (b.dataset.tab) { state.tab = b.dataset.tab; location.hash = state.tab === 'league' ? '' : state.tab; render(); return; }
+  if (b.dataset.tab) { goTab(b.dataset.tab); return; }
   if (b.dataset.team) { state.rootMetric = null; state.rootMode = null; state.team = b.dataset.team; state.oddsConf = null; store.set('team', state.team); rootingWeek = null; render();  return; }
   if (b.dataset.g !== undefined) { setPick(+b.dataset.g, +b.dataset.pick); return; }
   if (b.dataset.gc !== undefined) {
@@ -1316,7 +1397,25 @@ document.addEventListener('click', async (e) => {
   savePicks(); render(); recomputePickOdds();
   
 });
-window.addEventListener('hashchange', () => { state.tab = validTab(location.hash.slice(1)); render(); window.scrollTo({ top: 0 }); });
+function goTab(tab, team, replace) {
+  if (team) { state.team = team; store.set('team', team); state.oddsConf = null; rootingWeek = null; }
+  state.tab = tab;
+  const url = pathFor(tab, state.team);
+  if (location.pathname !== url) history[replace ? 'replaceState' : 'pushState'](null, '', url + location.search);
+  render(); window.scrollTo({ top: 0 });
+}
+window.addEventListener('popstate', () => { const r = routeOf(location.pathname, location.hash); if (r.team) state.team = r.team; state.tab = r.tab; render(); });
+window.addEventListener('hashchange', () => { const r = routeOf('/', location.hash); goTab(r.tab, null, true); });
+// Links (nav tabs, team chips, footer) navigate inside the app; they stay real links for crawlers and new tabs.
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('a[href^="/"]');
+  if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+  const u = new URL(a.href, location.origin), r = routeOf(u.pathname, '');
+  if (u.pathname !== '/' && !u.pathname.startsWith('/nfl/')) return;
+  e.preventDefault();
+  if (a.dataset.tab === 'team' && !r.team) return goTab('team', state.team);
+  goTab(r.tab, r.team);
+});
 
 // ---------- saving, sharing, accounts ----------
 // Share links carry the picks in the URL itself (no database needed).
@@ -1379,10 +1478,10 @@ function applyScenario(sc, team, viaShare) {
 }
 async function openLinkFromUrl() {
   const q = new URLSearchParams(location.search);
-  const clean = () => history.replaceState(null, '', location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '/') + location.hash);
+  const clean = () => history.replaceState(null, '', location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '/'));
   if (q.get('join')) {
     const code = q.get('join').toLowerCase().replace(/[^a-z0-9]/g, '');
-    clean(); state.tab = 'challenge'; location.hash = 'challenge'; render();
+    clean(); goTab('challenge');
     if (sb) chJoinDialog(code);
     return;
   }
@@ -1523,8 +1622,8 @@ async function initAccounts() {
       if (pending && user) {
         store.set('pending', null);
         if (pending === 'save') saveDialog();
-        else if (pending.startsWith('join:')) { state.tab = 'challenge'; location.hash = 'challenge'; render(); chJoinDialog(pending.slice(5)); }
-        else if (pending.startsWith('ch')) { state.tab = 'challenge'; location.hash = 'challenge'; render(); if (pending === 'chnew') chGroupForm(null); if (pending === 'chjoin') chJoinDialog(''); }
+        else if (pending.startsWith('join:')) { goTab('challenge'); chJoinDialog(pending.slice(5)); }
+        else if (pending.startsWith('ch')) { goTab('challenge'); if (pending === 'chnew') chGroupForm(null); if (pending === 'chjoin') chJoinDialog(''); }
       }
       if (state.tab === 'challenge') chLoad(true);
     } catch (err) { console.warn(err); }
@@ -1692,7 +1791,7 @@ function renderChallenge() {
   </section>`;
   // my bracket
   let mine;
-  if (ph.k === 'pre') mine = `<div class="card chcard"><h3>Your bracket</h3><p>Seeds aren't set until Week 18 is over. Brackets open that night and lock at the first wild card kickoff.</p><p class="hint">Want to practice? Build a what-if bracket on the <a href="#odds">Playoffs tab</a>.</p></div>`;
+  if (ph.k === 'pre') mine = `<div class="card chcard"><h3>Your bracket</h3><p>Seeds aren't set until Week 18 is over. Brackets open that night and lock at the first wild card kickoff.</p><p class="hint">Want to practice? Build a what-if bracket on the <a href="/nfl/playoff-odds/">Playoffs tab</a>.</p></div>`;
   else if (ph.k === 'open') {
     const n = nChPicks(), done = bracketDone();
     mine = `<div class="card chcard wide"><div class="section-head" style="margin-top:0"><h3>Your bracket</h3>
@@ -1848,7 +1947,7 @@ document.addEventListener('click', async (e) => {
     if (!user) { store.set('pending', 'join:' + code); return signInDialog('challenge'); }
     const { data, error } = await sb.rpc('join_group', { c: code, nm: ($('#cjName')?.value || myName()).trim() });
     if (error) return toast(error.message);
-    closeModal(); ch.loaded = false; await chLoad(true); state.tab = 'challenge'; location.hash = 'challenge'; return chOpenGroup(data);
+    closeModal(); ch.loaded = false; await chLoad(true); goTab('challenge'); return chOpenGroup(data);
   }
   if (act === 'chcopyinvite') { try { await navigator.clipboard.writeText(inviteUrl(ch.group.code)); toast('Invite link copied'); } catch { $('#chInvite').select(); } return; }
   if (act === 'chshareinvite') { try { await navigator.share({ title: ch.group.name, text: `Join my NFL Playoff Bracket Challenge on Clinch: ${ch.group.name}`, url: inviteUrl(ch.group.code) }); } catch {} return; }
@@ -2127,8 +2226,10 @@ document.addEventListener('click', async (e) => {
   }
 });
 
+if (ROUTE0.fromHash || (ROUTE0.tab === 'team' && !ROUTE0.team && location.pathname.startsWith('/nfl/'))) history.replaceState(null, '', pathFor(state.tab, state.team) + location.search);
 $('#brandName').textContent = CONFIG.siteName;
 $('#yr').textContent = new Date().getFullYear();
+paintFooterTeams();
 initAccounts();
 render();
 setTimeout(() => {

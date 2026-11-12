@@ -9,5 +9,10 @@
     "build": "node scripts/build.js",
     "all": "npm run fetch && npm run validate && npm run build"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3"
+  }
 }

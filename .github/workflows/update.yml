@@ -34,6 +34,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install build tools (jsdom pre-renders each page for search engines)
+        run: npm ci --no-audit --no-fund
+
       - name: Fetch latest games, scores and lines
         run: node scripts/fetch-data.js
 

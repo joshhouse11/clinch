@@ -43,31 +43,70 @@ const ver = (f) => crypto.createHash('md5').update(fs.readFileSync(new URL('web/
 const V = { svg: ver('favicon.svg'), png: ver('favicon-32.png'), touch: ver('apple-touch-icon.png'), og: ver('og.png') };
 html = html.replace('href="/favicon.svg"', `href="/favicon.svg?v=${V.svg}"`).replace('href="/favicon-32.png"', `href="/favicon-32.png?v=${V.png}"`).replace('href="/apple-touch-icon.png"', `href="/apple-touch-icon.png?v=${V.touch}"`);
 const url = config.siteUrl || '';
-const seo = url ? [
-  `<link rel="canonical" href="${url}/">`,
+const escA = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+const seoTags = (m) => url ? [
+  `<link rel="canonical" href="${url}${m.path}">`,
   `<meta property="og:type" content="website">`,
   `<meta property="og:site_name" content="Clinch">`,
-  `<meta property="og:title" content="Clinch · NFL playoff scenarios, odds & tiebreakers">`,
-  `<meta property="og:description" content="Pick every game. See who clinches, who tanks, and why.">`,
-  `<meta property="og:url" content="${url}/">`,
+  `<meta property="og:title" content="${escA(m.title)}">`,
+  `<meta property="og:description" content="${escA(m.desc)}">`,
+  `<meta property="og:url" content="${url}${m.path}">`,
   `<meta property="og:image" content="${url}/og.png?v=${V.og}">`,
   `<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">`,
   `<meta name="twitter:card" content="summary_large_image">`,
   `<meta name="twitter:image" content="${url}/og.png?v=${V.og}">`,
+  `<script type="application/ld+json">${JSON.stringify({
+    '@context': 'https://schema.org', '@type': 'WebPage', name: m.title, description: m.desc, url: url + m.path,
+    breadcrumb: { '@type': 'BreadcrumbList', itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Clinch', item: url + '/' },
+      ...(m.path === '/' ? [] : [{ '@type': 'ListItem', position: 2, name: 'NFL', item: url + '/nfl/playoff-scenarios/' }]),
+      ...(m.path.startsWith('/nfl/') && m.path !== '/nfl/playoff-scenarios/' ? [{ '@type': 'ListItem', position: 3, name: m.h1, item: url + m.path }] : []),
+    ] },
+  }).replace(/</g, '\\u003c')}</script>`,
 ].join('\n') : '';
-html = html.replace('<!--__SEO__-->', () => seo);
 
 const outDir = new URL('public/', root);
 fs.mkdirSync(outDir, { recursive: true });
-fs.writeFileSync(new URL('index.html', outDir), html);
 for (const f of fs.readdirSync(new URL('web/assets/', root))) fs.copyFileSync(new URL('web/assets/' + f, root), new URL(f, outDir));
 fs.writeFileSync(new URL('site.webmanifest', outDir), JSON.stringify({ name: 'Clinch', short_name: 'Clinch', start_url: '/', display: 'standalone', background_color: '#0f1422', theme_color: '#0f1422', icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }] }));
-// 404 -> app shell, so share links like /s/abc123 resolve on static hosting
-fs.writeFileSync(new URL('404.html', outDir), html);
-fs.writeFileSync(new URL('robots.txt', outDir), `User-agent: *\nAllow: /\n${config.siteUrl ? `Sitemap: ${config.siteUrl}/sitemap.xml\n` : ''}`);
-if (config.siteUrl) {
-  fs.writeFileSync(new URL('sitemap.xml', outDir), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${config.siteUrl}/</loc><lastmod>${data.built.slice(0, 10)}</lastmod><changefreq>hourly</changefreq></url></urlset>\n`);
-  fs.writeFileSync(new URL('CNAME', outDir), new URL(config.siteUrl).host + '\n');
+// 404 -> app shell (not indexed), so unknown paths and old share links still open the app
+fs.writeFileSync(new URL('404.html', outDir), html.replace('<!--__SEO__-->', '<meta name="robots" content="noindex">'));
+
+// Pre-render every page (home, each section, 32 teams) so search engines get real content without running JavaScript.
+// The app runs once in a simulated browser; each page's finished HTML is written to its own folder.
+const { JSDOM, VirtualConsole } = await import('jsdom');
+const snapHtml = html.replace('<script type="module">', '<script>').replace(JSON.stringify(config), JSON.stringify({ ...config, supabaseUrl: '', supabaseAnonKey: '' }));
+const vc = new VirtualConsole(); vc.on('jsdomError', (e) => console.warn('prerender:', e.message));
+const dom = new JSDOM(snapHtml, { url: (url || 'https://localhost') + '/', runScripts: 'dangerously', pretendToBeVisual: true, virtualConsole: vc });
+const W = dom.window;
+for (let i = 0; i < 300 && !(W.__clinch && W.__clinch.ready()); i++) await new Promise((r) => setTimeout(r, 100));
+if (!W.__clinch || !W.__clinch.ready()) throw new Error('Pre-render: the app never finished its odds simulation');
+const paths = W.__clinch.paths();
+const swap = (h, re, v) => { if (!re.test(h)) throw new Error('Pre-render marker missing: ' + re); return h.replace(re, () => v); };
+for (const pth of paths) {
+  const s = W.__clinch.snap(pth), m = s.m;
+  let page = html;
+  page = swap(page, /<title>[^<]*<\/title>/, `<title>${escA(m.title)}</title>`);
+  page = swap(page, /<meta name="description" content="[^"]*">/, `<meta name="description" content="${escA(m.desc)}">`);
+  page = swap(page, /<!--__SEO__-->/, seoTags(m));
+  page = swap(page, /<div id="view"><\/div>/, `<div id="view">${s.view}</div>`);
+  page = swap(page, /<h1 class="pageh1" id="pageH1"><\/h1>/, `<h1 class="pageh1" id="pageH1">${escA(m.h1)}</h1>`);
+  page = swap(page, /<p class="pagesum" id="pageSum"><\/p>/, `<p class="pagesum" id="pageSum">${escA(m.sum)}</p>`);
+  page = swap(page, /<nav class="sf-teams" id="sfTeams" aria-label="NFL team playoff pages"><\/nav>/, `<nav class="sf-teams" id="sfTeams" aria-label="NFL team playoff pages">${s.foot}</nav>`);
+  page = swap(page, /<nav class="tabs" role="tablist" aria-label="NFL sections">[\s\S]*?<\/nav>/, `<nav class="tabs" role="tablist" aria-label="NFL sections">${s.tabs}</nav>`);
+  if (pth.startsWith('/nfl/teams/')) page = swap(page, /<div class="teams" id="teams" aria-label="Pick your team"><\/div>/, `<div class="teams" id="teams" aria-label="Pick your team">${s.teams}</div>`);
+  const dir = new URL('.' + pth, outDir);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(new URL('index.html', dir), page);
 }
+W.close();
+
+fs.writeFileSync(new URL('robots.txt', outDir), `User-agent: *\nAllow: /\n${url ? `Sitemap: ${url}/sitemap.xml\n` : ''}`);
+if (url) {
+  const day = data.built.slice(0, 10);
+  fs.writeFileSync(new URL('sitemap.xml', outDir), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${paths.map((p) => `<url><loc>${url}${p}</loc><lastmod>${day}</lastmod><changefreq>daily</changefreq><priority>${p === '/' ? '1.0' : p.startsWith('/nfl/teams/') ? '0.8' : '0.9'}</priority></url>`).join('\n')}\n</urlset>\n`);
+  fs.writeFileSync(new URL('CNAME', outDir), new URL(url).host + '\n');
+}
+console.log(`pre-rendered ${paths.length} pages`);
 const final = games.filter((g) => g[4] !== null).length;
 console.log(`built ${SEASON} season: ${games.length} games, ${final} final, ${trades.traded.length + trades.conditional.length} pick trades, accounts ${config.supabaseUrl ? 'ON' : 'off (no Supabase configured)'}`);
