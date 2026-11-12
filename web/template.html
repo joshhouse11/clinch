@@ -421,7 +421,11 @@ main:has(.ohero) .bracket-top { margin-top: 4px; }
 
 
 /* ---------- bracket challenge ---------- */
-nav.tabs .chtab { color: var(--gold); }
+nav.tabs .chtab { color: var(--gold); margin-left: 10px; }
+nav.tabs .chtab::before { content: ''; position: absolute; left: -6px; top: 30%; bottom: 30%; width: 1px; background: var(--line); }
+nav.tabs .chtab span { font-size: 13px; }
+nav.tabs i.lg { font-style: normal; }
+@media (max-width: 560px) { nav.tabs i.lg { display: none; } nav.tabs button { padding: 0 7px; font-size: 13px; } nav.tabs .chtab { margin-left: 6px; } }
 .chhero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: center; padding: 26px; border-radius: 20px; margin: 4px 0 16px;
   background: radial-gradient(90% 120% at 0% 0%, color-mix(in srgb, var(--accent) 22%, var(--surface)) 0%, var(--surface) 55%), radial-gradient(70% 100% at 100% 100%, color-mix(in srgb, var(--gold) 18%, transparent), transparent);
   border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); }
@@ -481,8 +485,8 @@ nav.tabs .chtab { color: var(--gold); }
       <button role="tab" data-tab="league">League</button>
       <button role="tab" data-tab="team">My team</button>
       <button role="tab" data-tab="odds">Playoffs</button>
-      <button role="tab" data-tab="challenge" class="chtab">Challenge</button>
-      <button role="tab" data-tab="draft">Draft order</button>
+      <button role="tab" data-tab="draft">Draft<i class="lg"> order</i></button>
+      <button role="tab" data-tab="challenge" class="chtab"><span>🏆</span> <i class="lg">Bracket </i>Challenge</button>
     </nav>
     <div class="hdr-actions">
       <button class="hbtn" data-act="share" title="Copy a link to these picks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Share</span></button>
