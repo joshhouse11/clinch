@@ -6,7 +6,7 @@ const G = ctx.games;
 const PRIOR = NBA_TEAMS.map((t) => RAW.prior[t] ?? 0);
 const RATING = nbaRatings(ctx, PRIOR);
 const REAL = G.map((g) => (g.played ? (g.hs > g.as ? 1 : -1) : null));
-const ST = nbaStandings(ctx, REAL);
+let ST = nbaStandings(ctx, REAL);
 const T = NBA_TEAMS;
 const COLORS = Object.fromEntries(T.map((t) => [t, (RAW.teams[t] && RAW.teams[t].color) || '#444']));
 const FULL = Object.fromEntries(T.map((t) => [t, (RAW.teams[t] && RAW.teams[t].name) || t]));
@@ -40,6 +40,24 @@ const state = { tab: R0.tab, team: R0.team || store.get('team', 'BOS'), draws: n
 if (!T.includes(state.team)) state.team = 'BOS';
 let odds = null;
 
+// ---- your picks (stored per season by game id) ----
+const BY_ID = Object.fromEntries(G.map((g) => [g.id, g.k]));
+const PKEY = 'picks:' + RAW.season;
+const picks = {}; // k -> 1 home win, -1 away win
+for (const [id, v] of Object.entries(store.get(PKEY, {}))) { const k = BY_ID[id]; if (k !== undefined && !G[k].played && (v === 1 || v === -1)) picks[k] = v; }
+const nPicks = () => Object.keys(picks).length;
+const savePicks = () => store.set(PKEY, Object.fromEntries(Object.entries(picks).map(([k, v]) => [G[k].id, v])));
+const outcomes = () => REAL.map((o, k) => (o !== null ? o : picks[k] ?? null));
+let simTimer = 0, simGen = 0;
+function recompute() {
+  ST = nbaStandings(ctx, outcomes());
+  savePicks();
+  clearTimeout(simTimer); const gen = ++simGen;
+  simTimer = setTimeout(() => { const o = nbaSimulate(ctx, RATING, { sims: 3000, rules: RULES, picks }); if (gen === simGen) { odds = o; render(); } }, 350);
+}
+const FUT_DAYS = [...new Set(G.filter((g) => !g.played).map((g) => g.date))].sort();
+state.day = FUT_DAYS[0];
+
 // ---- standings ----
 function gb(c, i) { const top = ST.seeds[c][0]; return ((ST.R.W[top] - ST.R.W[i]) + (ST.R.L[i] - ST.R.L[top])) / 2; }
 function standingsTable(c) {
@@ -54,17 +72,36 @@ function standingsTable(c) {
   return `<section class="card scroll"><div class="stand-head" style="padding:14px 14px 0"><h3>${c ? 'Western' : 'Eastern'} Conference</h3></div>
     <table class="t nst"><thead><tr><th></th><th>Team</th><th>W-L</th><th>GB</th><th>Conf</th><th title="Make the playoffs (top 6 or win the play-in)">Playoffs</th><th title="Finish top 6 and skip the play-in">Top 6</th></tr></thead><tbody>${rowsH}</tbody></table></section>`;
 }
-function upcoming() {
-  const fut = G.filter((g) => !g.played).sort((a, b) => (a.when || a.date).localeCompare(b.when || b.date));
-  if (!fut.length) return '';
-  const day = fut[0].date, list = fut.filter((g) => g.date === day);
-  return `<div class="section-head" style="margin-top:22px"><h2>Next up: ${fmtDate(day)}</h2><span class="hint">Win chances from Clinch's team ratings</span></div>
-    <div class="ugames">${list.map((g) => { const p = nbaWinProb(RATING, g.h, g.a); const ft = (t, q) => `<div class="tm">${chip(T[t])}${NICK[T[t]]}</div><div class="p${q >= 0.5 ? ' fav' : ''}">${pct(q)}</div>`;
-      return `<div class="card ug">${ft(g.a, 1 - p)}${ft(g.h, p)}<small>${g.when ? new Date(g.when).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }) : ''} · at ${NICK[T[g.h]]}</small></div>`; }).join('')}</div>`;
+const ARR = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d ? 'M9 5l7 7-7 7' : 'M15 5l-7 7 7 7'}"/></svg>`;
+function gameCard(g, focus) {
+  const pk = picks[g.k], p = nbaWinProb(RATING, g.h, g.a);
+  const st = (side) => (pk === undefined ? '' : (pk === 1) === (side === 'h') ? 'win' : 'loss');
+  const side = (t, s, q) => `<button class="side${s === 'h' ? ' home' : ''}" data-g="${g.k}" data-pick="${s === 'h' ? 1 : -1}" data-state="${st(s)}" aria-label="${FULL[T[t]]} win">${chip(T[t])}<span><div class="nm">${NICK[T[t]]}</div><div class="pr num">${pct(q)} to win</div></span></button>`;
+  const tm = g.when ? new Date(g.when).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
+  const mine = focus !== undefined && (g.h === focus || g.a === focus);
+  return `<div class="card game${mine ? ' mine' : ''}" style="--tc:${COLORS[T[focus ?? g.h]]}"><div class="gmeta"><span>${focus !== undefined ? new Date(g.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' : ''}${tm}</span><span>${pk === undefined ? 'Tap the winner' : 'Your pick'}</span></div>
+    ${side(g.a, 'a', 1 - p)}<div class="mid"><span class="at">@</span></div>${side(g.h, 'h', p)}</div>`;
+}
+function picker() {
+  if (!FUT_DAYS.length) return '<div class="card empty">Regular season complete.</div>';
+  const di = Math.max(0, FUT_DAYS.indexOf(state.day)), day = FUT_DAYS[di];
+  const list = G.filter((g) => !g.played && g.date === day).sort((a, b) => (a.when || '').localeCompare(b.when || ''));
+  const done = list.filter((g) => picks[g.k] !== undefined).length;
+  const d = new Date(day + 'T12:00:00');
+  return `<div class="wkstep">
+      <button class="arr" data-day="${FUT_DAYS[di - 1] ?? ''}" ${di > 0 ? '' : 'disabled'} aria-label="Previous day">${ARR(0)}</button>
+      <div class="wl"><b>${d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</b><small class="num">${list.length} game${list.length === 1 ? '' : 's'} · ${done} picked · day ${di + 1} of ${FUT_DAYS.length}</small></div>
+      <button class="arr" data-day="${FUT_DAYS[di + 1] ?? ''}" ${di < FUT_DAYS.length - 1 ? '' : 'disabled'} aria-label="Next day">${ARR(1)}</button>
+    </div>
+    <div class="section-head pickbar"><span class="hint num">${nPicks() ? `${nPicks()} game${nPicks() === 1 ? '' : 's'} picked this season` : 'Pick winners and watch the standings, odds and lottery move'}</span>
+      <button class="btn" data-pact="favday">Favorites win today</button><button class="btn" data-pact="clearday">Clear day</button>
+      <button class="btn" data-pact="favall">Favorites win out</button>${nPicks() ? '<button class="btn" data-pact="clearall">Reset all picks</button>' : ''}</div>
+    <div class="games two">${list.map((g) => gameCard(g)).join('')}</div>`;
 }
 function renderStandings() {
-  return `<div class="legend"><span><i style="background:var(--accent)"></i>Seeds 1-6: playoffs</span><span><i style="background:var(--gold)"></i>Seeds 7-10: play-in</span><span><i style="background:var(--line)"></i>11-15: lottery</span></div>
-    <div class="ngrid">${standingsTable(0)}${standingsTable(1)}</div>${upcoming()}`;
+  return `<div class="npick"><div class="pmain">${picker()}</div>
+    <div class="pside"><div class="legend"><span><i style="background:var(--accent)"></i>Seeds 1-6: playoffs</span><span><i style="background:var(--gold)"></i>7-10: play-in</span><span><i style="background:var(--line)"></i>11-15: lottery</span></div>
+    <div class="ngrid">${standingsTable(0)}${standingsTable(1)}</div></div></div>`;
 }
 
 // ---- odds ----
@@ -178,9 +215,9 @@ function renderTeam() {
     <div class="stats">${tank ? stat('#1 pick', o ? pct(o.pick1) : '…', o ? `Top 4: ${pct(o.top4)}` : '') + stat('Avg draft pick', o ? o.avgPick.toFixed(1) : '…') + stat('Make playoffs', o ? pct(o.playoffs) : '…') + stat('Proj. wins', o ? o.avgWins.toFixed(1) : '…')
       : stat('Make playoffs', o ? pct(o.playoffs) : '…', o ? `Play-in: ${pct(o.playIn)}` : '') + stat('Top 6', o ? pct(o.top6) : '…') + stat('Win title', o ? pct(o.title) : '…', o ? `Finals: ${pct(o.finals)}` : '') + stat('Proj. wins', o ? o.avgWins.toFixed(1) : '…')}</div>${pickLine(i)}</section>
     <div class="grid" style="margin-top:16px"><div>
-      <div class="section-head"><h2>Next 10 games</h2><span class="hint">Win chance for the ${NICK[t]}</span></div>
-      <div class="ugames">${fut.map((g) => { const home = g.h === i, op = home ? g.a : g.h, p = home ? nbaWinProb(RATING, g.h, g.a) : 1 - nbaWinProb(RATING, g.h, g.a);
-        return `<div class="card ug"><div class="tm">${chip(T[op])}${home ? 'vs' : '@'} ${NICK[T[op]]}</div><div class="p${p >= 0.5 ? ' fav' : ''}">${pct(p)}</div><small>${fmtDate(g.date)}</small></div>`; }).join('') || '<p class="hint">Regular season complete.</p>'}</div>
+      <div class="section-head"><h2>Next 10 games</h2><span class="hint">Tap a winner · ${G.filter((g) => !g.played && (g.h === i || g.a === i)).length} left</span></div>
+      <div class="section-head pickbar"><button class="btn" data-pact="winout">${NICK[t]} win out</button><button class="btn" data-pact="loseout">Lose out</button><button class="btn" data-pact="favteam">Favorites</button><button class="btn" data-pact="clearteam">Clear ${NICK[t]} picks</button></div>
+      <div class="games">${fut.map((g) => gameCard(g, i)).join('') || '<p class="hint">Regular season complete.</p>'}</div>
       ${last.length ? `<div class="section-head" style="margin-top:18px"><h2>Last 5</h2></div><div class="ugames">${last.map((g) => { const home = g.h === i, op = home ? g.a : g.h, my = home ? g.hs : g.as, th = home ? g.as : g.hs;
         return `<div class="card ug"><div class="tm">${chip(T[op])}${home ? 'vs' : '@'} ${NICK[T[op]]}</div><div class="p${my > th ? ' fav' : ''}">${my > th ? 'W' : 'L'} ${my}-${th}</div><small>${fmtDate(g.date)}</small></div>`; }).join('')}</div>` : ''}
     </div><div class="sticky">${standingsTable(c)}</div></div>`;
@@ -207,8 +244,8 @@ function pageMeta() {
     return { title: `NBA Draft Lottery Simulator ${RAW.season}: 3-2-1 Odds & Traded Picks | Clinch`, h1: `${RAW.season} NBA draft lottery simulator`, desc: sum.slice(0, 300), sum, path: TAB_PATH.lottery };
   }
   const e = T[ST.seeds[0][0]], w = T[ST.seeds[1][0]];
-  const sum = `NBA standings through ${through} with playoff and play-in odds for every team. The ${NICK[e]} (${rec(NBA_IDX[e])}) lead the East and the ${NICK[w]} (${rec(NBA_IDX[w])}) lead the West.`;
-  return { title: `NBA Standings ${yr} with Playoff & Play-In Odds | Clinch`, h1: `NBA standings & playoff picture`, desc: sum, sum, path: TAB_PATH.standings };
+  const sum = `NBA standings through ${through} with playoff and play-in odds for every team. The ${NICK[e]} (${rec(NBA_IDX[e])}) lead the East and the ${NICK[w]} (${rec(NBA_IDX[w])}) lead the West. Pick the winner of every remaining game and watch the standings, play-in and lottery update.`;
+  return { title: `NBA Standings ${yr}: Playoff Odds & Scenario Picker | Clinch`, h1: `NBA standings & playoff picture`, desc: sum, sum, path: TAB_PATH.standings };
 }
 const SITE = () => CONFIG.siteUrl || location.origin;
 function setMeta(sel, attr, val) { let el = document.head.querySelector(sel); if (!el) { el = document.createElement(sel.startsWith('link') ? 'link' : 'meta'); const m = sel.match(/\[(\w+(?::\w+)?)="([^"]+)"\]/); if (m) el.setAttribute(m[1], m[2]); document.head.appendChild(el); } el.setAttribute(attr, val); }
@@ -239,6 +276,23 @@ document.addEventListener('click', (e) => {
   if (a && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.button) { e.preventDefault(); const r = routeOf(new URL(a.href, location.origin).pathname); return go(r.tab, r.team || (a.dataset.tab === 'team' ? state.team : null)); }
   const b = e.target.closest('button');
   if (!b) return;
+  if (b.dataset.g !== undefined) { const k = +b.dataset.g, v = +b.dataset.pick; if (picks[k] === v) delete picks[k]; else picks[k] = v; recompute(); render(); return; }
+  if (b.dataset.day !== undefined) { if (b.dataset.day) { state.day = b.dataset.day; render(); } return; }
+  if (b.dataset.pact) {
+    const a = b.dataset.pact, ti = NBA_IDX[state.team];
+    const fav = (g) => (nbaWinProb(RATING, g.h, g.a) >= 0.5 ? 1 : -1);
+    const open = G.filter((g) => !g.played);
+    const day = open.filter((g) => g.date === state.day), team = open.filter((g) => g.h === ti || g.a === ti);
+    if (a === 'clearall' && !confirm('Reset all ' + nPicks() + ' picks?')) return;
+    if (a === 'favday') day.forEach((g) => { picks[g.k] = fav(g); });
+    if (a === 'clearday') day.forEach((g) => { delete picks[g.k]; });
+    if (a === 'favall') open.forEach((g) => { if (picks[g.k] === undefined) picks[g.k] = fav(g); });
+    if (a === 'clearall') for (const k in picks) delete picks[k];
+    if (a === 'winout' || a === 'loseout') team.forEach((g) => { const w = a === 'winout'; picks[g.k] = (g.h === ti) === w ? 1 : -1; });
+    if (a === 'favteam') team.forEach((g) => { picks[g.k] = fav(g); });
+    if (a === 'clearteam') team.forEach((g) => { delete picks[g.k]; });
+    recompute(); render(); return;
+  }
   if (b.dataset.act === 'sim') {
     let s = (Date.now() ^ (state.drawN * 2654435761)) >>> 0;
     const rand = () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
@@ -254,4 +308,5 @@ window.__clinch = { ready: () => !!odds, snap(path) { const r = routeOf(path); i
 $('#yr').textContent = new Date().getFullYear();
 paintFooterTeams();
 render();
-setTimeout(() => { odds = nbaSimulate(ctx, RATING, { sims: 5000, rules: RULES }); render(); }, 30);
+if (nPicks()) ST = nbaStandings(ctx, outcomes());
+setTimeout(() => { odds = nbaSimulate(ctx, RATING, { sims: 5000, rules: RULES, picks }); render(); }, 30);

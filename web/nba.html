@@ -50,6 +50,9 @@
 .notes { margin-top: 18px; padding: 16px 18px; } .notes h3 { margin: 0 0 8px; } .notes ul { margin: 0 0 8px; padding-left: 18px; display: grid; gap: 5px; font-size: 14px; }
 .pickline { margin: 12px 0 0; }
 @keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.npick { display: grid; gap: 18px; }
+@media (min-width: 1200px) { .npick { grid-template-columns: minmax(0, 1fr) 470px; align-items: start; } .npick .pside { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; } .npick .ngrid { grid-template-columns: 1fr; } .npick .nst th:nth-child(5), .npick .nst td:nth-child(5) { display: none; } .npick .games.two { grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); } }
+.pickbar { gap: 8px; flex-wrap: wrap; margin: 4px 0 10px; } .pickbar .hint { margin-right: auto; }
 .ugames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
 .ug { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px 12px; }
 .ug .tm { display: flex; align-items: center; gap: 8px; font-weight: 700; } .ug .tm .chip { opacity: 1; width: 26px; height: 26px; font-size: 9px; }
