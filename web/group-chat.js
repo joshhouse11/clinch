@@ -1,4 +1,4 @@
-// ---------- group trash-talk chat (shared by the NFL and NBA Bracket Challenge) ----------
+// ---------- group chat (shared by the NFL and NBA Bracket Challenge) ----------
 // Needs from the host page: sb, user, ch, esc, toast, confirmTwice.
 const chat = { group: null, msgs: [], sub: null, poll: null, draft: '', sending: false };
 function chatAgo(ts) {
@@ -7,7 +7,7 @@ function chatAgo(ts) {
   return new Date(ts).toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 function chatListHtml() {
-  if (!chat.msgs.length) return '<p class="hint chatempty">No trash talk yet. Somebody has to start it.</p>';
+  if (!chat.msgs.length) return '<p class="hint chatempty">No messages yet.</p>';
   const own = ch.group && user && ch.group.owner === user.id;
   let prev = null;
   return chat.msgs.map((m) => {
@@ -19,9 +19,9 @@ function chatListHtml() {
 }
 function chatHtml() {
   setTimeout(() => { const el = document.getElementById('chatList'); if (el) el.scrollTop = el.scrollHeight; }, 0);
-  return `<section class="card chatcard"><div class="section-head" style="margin:0 0 8px"><h3 style="margin:0">Trash talk</h3><span class="hint">Only this group can see it</span></div>
+  return `<section class="card chatcard"><div class="section-head" style="margin:0 0 8px"><h3 style="margin:0">Group chat</h3><span class="hint">Only this group can see it</span></div>
     <div class="chatlist" id="chatList">${chatListHtml()}</div>
-    <form class="chatform" id="chatForm"><input type="text" id="chatInput" maxlength="500" autocomplete="off" placeholder="Say something you'll regret in April…" value="${esc(chat.draft)}"><button class="btn primary" type="submit">Send</button></form></section>`;
+    <form class="chatform" id="chatForm"><input type="text" id="chatInput" maxlength="500" autocomplete="off" placeholder="Message the group" value="${esc(chat.draft)}"><button class="btn primary" type="submit">Send</button></form></section>`;
 }
 function chatPaint(scroll = true) {
   const el = document.getElementById('chatList'); if (!el) return;

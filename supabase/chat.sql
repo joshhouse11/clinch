@@ -1,4 +1,4 @@
--- Clinch: group trash-talk chat. Run once in Supabase SQL Editor. Safe to re-run.
+-- Clinch: group chat. Run once in Supabase SQL Editor. Safe to re-run.
 
 create table if not exists public.group_messages (
   id           bigint generated always as identity primary key,
