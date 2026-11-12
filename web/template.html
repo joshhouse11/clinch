@@ -73,6 +73,12 @@ main { max-width: 1180px; margin: 0 auto; padding: 16px; }
 .grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
 .grid > * { min-width: 0; }
 @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+/* Tiebreakers sit under the games on desktop, but after the standings on phones. */
+@media (min-width: 901px) {
+  .grid.has-tb { grid-template-rows: auto 1fr; }
+  .grid.has-tb > .side-col { grid-column: 2; grid-row: 1 / span 2; }
+  .grid.has-tb > .tb-slot { grid-column: 1; grid-row: 2; }
+}
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
 .sticky { position: sticky; top: 76px; }
 @media (max-width: 900px) { .sticky { position: static; } }
@@ -660,13 +666,13 @@ function renderLeague(cur) {
   const wk = state.lweek ?? weeks[0];
   const lv = state.lview === 'grid' ? 'grid' : 'week';
   const views = `<div class="seg"><button data-lview="week" aria-pressed="${lv === 'week'}">Week by week</button><button data-lview="grid" aria-pressed="${lv === 'grid'}">Season grid</button></div>`;
-  const sidebar = `<div class="sticky" style="display:grid;gap:12px">${standingsCard(cur, 0, true)}${standingsCard(cur, 1, true)}</div>`;
+  const sidebar = `<div class="sticky side-col" style="display:grid;gap:12px">${standingsCard(cur, 0, true)}${standingsCard(cur, 1, true)}</div>`;
   if (lv === 'grid') {
     const gc = state.gridConf ?? 'all';
-    return `<div class="grid"><div>
+    return `<div class="grid has-tb"><div>
       <div class="section-head" style="margin-top:4px"><h2>Every remaining game</h2>${views}
         <div class="seg"><button data-gconf="all" aria-pressed="${gc === 'all'}">All</button><button data-gconf="0" aria-pressed="${gc === 0}">AFC</button><button data-gconf="1" aria-pressed="${gc === 1}">NFC</button></div></div>
-      ${gridView(cur)}${tiebreakSection(cur, gc === 'all' ? [0, 1] : [gc])}</div>${sidebar}</div>`;
+      ${gridView(cur)}</div>${sidebar}<div class="tb-slot">${tiebreakSection(cur, gc === 'all' ? [0, 1] : [gc])}</div></div>`;
   }
   const past = wk <= lastFinalWeek && !weeks.includes(wk);
   const list = G.filter((g) => g.week === wk).sort((x, y) => (x.day + x.time).localeCompare(y.day + y.time));
@@ -675,7 +681,7 @@ function renderLeague(cur) {
   const flippedHere = list.filter((g) => state.flips[g.k] !== undefined).length;
   const wi = ALL_WEEKS.indexOf(wk);
   const byes = TEAMS.filter((t, i) => !G.some((g) => g.week === wk && (g.h === i || g.a === i)));
-  return `<div class="grid"><div>
+  return `<div class="grid has-tb"><div>
     <div class="section-head" style="margin-top:4px"><h2>Week ${wk}</h2>${views}
       <span class="wknav">${wi > 0 ? `<button class="btn" data-lweek="${ALL_WEEKS[wi - 1]}" aria-label="Previous week">← Wk ${ALL_WEEKS[wi - 1]}</button>` : ''}${wi < ALL_WEEKS.length - 1 ? `<button class="btn primary" data-lweek="${ALL_WEEKS[wi + 1]}" aria-label="Next week">Wk ${ALL_WEEKS[wi + 1]} →</button>` : ''}</span></div>
     <div class="seg weekbar" style="margin-bottom:10px">${ALL_WEEKS.map((w) => { const n = G.filter((g) => g.week === w); const isPast = n.every((g) => g.played); const fl = n.some((g) => state.flips[g.k] !== undefined); const done = !isPast && n.filter((g) => !g.played).every((g) => state.picks[g.k] !== undefined); return `<button data-lweek="${w}" aria-pressed="${w === wk}" class="${isPast ? 'pastw' : ''}">Wk ${w}${fl ? ' <span class="flipdot" title="has a do-over">●</span>' : isPast ? ' <span class="final" title="final">✓</span>' : done ? ' <span class="picked" title="all games picked">✓</span>' : ''}</button>`; }).join('')}</div>
@@ -688,8 +694,7 @@ function renderLeague(cur) {
       ${clearAllHtml()}
     </div>
     <div class="games two">${list.map(gameCard).join('')}</div>
-    ${tiebreakSection(cur, [0, 1])}
-  </div>${sidebar}</div>`;
+  </div>${sidebar}<div class="tb-slot">${tiebreakSection(cur, [0, 1])}</div></div>`;
 }
 
 function renderScenarios(cur) {
@@ -701,7 +706,7 @@ function renderScenarios(cur) {
   else list = unplayed.filter((g) => g.week === state.week);
   const weekSeg = '';
   const hint = state.view === 'mine' ? `Upcoming games: tap a team to pick the winner. Played games: tap the loser for a do-over.` : (rootingWeek === state.week ? `Gold tags show who ${state.team} fans should root for and how much it moves their playoff odds.` : `Working out who ${state.team} fans should root for…`);
-  return `<div class="grid">
+  return `<div class="grid has-tb">
     <div>${heroCard(cur)}
       <div class="section-head">${state.view === 'root' ? '' : '<h2>Pick the games</h2>'}${views}${weekSeg}</div>
       ${state.view === 'mine' ? `<p class="hint">${hint}</p>` : ''}
@@ -710,9 +715,9 @@ function renderScenarios(cur) {
         return `<div class="games">${up.length ? up.map(gameCard).join('') : '<div class="card empty">No games left on the schedule.</div>'}</div>
         ${done.length ? `<div class="section-head"><h2>Played games</h2><span class="hint">Tap the team that lost for a do-over.</span></div><div class="games">${done.map(gameCard).join('')}</div>` : ''}`;
       })() : rootingView()}
-      ${state.view === 'mine' ? tiebreakSection(cur, [conf]) : ''}
     </div>
-    <div class="sticky">${standingsCard(cur, conf)}</div>
+    <div class="sticky side-col">${standingsCard(cur, conf)}</div>
+    <div class="tb-slot">${state.view === 'mine' ? tiebreakSection(cur, [conf]) : ''}</div>
   </div>`;
 }
 
