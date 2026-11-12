@@ -4,5 +4,6 @@
   "SITE_URL": "https://clinchscenarios.com",
   "SUPABASE_URL": "https://plpzvjkagfikdjskomvy.supabase.co",
   "SUPABASE_ANON_KEY": "sb_publishable__jbgViStVgRVmK0x-RD7Aw_Yid66RoX",
-  "AUTH_PROVIDERS": "google"
+  "AUTH_PROVIDERS": "google",
+  "CF_ANALYTICS_TOKEN": "5563c35422ce40c28e4ffe4408a47f2b"
 }

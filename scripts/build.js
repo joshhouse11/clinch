@@ -26,6 +26,7 @@ const config = {
   siteUrl: setting('SITE_URL'),
   supabaseUrl: setting('SUPABASE_URL'),
   supabaseAnonKey: setting('SUPABASE_ANON_KEY'),
+  analytics: setting('CF_ANALYTICS_TOKEN'),
   providers: String(setting('AUTH_PROVIDERS', 'google')).split(',').map((x) => x.trim()).filter(Boolean),
 };
 if (process.env.LOCAL_PREVIEW) { config.supabaseUrl = ''; config.supabaseAnonKey = ''; }
@@ -43,6 +44,8 @@ const ver = (f) => crypto.createHash('md5').update(fs.readFileSync(new URL('web/
 const V = { svg: ver('favicon.svg'), png: ver('favicon-32.png'), touch: ver('apple-touch-icon.png'), og: ver('og.png') };
 html = html.replace('href="/favicon.svg"', `href="/favicon.svg?v=${V.svg}"`).replace('href="/favicon-32.png"', `href="/favicon-32.png?v=${V.png}"`).replace('href="/apple-touch-icon.png"', `href="/apple-touch-icon.png?v=${V.touch}"`);
 const url = config.siteUrl || '';
+// Cloudflare Web Analytics (cookie-free page views; follows in-app navigation). Production only, never in the pre-render copy.
+if (config.analytics && url && !process.env.LOCAL_PREVIEW) html = html.replace('</head>', `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "${config.analytics}", "spa": true}'></script>\n</head>`);
 const escA = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const seoTags = (m) => url ? [
   `<link rel="canonical" href="${url}${m.path}">`,
