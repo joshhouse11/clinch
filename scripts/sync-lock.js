@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import { parseCSV } from '../engine/data.js';
 
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const key = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim(); // pasted secrets often carry a trailing newline
 const site = JSON.parse(fs.readFileSync(new URL('../data/site.json', import.meta.url), 'utf8'));
 if (!key || !site.SUPABASE_URL) { console.log('No service key; lock time left as is.'); process.exit(0); }
 const rows = parseCSV(fs.readFileSync(new URL('../data/games.csv', import.meta.url), 'utf8'));
