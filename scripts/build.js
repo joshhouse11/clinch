@@ -37,6 +37,11 @@ html = html
   .replace('/*__ENGINE__*/', () => engine)
   .replace('/*__DATA__*/', () => JSON.stringify(data))
   .replace('/*__CONFIG__*/', () => JSON.stringify(config));
+// Versioned icon/image URLs (content hash) so browsers and link previews pick up logo changes instead of cached copies.
+import crypto from 'node:crypto';
+const ver = (f) => crypto.createHash('md5').update(fs.readFileSync(new URL('web/assets/' + f, root))).digest('hex').slice(0, 8);
+const V = { svg: ver('favicon.svg'), png: ver('favicon-32.png'), touch: ver('apple-touch-icon.png'), og: ver('og.png') };
+html = html.replace('href="/favicon.svg"', `href="/favicon.svg?v=${V.svg}"`).replace('href="/favicon-32.png"', `href="/favicon-32.png?v=${V.png}"`).replace('href="/apple-touch-icon.png"', `href="/apple-touch-icon.png?v=${V.touch}"`);
 const url = config.siteUrl || '';
 const seo = url ? [
   `<link rel="canonical" href="${url}/">`,
@@ -45,10 +50,10 @@ const seo = url ? [
   `<meta property="og:title" content="Clinch · NFL playoff scenarios, odds & tiebreakers">`,
   `<meta property="og:description" content="Pick every game. See who clinches, who tanks, and why.">`,
   `<meta property="og:url" content="${url}/">`,
-  `<meta property="og:image" content="${url}/og.png">`,
+  `<meta property="og:image" content="${url}/og.png?v=${V.og}">`,
   `<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">`,
   `<meta name="twitter:card" content="summary_large_image">`,
-  `<meta name="twitter:image" content="${url}/og.png">`,
+  `<meta name="twitter:image" content="${url}/og.png?v=${V.og}">`,
 ].join('\n') : '';
 html = html.replace('<!--__SEO__-->', () => seo);
 
