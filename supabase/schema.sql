@@ -1,4 +1,4 @@
--- Clinch database: saved scenarios (private, per user) and share links (public, read-only).
+-- Clinch database: saved scenarios (private, per user). Share links need no database; they carry the picks in the URL.
 -- Run once in Supabase: Dashboard -> SQL Editor -> New query -> paste -> Run.
 -- Picks are stored by nflverse game_id (e.g. "2026_12_GB_LA"), so they survive schedule changes.
 
@@ -32,21 +32,6 @@ begin new.updated_at = now(); return new; end $$;
 drop trigger if exists scenarios_touch on public.scenarios;
 create trigger scenarios_touch before update on public.scenarios for each row execute function public.touch_updated_at();
 
--- Share links: anyone can create one (no login needed) and anyone with the link can open it.
--- Nobody can edit or delete them through the API.
-create table if not exists public.shares (
-  slug        text primary key check (slug ~ '^[a-z0-9]{6,12}$'),
-  season      int  not null,
-  team        text check (char_length(team) <= 4),
-  picks       jsonb not null default '{}'::jsonb,
-  flips       jsonb not null default '{}'::jsonb,
-  created_by  uuid default auth.uid(),
-  created_at  timestamptz not null default now(),
-  constraint shares_size check (pg_column_size(picks) + pg_column_size(flips) < 20000)
-);
-alter table public.shares enable row level security;
-
-drop policy if exists "shares: anyone can read" on public.shares;
-drop policy if exists "shares: anyone can create" on public.shares;
-create policy "shares: anyone can read"   on public.shares for select using (true);
-create policy "shares: anyone can create" on public.shares for insert with check (true);
+-- Table privileges for the API roles. Row-level security above still decides which rows each user can touch.
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on public.scenarios to authenticated;

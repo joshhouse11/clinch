@@ -17,12 +17,16 @@ const games = rows.map((r) => [r.game_id, +r.week, r.away_team, r.home_team, num
 
 const trades = JSON.parse(fs.readFileSync(new URL('data/pick_trades.json', root), 'utf8'))[String(SEASON + 1)] || { traded: [], conditional: [] };
 
+const site = fs.existsSync(new URL('data/site.json', root)) ? JSON.parse(fs.readFileSync(new URL('data/site.json', root), 'utf8')) : {};
+const setting = (k, d = '') => (process.env[k] !== undefined && process.env[k] !== '' ? process.env[k] : site[k] ?? d);
 const config = {
-  siteName: process.env.SITE_NAME || 'clinch',
-  siteUrl: process.env.SITE_URL || '',
-  supabaseUrl: process.env.SUPABASE_URL || '',
-  supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
+  siteName: setting('SITE_NAME', 'clinch'),
+  siteUrl: setting('SITE_URL'),
+  supabaseUrl: setting('SUPABASE_URL'),
+  supabaseAnonKey: setting('SUPABASE_ANON_KEY'),
+  providers: String(setting('AUTH_PROVIDERS', 'google')).split(',').map((x) => x.trim()).filter(Boolean),
 };
+if (process.env.LOCAL_PREVIEW) { config.supabaseUrl = ''; config.supabaseAnonKey = ''; }
 
 const data = { season: SEASON, built: new Date().toISOString(), games, trades };
 const engine = fs.readFileSync(new URL('engine/engine.js', root), 'utf8').replace(/^export /gm, '');
