@@ -1039,7 +1039,7 @@ function bracketHtml(seeds, mode = 'po', readOnly = false, picksSrc = null) {
       if (RR.won[r].has(t)) {
         const g = RR.games.find((x) => x.round === r && x.w === t);
         const sd2 = (x) => { for (const cs of seeds) { const k = cs.indexOf(x); if (k >= 0) return k + 1; } return 0; };
-        mark = ' right'; right = `+${CH_PTS[r] + (r !== 'SB' && g ? Math.max(0, sd2(g.w) - sd2(g.l)) : 0)}`;
+        mark = ' right'; right = `+${CH_PTS[r]}`;
       }
       else if (RR.out.has(t) && RR.out.get(t) <= RO.indexOf(r)) mark = ' wrong';
     }
@@ -1147,7 +1147,7 @@ function pageMeta() {
     return { title: `${yr + 1} NFL Draft Order: Projected First Round & Tank Watch | Clinch`, h1: `${yr + 1} NFL draft order`, desc: sum, sum, path: TAB_PATH.draft };
   }
   if (state.tab === 'challenge') {
-    const sum = `Free NFL Playoff Bracket Challenge: pick all 13 playoff games, start a group with friends, and track who's paid their dues. Brackets open when Week 18 ends.`;
+    const sum = `Free NFL Playoff Bracket Challenge: pick all 13 playoff games, start a group with friends, and track who's paid their dues. 10, 20, 40 and 80 points per correct pick, doubling each round. Brackets open when Week 18 ends.`;
     return { title: `NFL Playoff Bracket Challenge ${yr}–${String(yr + 1).slice(2)}: Free Groups | Clinch`, h1: `NFL Playoff Bracket Challenge`, desc: sum, sum, path: TAB_PATH.challenge };
   }
   const sum = `Pick every remaining NFL game and watch the AFC and NFC standings, playoff seeds and tiebreakers update. Through Week ${wk}, the ${TEAM_NAMES[lead(0)]} lead the AFC and the ${TEAM_NAMES[lead(1)]} lead the NFC.`;
@@ -1710,7 +1710,7 @@ document.addEventListener('click', async (e) => {
 
 // ---------- Playoff Bracket Challenge ----------
 // Free to play. Groups track dues with checkmarks; Clinch never collects or holds money.
-const CH_PTS = { WC: 4, DIV: 5, CON: 6, SB: 8 }; // flatter than doubling so the champion pick doesn't decide every pool
+const CH_PTS = { WC: 10, DIV: 20, CON: 40, SB: 80 }; // doubles each round, same as the NBA challenge
 const RO = ['WC', 'DIV', 'CON', 'SB'];
 const REG_DONE = unplayed.length === 0;
 const REAL_SEEDS = REG_DONE ? evaluate(ctx, G.map((g) => g.fixed)).seeds.map((x) => x.slice(0, 7)) : null;
@@ -1747,7 +1747,7 @@ function realRounds() {
   }
   return (_rr = { won, out, games });
 }
-// Points: 4 / 5 / 6 / 8 per correct winner by round, plus 1 per seed of difference when a lower seed you picked pulls the upset.
+// Points: 10 / 20 / 40 / 80 per correct winner by round.
 function scoreBracket(b) {
   const picked = { WC: new Set(), DIV: new Set(), CON: new Set(), SB: new Set() };
   const seedOf = new Map();
@@ -1757,7 +1757,6 @@ function scoreBracket(b) {
   let pts = 0, right = 0, maxLeft = 0;
   for (const g of RR.games) if (picked[g.round].has(g.w)) {
     right++; pts += CH_PTS[g.round];
-    if (g.round !== 'SB') pts += Math.max(0, (seedOf.get(g.w) || 0) - (seedOf.get(g.l) || 0));
   }
   for (const r of RO) for (const t of picked[r]) if (!RR.won[r].has(t) && !RR.out.has(t)) maxLeft += CH_PTS[r];
   const champ = br.sb && br.sb.w != null ? br.sb.w : null;
@@ -1832,7 +1831,7 @@ function renderChallenge() {
         <button class="btn primary big" data-act="chnew">Start a group</button>
         <button class="btn big" data-act="chjoin">Join with a code</button>
       </div></div>
-    <div class="chh-pts">${RO.map((r) => `<div><b>${CH_PTS[r]}</b><span>${{ WC: 'Wild Card', DIV: 'Divisional', CON: 'Conference', SB: 'Super Bowl' }[r]}</span></div>`).join('')}<small>points per correct pick · +1 per seed on upsets you call · Super Bowl total points breaks ties</small></div>
+    <div class="chh-pts">${RO.map((r) => `<div><b>${CH_PTS[r]}</b><span>${{ WC: 'Wild Card', DIV: 'Divisional', CON: 'Conference', SB: 'Super Bowl' }[r]}</span></div>`).join('')}<small>points per correct pick, doubling each round · Super Bowl total points breaks ties</small></div>
   </section>`;
   // my bracket
   let mine;

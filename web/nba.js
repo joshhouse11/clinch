@@ -301,7 +301,7 @@ function pageMeta() {
     return { title: `NBA Playoff Odds & Bracket ${yr}: Title, Play-In & Top-6 Chances | Clinch`, h1: 'NBA playoff odds & bracket', desc: sum, sum, path: TAB_PATH.odds };
   }
   if (state.tab === 'challenge') {
-    const sum = `Free ${RAW.season} NBA Playoff Bracket Challenge: pick the play-in and every series through the Finals, start a group with friends, and track dues. Points for every round, plus a bonus for calling upsets.`;
+    const sum = `Free ${RAW.season} NBA Playoff Bracket Challenge: pick the play-in and every series through the Finals, start a group with friends, and track dues. 10, 20, 40 and 80 points per correct series, doubling each round.`;
     return { title: `NBA Playoff Bracket Challenge ${RAW.season}: Free Group Brackets | Clinch`, h1: `${RAW.season} NBA Playoff Bracket Challenge`, desc: sum, sum, path: TAB_PATH.challenge };
   }
   if (state.tab === 'lottery') {

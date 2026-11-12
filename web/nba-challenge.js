@@ -154,7 +154,7 @@ async function initAccounts() {
 }
 
 // ======================= NBA Playoff Bracket Challenge =======================
-const CH_PTS = { PI: 2, R1: 4, R2: 5, CF: 6, F: 8 };
+const CH_PTS = { PI: 0, R1: 10, R2: 20, CF: 40, F: 80 }; // doubles each round; play-in picks only set your 7 & 8 seeds
 const ROUNDS = ['PI', 'R1', 'R2', 'CF', 'F'];
 const RNAME = { PI: 'Play-in', R1: 'First round', R2: 'Conf. semis', CF: 'Conf. finals', F: 'NBA Finals' };
 const POST = nbaPostResults((RAW.post || []).map((g) => [NBA_IDX[g[0]], NBA_IDX[g[1]], g[2], g[3], g[4], g[5]]).filter((g) => g[0] !== undefined && g[1] !== undefined));
@@ -195,12 +195,10 @@ function scoreBracket(b) {
   for (const m of RB.all) {
     if (m.w == null) continue;
     const hit = m.r === 'PI' ? piPick.get(nbaPair(m.a, m.b)) === m.w : picked[m.r].has(m.w);
-    if (!hit) continue;
+    if (!hit || m.r === 'PI') continue;
     right++; pts += CH_PTS[m.r];
-    if (m.r !== 'PI' && m.r !== 'F') pts += Math.max(0, (seedOf.get(m.w) || 0) - (seedOf.get(m.w === m.a ? m.b : m.a) || 0));
   }
   for (const r of ROUNDS.slice(1)) for (const t of picked[r]) if (!won[r].has(t) && !out.has(t)) maxLeft += CH_PTS[r];
-  for (const m of RB.all) if (m.r === 'PI' && m.a != null && m.b != null && m.w == null && piPick.has(nbaPair(m.a, m.b))) maxLeft += CH_PTS.PI;
   const champ = mine.f.w;
   return { pts, right, max: pts + maxLeft, champ, champAlive: champ != null && !out.has(champ) };
 }
@@ -215,7 +213,7 @@ function nbaBracketHtml(seeds, src, { mode = 'ch', readOnly = false } = {}) {
   const row = (m, t) => {
     const st = m.w == null ? '' : m.w === t ? 'win' : 'loss';
     let mark = '', right = '';
-    if (RB && m.w === t) { if (realW.has(`${m.r}:${t}`)) { mark = ' right'; right = `+${CH_PTS[m.r]}`; } else { const rm = RB.all.find((x) => x.r === m.r && (x.a === t || x.b === t) && x.w != null); if (rm && rm.w !== t) mark = ' wrong'; } }
+    if (RB && m.w === t) { if (realW.has(`${m.r}:${t}`)) { mark = ' right'; right = CH_PTS[m.r] ? `+${CH_PTS[m.r]}` : '✓'; } else { const rm = RB.all.find((x) => x.r === m.r && (x.a === t || x.b === t) && x.w != null); if (rm && rm.w !== t) mark = ' wrong'; } }
     const pa = nbaWinProb(RATING, m.a, m.b, m.r === 'F'), p = t === m.a ? pa : 1 - pa;
     return `<button class="bt ${st}${mark}" style="--tc:${COLORS[T[t]]}" ${readOnly ? 'disabled' : `data-nch="${keyOf(m.r, m.a, m.b)}" data-pw="${t}" data-mode="${mode}"`} aria-label="${FULL[T[t]]} win">
       <span class="sd">${m.r === 'F' ? (NBA_CONF_OF[t] ? 'W' : 'E') : seedOf.get(t)}</span>${chip(T[t])}<span class="bn">${NICK[T[t]]}</span><span class="bp num">${right || (readOnly ? '' : pct(p))}</span></button>`;
@@ -225,7 +223,7 @@ function nbaBracketHtml(seeds, src, { mode = 'ch', readOnly = false } = {}) {
   const block = (c) => {
     const C = br.conf[c], nm = c ? 'West' : 'East';
     return `<section class="bconf nb"><h3>${nm}</h3><div class="bcols n4">
-      <div class="bcol"><h4>Play-in</h4><div class="bl"><small class="pil">7 v 8 · winner is the 7 seed</small>${mu(C.pi[0])}<small class="pil">9 v 10</small>${mu(C.pi[1])}<small class="pil">For the 8 seed</small>${mu(C.pi[2], '7-8 loser', '9-10 winner')}</div></div>
+      <div class="bcol"><h4>Play-in <span class="pts0">· sets 7 &amp; 8 seeds</span></h4><div class="bl"><small class="pil">7 v 8 · winner is the 7 seed</small>${mu(C.pi[0])}<small class="pil">9 v 10</small>${mu(C.pi[1])}<small class="pil">For the 8 seed</small>${mu(C.pi[2], '7-8 loser', '9-10 winner')}</div></div>
       <div class="bcol"><h4>First round</h4><div class="bl">${C.r1.map((m, k) => mu(m, ['1 seed', '4 seed', '3 seed', '2 seed'][k], ['8 seed', '5 seed', '6 seed', '7 seed'][k])).join('')}</div></div>
       <div class="bcol"><h4>Semis</h4><div class="bl">${C.r2.map((m) => mu(m)).join('')}</div></div>
       <div class="bcol"><h4>${nm} finals</h4><div class="bl">${mu(C.cf)}${C.cf.w != null ? `<div class="cchamp" style="--tc:${COLORS[T[C.cf.w]]}">${chip(T[C.cf.w])}<span>${NICK[T[C.cf.w]]}<small>${nm} champion</small></span></div>` : ''}</div></div>
@@ -302,7 +300,7 @@ function renderChallenge() {
         <button class="btn primary big" data-act="chnew">Start a group</button>
         <button class="btn big" data-act="chjoin">Join with a code</button>
       </div></div>
-    <div class="chh-pts n5">${ROUNDS.map((r) => `<div><b>${CH_PTS[r]}</b><span>${RNAME[r]}</span></div>`).join('')}<small>points per correct pick · +1 per seed on series upsets you call · total points in the last Finals game breaks ties</small></div>
+    <div class="chh-pts">${ROUNDS.slice(1).map((r) => `<div><b>${CH_PTS[r]}</b><span>${RNAME[r]}</span></div>`).join('')}<small>points per correct series, doubling each round · play-in picks set your 7 &amp; 8 seeds · total points in the last Finals game breaks ties</small></div>
   </section>`;
   let mine;
   if (ph.k === 'pre') {
