@@ -5,7 +5,12 @@ name: Update data and deploy
 on:
   push:
     branches: [main]          # deploy on every code or pick-trade change
-  workflow_dispatch: {}       # "Run workflow" button for a manual refresh
+  workflow_dispatch:          # "Run workflow" button for a manual refresh
+    inputs:
+      test_email:
+        description: 'Send one sample bracket email to this address (leave blank for a normal run)'
+        required: false
+        default: ''
   schedule:
     # Times are UTC. Game windows (US Central): Thu 7pm-11pm, Sun noon-11pm, Mon 7pm-11pm.
     - cron: '*/30 0-5 * * 5'      # Thu night games (Fri 00:00-05:30 UTC)
@@ -84,6 +89,7 @@ jobs:
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          NOTIFY_TEST_TO: ${{ github.event.inputs.test_email }}
         run: node scripts/notify.js
 
       - name: Validate tiebreaker engine against every season since 2002

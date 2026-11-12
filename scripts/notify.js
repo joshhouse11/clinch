@@ -74,6 +74,15 @@ function email(S, event, u, groups, lockAt) {
 }
 
 let sent = 0;
+// Manual test: one sample "brackets are open" email to an address given when the workflow is run by hand.
+const TEST_TO = (process.env.NOTIFY_TEST_TO || '').trim();
+if (TEST_TO) {
+  const S = nbaState(), msg = email(S, 'open', { email: TEST_TO, name: '' }, ['Test Group'], null);
+  msg.subject = '[Test] ' + msg.subject;
+  const r = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { Authorization: `Bearer ${RESEND}`, 'Content-Type': 'application/json' }, body: JSON.stringify(msg) });
+  console.log(`Test bracket email: HTTP ${r.status} ${r.ok ? 'sent' : await r.text()}`);
+  process.exit(0);
+}
 for (const S of [nflState(), nbaState()]) {
   try {
     const [settings] = await rest(`challenge_settings?sport=eq.${S.sport}&season=eq.${S.season}&select=lock_at`);
