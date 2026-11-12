@@ -221,7 +221,18 @@ table.t { width: 100%; border-collapse: collapse; }
 .bar i b { display: block; height: 100%; background: var(--accent); }
 .scroll { overflow-x: auto; }
 .pad { padding: 12px 14px; }
-.foot { color: var(--muted); font-size: 12px; padding: 24px 0 8px; line-height: 1.6; max-width: 70ch; }
+.site-foot { border-top: 1px solid var(--line); margin-top: 40px; background: color-mix(in srgb, var(--surface) 55%, var(--bg)); }
+.sf-inner { max-width: 1180px; margin: 0 auto; padding: 32px 16px 20px; display: grid; grid-template-columns: minmax(0, 2fr) 1fr 1fr; gap: 24px; }
+.sf-brand .brand { display: inline-flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 800; font-size: 20px; }
+.sf-brand .mark { width: 28px; height: 28px; }
+.sf-brand p { color: var(--muted); font-size: 13px; margin: 10px 0 0; max-width: 40ch; line-height: 1.5; }
+.sf-col { display: grid; gap: 8px; align-content: start; }
+.sf-col b { font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 2px; }
+.sf-col a { color: var(--text); text-decoration: none; font-size: 14px; }
+.sf-col a:hover { color: var(--accent); }
+.sf-base { max-width: 1180px; margin: 0 auto; padding: 14px 16px 28px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px 20px; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
+@media (min-width: 1360px) { .sf-inner, .sf-base { max-width: 1480px; } }
+@media (max-width: 640px) { .sf-inner { grid-template-columns: 1fr 1fr; } .sf-brand { grid-column: 1 / -1; } }
 .busy { opacity: .55; transition: opacity .2s; }
 /* all-games grid */
 .mx-wrap { overflow-x: auto; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); }
@@ -364,8 +375,18 @@ details.tb li b { display: block; font-weight: 700; }
   <div class="subbar"><span id="season"></span><span id="pickCount"></span></div>
   <div class="teams" id="teams" aria-label="Pick your team"></div>
   <div id="view"></div>
-  <p class="foot">Scores and schedule from nflverse open data. Odds come from 10,000 simulated finishes of the season, using betting lines where posted and point-differential ratings elsewhere. Seeding and draft order follow the NFL's official tiebreaking procedures and are checked against every playoff field since 2002. Playoff-team draft slots (19–32) are projected by record. Not affiliated with the NFL. <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></p>
 </main>
+<footer class="site-foot">
+  <div class="sf-inner">
+    <div class="sf-brand">
+      <a class="brand" href="./" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk2)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span>clinch</span></a>
+      <p>Every NFL playoff scenario, odds and tiebreaker, updated through the season.</p>
+    </div>
+    <nav class="sf-col" aria-label="Tools"><b>Tools</b><a href="#league">League picker</a><a href="#team">My team</a><a href="#odds">Playoff odds</a><a href="#draft">Draft order</a></nav>
+    <nav class="sf-col" aria-label="Company"><b>Clinch</b><a href="mailto:hello@clinchscenarios.com">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></nav>
+  </div>
+  <div class="sf-base"><span>© <span id="yr">2026</span> Clinch</span><span>Odds are simulations, not betting advice. Not affiliated with the NFL or any team.</span></div>
+</footer>
 <div class="toast" id="toast"></div>
 <div class="modal-bg" id="modalBg" hidden><div class="modal card" role="dialog" aria-modal="true" aria-labelledby="modalTitle" id="modal"></div></div>
 
@@ -1005,7 +1026,7 @@ document.addEventListener('click', async (e) => {
   savePicks(); render(); recomputePickOdds();
   
 });
-window.addEventListener('hashchange', () => { state.tab = validTab(location.hash.slice(1)); render(); });
+window.addEventListener('hashchange', () => { state.tab = validTab(location.hash.slice(1)); render(); window.scrollTo({ top: 0 }); });
 
 // ---------- saving, sharing, accounts ----------
 // Share links carry the picks in the URL itself (no database needed).
@@ -1227,6 +1248,7 @@ document.addEventListener('click', async (e) => {
 });
 
 $('#brandName').textContent = CONFIG.siteName;
+$('#yr').textContent = new Date().getFullYear();
 initAccounts();
 render();
 setTimeout(() => {
