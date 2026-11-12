@@ -13,7 +13,7 @@ const KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
 const RESEND = (process.env.RESEND_API_KEY || '').trim();
 const site = JSON.parse(fs.readFileSync(new URL('../data/site.json', import.meta.url), 'utf8'));
 const SITE = site.SITE_URL || 'https://clinchscenarios.com';
-const FROM = process.env.NOTIFY_FROM || site.NOTIFY_FROM || 'Josh at Clinch <josh@clinchscenarios.com>';
+const FROM = process.env.NOTIFY_FROM || site.NOTIFY_FROM || 'Clinch <brackets@clinchscenarios.com>';
 const DRY = !!process.env.NOTIFY_DRY_RUN;
 if (!KEY || !site.SUPABASE_URL || (!RESEND && !DRY)) { console.log('Bracket emails: no Supabase service key or Resend key; skipping.'); process.exit(0); }
 
@@ -69,10 +69,10 @@ function email(S, event, u, groups, lockAt) {
   const html = `<p>${u.name ? `Hey ${esc(u.name)},` : 'Hey,'}</p>
 <p>${copy[1]}</p>
 <p>${copy[2]}: <a href="${url}">${url.replace(/^https:\/\//, '')}</a></p>
-<p>Josh<br>Clinch</p>
+<p>- Clinch</p>
 <p style="color:#888;font-size:12px">You're getting this because you're in a Clinch ${S.label} Bracket Challenge group. <a href="${off}" style="color:#888">Turn off bracket emails</a>.</p>`;
-  const text = `${u.name ? `Hey ${u.name},` : 'Hey,'}\n\n${copy[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&')}\n\n${copy[2]}: ${url}\n\nJosh\nClinch\n\nYou're getting this because you're in a Clinch ${S.label} Bracket Challenge group. Turn off bracket emails: ${off}`;
-  return { from: FROM, to: [u.email], reply_to: 'hello@clinchscenarios.com', subject: copy[0], html, text, headers: { 'List-Unsubscribe': `<mailto:hello@clinchscenarios.com?subject=unsubscribe>, <${off}>` } };
+  const text = `${u.name ? `Hey ${u.name},` : 'Hey,'}\n\n${copy[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&')}\n\n${copy[2]}: ${url}\n\n- Clinch\n\nYou're getting this because you're in a Clinch ${S.label} Bracket Challenge group. Turn off bracket emails: ${off}`;
+  return { from: FROM, to: [u.email], reply_to: 'hello@clinchscenarios.com', subject: copy[0], html, text };
 }
 
 let sent = 0;
