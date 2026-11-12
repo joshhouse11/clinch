@@ -40,16 +40,29 @@ button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); o
 .num { font-variant-numeric: tabular-nums; }
 
 header.top { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
-.top-inner { max-width: 1180px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.top-inner { max-width: 1180px; margin: 0 auto; padding: 0 16px; height: 60px; display: flex; align-items: center; gap: 28px; }
 .brand { font-family: var(--display); font-weight: 800; font-size: 22px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
 .brand { color: var(--text); text-decoration: none; }
 .brand .mark { width: 28px; height: 28px; flex: none; }
 .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
-.season { color: var(--muted); font-size: 13px; }
-nav.tabs { margin-left: auto; display: flex; gap: 4px; background: var(--surface); padding: 4px; border-radius: 999px; }
-nav.tabs button { border: 0; background: transparent; white-space: nowrap; padding: 8px 16px; border-radius: 999px; font-weight: 700; color: var(--muted); }
-nav.tabs button[aria-selected="true"] { background: var(--surface-2); color: var(--text); }
-@media (max-width: 480px) { nav.tabs { width: 100%; justify-content: space-between; margin-left: 0; } nav.tabs button { padding: 8px 12px; } }
+nav.tabs { display: flex; gap: 4px; height: 100%; align-items: stretch; }
+nav.tabs button { border: 0; background: transparent; white-space: nowrap; padding: 0 12px; font-weight: 700; font-size: 14px; color: var(--muted); position: relative; }
+nav.tabs button:hover { color: var(--text); }
+nav.tabs button[aria-selected="true"] { color: var(--text); }
+nav.tabs button[aria-selected="true"]::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--accent); }
+.hdr-actions { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.hbtn { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: var(--muted); font-weight: 700; font-size: 14px; padding: 8px 10px; border-radius: 10px; }
+.hbtn:hover { color: var(--text); background: var(--surface); }
+.hbtn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.hbtn .badge { background: var(--accent); color: var(--accent-ink); font-size: 11px; font-weight: 800; border-radius: 999px; padding: 0 6px; }
+.subbar { display: flex; gap: 12px; justify-content: space-between; color: var(--muted); font-size: 12px; margin: -4px 0 10px; flex-wrap: wrap; }
+@media (max-width: 900px) {
+  .top-inner { height: auto; flex-wrap: wrap; padding: 10px 16px 0; gap: 10px 16px; }
+  nav.tabs { order: 3; width: 100%; height: 44px; justify-content: space-between; overflow-x: auto; }
+  nav.tabs button { padding: 0 8px; }
+  nav.tabs button[aria-selected="true"]::after { left: 8px; right: 8px; }
+}
+@media (max-width: 560px) { .hbtn span { display: none; } .hbtn { padding: 8px; } }
 
 main { max-width: 1180px; margin: 0 auto; padding: 16px; }
 .teams { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 12px; scrollbar-width: thin; }
@@ -265,9 +278,8 @@ details.tb li b { display: block; font-weight: 700; }
 .t th.tm, .t td.tm { text-align: left; width: 40%; }
 .t .tn > span { text-align: left; line-height: 1.2; }
 .via { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
-.acct { margin-left: auto; }
-.acct:not([hidden]) + nav.tabs { margin-left: 0; }
-.acct[hidden] { display: none; }
+.acct { margin-left: 6px; padding: 7px 14px; }
+.acct.in { background: transparent; border-color: var(--line); }
 .acct .av { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 800; font-size: 12px; margin-right: 6px; vertical-align: -6px; }
 .modal-bg { position: fixed; inset: 0; background: rgba(5, 8, 16, .72); display: grid; place-items: center; z-index: 20; padding: 16px; }
 .modal-bg[hidden] { display: none; }
@@ -280,6 +292,8 @@ details.tb li b { display: block; font-weight: 700; }
 .oauth { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: #111; font-weight: 700; }
 .oauth.apple { background: #000; color: #fff; border-color: #333; }
 .oauth svg { width: 18px; height: 18px; }
+.scn-h { font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.scn-h:empty { display: none; }
 .scn { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); }
 .scn b { font-size: 14px; } .scn small { color: var(--muted); font-size: 12px; grid-column: 1; }
 .scn .acts { grid-row: 1 / 3; grid-column: 2; display: flex; gap: 6px; }
@@ -295,17 +309,22 @@ details.tb li b { display: block; font-weight: 700; }
 <header class="top">
   <div class="top-inner">
     <a class="brand" href="./" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span id="brandName">clinch</span></a>
-    <div class="season" id="season"></div>
-    <button class="btn acct" id="acctBtn" data-act="account" hidden>Sign in</button>
-    <nav class="tabs" role="tablist">
+    <nav class="tabs" role="tablist" aria-label="Sections">
       <button role="tab" data-tab="league">League</button>
       <button role="tab" data-tab="team">My team</button>
-      <button role="tab" data-tab="odds">Odds</button>
-      <button role="tab" data-tab="draft">Draft</button>
+      <button role="tab" data-tab="odds">Playoff odds</button>
+      <button role="tab" data-tab="draft">Draft order</button>
     </nav>
+    <div class="hdr-actions">
+      <button class="hbtn" data-act="share" title="Copy a link to these picks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Share</span></button>
+      <button class="hbtn" data-act="save" title="Save these picks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>Save</span></button>
+      <button class="hbtn" data-act="myscn" title="Your saved scenarios"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Saved</span></button>
+      <button class="btn acct" id="acctBtn" data-act="account">Sign in</button>
+    </div>
   </div>
 </header>
 <main>
+  <div class="subbar"><span id="season"></span><span id="pickCount"></span></div>
   <div class="teams" id="teams" aria-label="Pick your team"></div>
   <div id="view"></div>
   <p class="foot">Scores and schedule from nflverse open data. Odds come from 10,000 simulated finishes of the season, using betting lines where posted and point-differential ratings elsewhere. Seeding and draft order follow the NFL's official tiebreaking procedures and are checked against every playoff field since 2002. Playoff-team draft slots (19–32) are projected by record. Not affiliated with the NFL.</p>
@@ -432,7 +451,6 @@ function heroCard(cur, slim = false) {
       <button class="btn" data-act="loseout">${t} lose out</button>
       <button class="btn" data-act="favorites">Fill rest with favorites</button>
       <button class="btn" data-act="reset">Clear all picks</button>
-      ${ACCOUNTS ? '<button class="btn" data-act="share">Share</button><button class="btn" data-act="save">Save</button>' : '<button class="btn" data-act="copy">Copy my scenario</button>'}
     </div>
   </section>`;
 }
@@ -668,7 +686,6 @@ function renderLeague(cur) {
       <button class="btn" data-weekact="fav">Favorites win</button>
       <button class="btn" data-weekact="clear">Clear week</button>`}
       ${clearAllHtml()}
-      ${ACCOUNTS ? `<button class="btn" data-act="share">Share</button><button class="btn" data-act="save">Save</button>` : ''}
     </div>
     <div class="games two">${list.map(gameCard).join('')}</div>
     ${tiebreakSection(cur, [0, 1])}
@@ -740,6 +757,7 @@ function render() {
   const banner = nFlips() ? `<div class="card whatif"><b>DO-OVER</b><span>${nFlips()} result${nFlips() > 1 ? 's' : ''} changed · standings, odds and draft use your version</span><button class="btn" data-act="resetflips">Back to real results</button></div>` : '';
   const viewing = state.viewingShare ? `<div class="card viewing"><b>Shared scenario</b><span>You're looking at someone's picks${state.viewingShare.team ? ` for the ${TEAM_NAMES[state.viewingShare.team]}` : ''}. Change anything you like.</span><button class="btn" data-act="restoremine">Back to my picks</button></div>` : '';
   $('#view').innerHTML = viewing + banner + (state.tab === 'league' ? renderLeague(cur) : state.tab === 'team' ? renderScenarios(cur) : state.tab === 'odds' ? renderOdds() : renderDraft());
+  { const n = Object.keys(state.picks).length, f = nFlips(); $('#pickCount').textContent = n || f ? `Your scenario: ${n} pick${n === 1 ? '' : 's'}${f ? `, ${f} do-over${f === 1 ? '' : 's'}` : ''}` : ''; }
   $('#season').textContent = `${RAW.season} season · through Week ${lastFinalWeek}`;
 }
 
@@ -942,136 +960,202 @@ document.addEventListener('click', async (e) => {
 });
 window.addEventListener('hashchange', () => { state.tab = validTab(location.hash.slice(1)); render(); });
 
-// ---------- accounts, saved scenarios, share links (Supabase) ----------
-// Everything here switches on only when SUPABASE_URL / SUPABASE_ANON_KEY are set at build time.
+// ---------- saving, sharing, accounts ----------
+// Share links carry the picks in the URL itself (no database needed).
+// Save works on this device for everyone; signed-in users also save to their account (Supabase).
 const ACCOUNTS = !!(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
 let sb = null, user = null;
 const byId = Object.fromEntries(G.map((g, k) => [g.id, k]));
 const toIds = (m) => Object.fromEntries(Object.entries(m).map(([k, v]) => [G[k].id, v]));
 const fromIds = (m) => Object.fromEntries(Object.entries(m || {}).filter(([id]) => byId[id] !== undefined).map(([id, v]) => [byId[id], v]));
 const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const LOCAL_KEY = 'scenarios:' + RAW.season;
 
 function openModal(html) { $('#modal').innerHTML = html; $('#modalBg').hidden = false; const f = $('#modal').querySelector('input, button'); if (f) f.focus(); }
 function closeModal() { $('#modalBg').hidden = true; $('#modal').innerHTML = ''; }
 $('#modalBg').addEventListener('click', (e) => { if (e.target.id === 'modalBg') closeModal(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#modalBg').hidden) closeModal(); });
 
-function loadSupabase() {
-  return new Promise((resolve, reject) => {
-    if (window.supabase) return resolve();
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
-    s.onload = resolve; s.onerror = () => reject(new Error('Could not load sign-in library'));
-    document.head.appendChild(s);
+// ---- share links: ?p=<season>.<team>.<packed picks> ----
+// Each game gets 2 bits (0 open, 1 home win, 2 away win, 3 tie); played games carry do-overs.
+const CODE = { 1: 1, '-1': 2, 0: 3 }, DECODE = [undefined, 1, -1, 0];
+function packScenario() {
+  const bytes = new Uint8Array(Math.ceil(G.length / 4));
+  G.forEach((g, k) => {
+    const v = g.played ? state.flips[k] : state.picks[k];
+    if (v !== undefined) bytes[k >> 2] |= CODE[v] << ((k & 3) * 2);
   });
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function unpackScenario(str) {
+  const bin = atob(str.replace(/-/g, '+').replace(/_/g, '/'));
+  const picks = {}, flips = {};
+  G.forEach((g, k) => {
+    const c = (bin.charCodeAt(k >> 2) >> ((k & 3) * 2)) & 3;
+    if (!c) return;
+    const v = DECODE[c];
+    if (g.played) { if (v !== g.fixed) flips[k] = v; } else picks[k] = v;
+  });
+  return { picks, flips };
+}
+const siteBase = () => CONFIG.siteUrl || location.origin + location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '').replace(/\/(index\.html)?$/, '');
+function share() {
+  if (!hasPicks()) return toast('Make a pick or a do-over first, then share it');
+  const url = `${siteBase()}/?p=${RAW.season}.${state.team}.${packScenario()}`;
+  openModal(`<h3>Share this scenario</h3><p>Anyone with the link sees exactly these picks and do-overs. They can change them without touching yours.</p>
+    <div class="sharebox"><input type="text" id="shareUrl" readonly value="${esc(url)}" aria-label="Share link"><button class="btn primary" data-act="copyshare">Copy</button></div>
+    <div class="row-btns"><button class="btn" data-act="close">Done</button></div>`);
+  $('#shareUrl').select();
+}
+function applyScenario(sc, team, viaShare) {
+  if (viaShare) store.set('picks:backup', { picks: state.picks, flips: state.flips, team: state.team });
+  state.picks = {}; state.flips = {};
+  for (const [k, v] of Object.entries(sc.picks)) if (G[k] && !G[k].played) state.picks[k] = v;
+  for (const [k, v] of Object.entries(sc.flips)) if (G[k] && G[k].played && G[k].fixed !== v) state.flips[k] = v;
+  if (team && TEAMS.includes(team)) state.team = team;
+  savePicks(); render(); recomputePickOdds();
+}
+async function openLinkFromUrl() {
+  const q = new URLSearchParams(location.search);
+  const clean = () => history.replaceState(null, '', location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '/') + location.hash);
+  if (q.get('p')) {
+    const [season, team, data] = q.get('p').split('.');
+    clean();
+    if (+season !== RAW.season) return toast(`That link is from the ${season} season`);
+    try { applyScenario(unpackScenario(data || ''), team, true); state.viewingShare = { team }; render(); }
+    catch { toast('That share link looks broken'); }
+    return;
+  }
+  // older short links stored in the database
+  const m = location.pathname.match(/\/s\/([a-z0-9]{6,12})\/?$/) || location.search.match(/[?&]s=([a-z0-9]{6,12})/);
+  if (!m || !sb) return;
+  const { data, error } = await sb.from('shares').select('season,team,picks,flips').eq('slug', m[1]).maybeSingle();
+  clean();
+  if (error || !data) return toast('That shared scenario could not be found');
+  if (data.season !== RAW.season) return toast(`That link is from the ${data.season} season`);
+  applyScenario({ picks: fromIds(data.picks), flips: fromIds(data.flips) }, data.team, true);
+  state.viewingShare = { team: data.team }; render();
+}
+
+// ---- saved scenarios: this device + account ----
+const localList = () => store.get(LOCAL_KEY, []);
+const setLocalList = (l) => store.set(LOCAL_KEY, l);
+function saveDialog() {
+  if (!hasPicks()) return toast('Make a pick or a do-over first, then save it');
+  const n = Object.keys(state.picks).length, f = nFlips();
+  const where = user ? 'to your account' : ACCOUNTS ? 'on this device. Sign in to keep scenarios on every device' : 'on this device';
+  openModal(`<h3>Save this scenario</h3>
+    <p>${n} pick${n === 1 ? '' : 's'}${f ? ` and ${f} do-over${f === 1 ? '' : 's'}` : ''}. Saving ${where}.</p>
+    <label for="scnName" class="hint">Name</label>
+    <input type="text" id="scnName" maxlength="80" value="${esc(TEAM_NAMES[state.team] + ' scenario')}">
+    <div class="row-btns">${ACCOUNTS && !user ? '<button class="btn" data-act="signin-save">Sign in instead</button>' : ''}<button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="dosave">Save</button></div>`);
+  $('#scnName').select();
+}
+async function doSave() {
+  const name = ($('#scnName').value || '').trim() || 'My scenario';
+  const rec = { season: RAW.season, name, team: state.team, picks: toIds(state.picks), flips: toIds(state.flips) };
+  if (user) {
+    const { error } = await sb.from('scenarios').insert(rec);
+    if (error) return toast('Could not save: ' + error.message);
+  } else {
+    setLocalList([{ id: 'l' + Date.now().toString(36), updated_at: new Date().toISOString(), ...rec }, ...localList()].slice(0, 50));
+  }
+  closeModal(); toast(`Saved "${name}"`); paintAccount();
+}
+const scnRow = (r, src) => `<div class="scn"><b>${esc(r.name)}</b><small>${r.team ? esc(TEAM_NAMES[r.team] || r.team) + ' · ' : ''}${Object.keys(r.picks).length} picks${Object.keys(r.flips).length ? ', ' + Object.keys(r.flips).length + ' do-overs' : ''} · ${new Date(r.updated_at).toLocaleDateString()}</small><span class="acts"><button class="btn primary" data-act="loadscn" data-src="${src}" data-id="${r.id}">Load</button><button class="btn danger" data-act="delscn" data-src="${src}" data-id="${r.id}" aria-label="Delete ${esc(r.name)}">✕</button></span></div>`;
+async function myScenarios() {
+  let cloud = [];
+  if (user) {
+    const { data, error } = await sb.from('scenarios').select('id,name,team,picks,flips,updated_at').eq('season', RAW.season).order('updated_at', { ascending: false });
+    if (!error) cloud = data;
+  }
+  myScenarios.cache = { cloud, local: localList() };
+  const local = myScenarios.cache.local;
+  const sec = (title, rows, src) => rows.length ? `<div class="scn-h">${title}</div>${rows.map((r) => scnRow(r, src)).join('')}` : '';
+  const empty = !cloud.length && !local.length ? '<p>Nothing saved yet. Make some picks, then tap Save.</p>' : '';
+  const acct = user ? `<div class="row-btns"><span class="hint" style="margin-right:auto">Signed in as ${esc(user.email || '')}</span><button class="btn" data-act="signout">Sign out</button></div>`
+    : ACCOUNTS ? '<div class="row-btns"><span class="hint" style="margin-right:auto">Sign in to keep scenarios on every device.</span><button class="btn primary" data-act="signin">Sign in</button></div>' : '';
+  openModal(`<h3>Saved scenarios</h3>${empty}${sec(user ? 'Your account' : '', cloud, 'cloud')}${sec(user && local.length ? 'On this device' : '', local, 'local')}${acct}<div class="row-btns"><button class="btn" data-act="close">Close</button></div>`);
 }
 function paintAccount() {
   const b = $('#acctBtn');
-  b.hidden = !ACCOUNTS;
-  if (!ACCOUNTS) return;
-  const name = user ? (user.user_metadata?.full_name || user.email || 'Account') : '';
-  b.innerHTML = user ? `<span class="av">${esc(name[0].toUpperCase())}</span>My scenarios` : 'Sign in';
-}
-async function initAccounts() {
-  if (!ACCOUNTS) return;
-  try {
-    await loadSupabase();
-    sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
-    const { data } = await sb.auth.getSession();
-    user = data.session?.user || null;
-    sb.auth.onAuthStateChange((_e, session) => { user = session?.user || null; paintAccount(); });
-    paintAccount();
-    // finish whatever the user was doing before the sign-in redirect
-    const pending = store.get('pending', null);
-    if (pending && user) { store.set('pending', null); if (pending === 'save') saveDialog(); }
-    await openShareFromUrl();
-  } catch (err) { console.warn(err); }
+  const n = localList().length;
+  const savedBtn = document.querySelector('.hbtn[data-act="myscn"] span');
+  if (savedBtn) savedBtn.innerHTML = n && !user ? `Saved <span class="badge">${n}</span>` : 'Saved';
+  if (user) {
+    const name = user.user_metadata?.full_name || user.email || 'You';
+    b.classList.add('in'); b.innerHTML = `<span class="av">${esc(name[0].toUpperCase())}</span>${esc(name.split(' ')[0])}`;
+  } else { b.classList.remove('in'); b.textContent = 'Sign in'; }
 }
 
+// ---- sign-in (Supabase; Google / Apple) ----
 const GOOGLE_SVG = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.1 1.4-4.9 2.3-8.2 2.3-6.2 0-11.5-4.1-13.4-9.8l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>';
 const APPLE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.1-1.2 2.9-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.5-1-2.4-3.9zM14 5.5c.7-.8 1.1-1.9 1-3-1 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.5 2.8-1.3z"/></svg>';
-function signInDialog(reason) {
-  openModal(`<h3>Sign in to ${reason === 'save' ? 'save scenarios' : 'continue'}</h3>
-    <p>Keep your scenarios across devices. No password, no spam.</p>
+function signInDialog() {
+  if (!ACCOUNTS) {
+    return openModal(`<h3>Accounts are almost here</h3><p>Sign-in with Google and Apple is coming in the next few days. Until then, Save keeps your scenarios on this device and Share makes a link you can send anywhere.</p><div class="row-btns"><button class="btn primary" data-act="close">Got it</button></div>`);
+  }
+  openModal(`<h3>Sign in to Clinch</h3>
+    <p>Keep your saved scenarios on every device. No password, no spam.</p>
     <button class="oauth" data-act="oauth" data-provider="google">${GOOGLE_SVG}Continue with Google</button>
     <button class="oauth apple" data-act="oauth" data-provider="apple">${APPLE_SVG}Continue with Apple</button>
     <div class="row-btns"><button class="btn" data-act="close">Not now</button></div>`);
 }
+function loadSupabase() {
+  return new Promise((resolve, reject) => {
+    if (window.supabase) return resolve();
+    const el = document.createElement('script');
+    el.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
+    el.onload = resolve; el.onerror = () => reject(new Error('Could not load sign-in library'));
+    document.head.appendChild(el);
+  });
+}
 async function oauth(provider) {
-  const redirectTo = location.origin + location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '/');
-  const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo } });
+  const { error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo: siteBase() + '/' } });
   if (error) toast('Sign-in failed: ' + error.message);
 }
-function saveDialog() {
-  if (!user) { store.set('pending', 'save'); return signInDialog('save'); }
-  if (!hasPicks()) return toast('Make a pick or a do-over first');
-  const n = Object.keys(state.picks).length, f = nFlips();
-  openModal(`<h3>Save this scenario</h3>
-    <p>${n} pick${n === 1 ? '' : 's'}${f ? ` and ${f} do-over${f === 1 ? '' : 's'}` : ''}, ${RAW.season} season.</p>
-    <label for="scnName" class="hint">Name</label>
-    <input type="text" id="scnName" maxlength="80" value="${esc(TEAM_NAMES[state.team] + ' scenario')}">
-    <div class="row-btns"><button class="btn" data-act="close">Cancel</button><button class="btn primary" data-act="dosave">Save</button></div>`);
+async function initAccounts() {
+  paintAccount();
+  if (ACCOUNTS) {
+    try {
+      await loadSupabase();
+      sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+      const { data } = await sb.auth.getSession();
+      user = data.session?.user || null;
+      sb.auth.onAuthStateChange((_e, session) => { user = session?.user || null; paintAccount(); });
+      paintAccount();
+      const pending = store.get('pending', null);
+      if (pending && user) { store.set('pending', null); if (pending === 'save') saveDialog(); }
+    } catch (err) { console.warn(err); }
+  }
+  await openLinkFromUrl();
 }
-async function doSave() {
-  const name = ($('#scnName').value || '').trim() || 'My scenario';
-  const { error } = await sb.from('scenarios').insert({ season: RAW.season, name, team: state.team, picks: toIds(state.picks), flips: toIds(state.flips) });
-  if (error) return toast('Could not save: ' + error.message);
-  closeModal(); toast('Saved');
-}
-async function myScenarios() {
-  if (!user) return signInDialog('list');
-  openModal('<h3>My scenarios</h3><p>Loading…</p>');
-  const { data, error } = await sb.from('scenarios').select('id,name,team,picks,flips,updated_at').eq('season', RAW.season).order('updated_at', { ascending: false });
-  if (error) return openModal(`<h3>My scenarios</h3><p>Couldn't load them: ${esc(error.message)}</p><div class="row-btns"><button class="btn" data-act="close">Close</button></div>`);
-  myScenarios.cache = data;
-  const list = data.length ? data.map((r) => `<div class="scn"><b>${esc(r.name)}</b><small>${r.team ? esc(TEAM_NAMES[r.team] || r.team) + ' · ' : ''}${Object.keys(r.picks).length} picks${Object.keys(r.flips).length ? ', ' + Object.keys(r.flips).length + ' do-overs' : ''} · ${new Date(r.updated_at).toLocaleDateString()}</small><span class="acts"><button class="btn primary" data-act="loadscn" data-id="${r.id}">Load</button><button class="btn danger" data-act="delscn" data-id="${r.id}" aria-label="Delete ${esc(r.name)}">✕</button></span></div>`).join('') : '<p>No saved scenarios yet. Make some picks and tap Save.</p>';
-  openModal(`<h3>My scenarios</h3>${list}<div class="row-btns"><button class="btn" data-act="signout">Sign out</button><button class="btn" data-act="close">Close</button></div>`);
-}
-function applyScenario(r, viaShare) {
-  if (viaShare) store.set('picks:backup', { picks: state.picks, flips: state.flips, team: state.team });
-  state.picks = fromIds(r.picks); state.flips = fromIds(r.flips);
-  for (const k of Object.keys(state.picks)) if (G[k].played) delete state.picks[k];
-  for (const k of Object.keys(state.flips)) if (!G[k].played || G[k].fixed === state.flips[k]) delete state.flips[k];
-  if (r.team && TEAMS.includes(r.team)) state.team = r.team;
-  savePicks(); render(); recomputePickOdds();
-}
-const slugify = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]).join('');
-async function share() {
-  if (!hasPicks()) return toast('Make a pick or a do-over first');
-  const slug = slugify();
-  const { error } = await sb.from('shares').insert({ slug, season: RAW.season, team: state.team, picks: toIds(state.picks), flips: toIds(state.flips) });
-  if (error) return toast('Could not create link: ' + error.message);
-  const base = CONFIG.siteUrl || location.origin + location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '').replace(/\/(index\.html)?$/, '');
-  const url = base + '/s/' + slug;
-  openModal(`<h3>Share this scenario</h3><p>Anyone with the link sees exactly these picks. They can change them without touching yours.</p>
-    <div class="sharebox"><input type="text" id="shareUrl" readonly value="${url}"><button class="btn primary" data-act="copyshare">Copy</button></div>
-    <div class="row-btns"><button class="btn" data-act="close">Done</button></div>`);
-  $('#shareUrl').select();
-}
-async function openShareFromUrl() {
-  const m = location.pathname.match(/\/s\/([a-z0-9]{6,12})\/?$/) || location.search.match(/[?&]s=([a-z0-9]{6,12})/);
-  if (!m) return;
-  const { data, error } = await sb.from('shares').select('season,team,picks,flips').eq('slug', m[1]).maybeSingle();
-  history.replaceState(null, '', location.origin + location.pathname.replace(/\/s\/[a-z0-9]+\/?$/, '/') + location.hash);
-  if (error || !data) return toast('That shared scenario could not be found');
-  if (data.season !== RAW.season) return toast(`That link is from the ${data.season} season`);
-  applyScenario(data, true);
-  state.viewingShare = { team: data.team };
-  render();
-}
+
 document.addEventListener('click', async (e) => {
   const b = e.target.closest('button');
   if (!b || !b.dataset.act) return;
   const act = b.dataset.act;
-  if (act === 'account') return user ? myScenarios() : signInDialog('list');
+  if (act === 'account') return user ? myScenarios() : signInDialog();
+  if (act === 'myscn') return myScenarios();
+  if (act === 'signin') return signInDialog();
+  if (act === 'signin-save') { store.set('pending', 'save'); return signInDialog(); }
   if (act === 'close') return closeModal();
   if (act === 'oauth') return oauth(b.dataset.provider);
   if (act === 'save') return saveDialog();
   if (act === 'dosave') return doSave();
   if (act === 'share') return share();
   if (act === 'copyshare') { try { await navigator.clipboard.writeText($('#shareUrl').value); toast('Link copied'); } catch { $('#shareUrl').select(); toast('Press Ctrl/Cmd+C to copy'); } return; }
-  if (act === 'loadscn') { const r = (myScenarios.cache || []).find((x) => x.id === b.dataset.id); if (r) { applyScenario(r, false); state.viewingShare = null; closeModal(); toast(`Loaded "${r.name}"`); } return; }
-  if (act === 'delscn') { const { error } = await sb.from('scenarios').delete().eq('id', b.dataset.id); if (error) toast('Could not delete: ' + error.message); return myScenarios(); }
+  if (act === 'loadscn') {
+    const list = b.dataset.src === 'cloud' ? myScenarios.cache.cloud : myScenarios.cache.local;
+    const r = list.find((x) => x.id === b.dataset.id);
+    if (r) { applyScenario({ picks: fromIds(r.picks), flips: fromIds(r.flips) }, r.team, false); state.viewingShare = null; closeModal(); toast(`Loaded "${r.name}"`); render(); }
+    return;
+  }
+  if (act === 'delscn') {
+    if (b.dataset.src === 'cloud') { const { error } = await sb.from('scenarios').delete().eq('id', b.dataset.id); if (error) toast('Could not delete: ' + error.message); }
+    else setLocalList(localList().filter((x) => x.id !== b.dataset.id));
+    paintAccount(); return myScenarios();
+  }
   if (act === 'signout') { await sb.auth.signOut(); user = null; paintAccount(); closeModal(); toast('Signed out'); return; }
   if (act === 'restoremine') {
     const bk = store.get('picks:backup', null);
