@@ -308,3 +308,41 @@ export function nbaSimulate(ctx, ratings, { sims = 5000, seed = 7, picks = {}, r
   }
   return out.map((x, i) => ({ team: NBA_TEAMS[i], playoffs: x.playoffs / sims, top6: x.top6 / sims, playIn: x.playIn / sims, one: x.one / sims, conf: x.conf / sims, finals: x.finals / sims, title: x.title / sims, avgWins: x.wins / sims, avgSeed: x.seedSum / sims, pick1: x.pick1 / sims, top4: x.top4 / sims, avgPick: x.pickSum / sims, lottery: x.lottery / sims, ownPicks: x.picks / sims, own1: x.own1 / sims, ownTop4: x.ownTop4 / sims, pickDist: Object.fromEntries(Object.entries(x.pickMap).map(([k, v]) => [k, v / sims])), toOwner: Object.fromEntries(Object.entries(x.toOwner).map(([k, v]) => [NBA_TEAMS[k], v / sims])) }));
 }
+
+// ---- Playoff bracket (for the Bracket Challenge) ----
+// seeds: [[East seeds 1-10], [West seeds 1-10]] as team indices. decide(a, b, round) -> winner or null.
+// Rounds: PI (play-in games), R1, R2, CF (conference finals), F (Finals). Each match: { r, a, b, w } with a the higher seed.
+export const nbaPair = (a, b) => (a < b ? `${a}-${b}` : `${b}-${a}`);
+export function nbaBracket(seeds, decide) {
+  const M = (r, a, b) => { const m = { r, a, b, w: null }; if (a != null && b != null) { const w = decide(a, b, r); if (w === a || w === b) m.w = w; } return m; };
+  const loser = (m) => (m.w == null ? null : m.w === m.a ? m.b : m.a);
+  const conf = seeds.map((s) => {
+    const pi = [M('PI', s[6], s[7]), M('PI', s[8], s[9])];
+    pi.push(M('PI', loser(pi[0]), pi[1].w));
+    const field = [...s.slice(0, 6), pi[0].w, pi[2].w];
+    const r1 = [[0, 7], [3, 4], [2, 5], [1, 6]].map(([x, y]) => M('R1', field[x], field[y]));
+    const r2 = [M('R2', r1[0].w, r1[1].w), M('R2', r1[2].w, r1[3].w)];
+    const cf = M('CF', r2[0].w, r2[1].w);
+    return { pi, r1, r2, cf, field };
+  });
+  const f = M('F', conf[0].cf.w, conf[1].cf.w);
+  return { conf, f, all: [...conf.flatMap((c) => [...c.pi, ...c.r1, ...c.r2, c.cf]), f] };
+}
+// Real postseason results from game rows [home, away, hs, as, final, type] (type 5 = play-in, 3 = playoffs).
+// Returns { winner(a, b) -> team or null, games: wins so far by pair }.
+export function nbaPostResults(post) {
+  const pi = {}, ser = {};
+  for (const [h, a, hs, as, fin, type] of post) {
+    if (fin !== '1' && fin !== 1) continue;
+    const w = hs > as ? h : a, k = nbaPair(h, a);
+    if (+type === 5) pi[k] = w;
+    else { ser[k] = ser[k] || {}; ser[k][w] = (ser[k][w] || 0) + 1; }
+  }
+  const winner = (a, b, r) => {
+    const k = nbaPair(a, b);
+    if (r === 'PI') return pi[k] ?? null;
+    const s = ser[k] || {};
+    return (s[a] || 0) >= 4 ? a : (s[b] || 0) >= 4 ? b : null;
+  };
+  return { winner, series: ser };
+}

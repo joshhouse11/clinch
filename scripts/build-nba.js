@@ -23,7 +23,9 @@ export async function buildNBA({ root, outDir, config, url, seoTags, escA, V, pr
   const teams = JSON.parse(fs.readFileSync(new URL('teams.json', dir), 'utf8'));
   const pf = new URL(`picks_${season}.json`, dir);
   const picks = fs.existsSync(pf) ? JSON.parse(fs.readFileSync(pf, 'utf8')) : null;
-  const data = { season, built: new Date().toISOString(), games, prior, teams, picks };
+  const post = rows.filter((r) => r.type === '3' || r.type === '5').map((r) => [r.home, r.away, r.final === '1' ? +r.hs : null, r.final === '1' ? +r.as : null, r.final, +r.type]);
+  const data = { season, built: new Date().toISOString(), games, prior, teams, picks, post };
+  const cfg = { siteUrl: config.siteUrl, supabaseUrl: config.supabaseUrl, supabaseAnonKey: config.supabaseAnonKey, providers: config.providers };
   const nflTpl = fs.readFileSync(new URL('web/template.html', root), 'utf8');
   const css = nflTpl.slice(nflTpl.indexOf('<style>') + 7, nflTpl.indexOf('</style>'));
   const engine = fs.readFileSync(new URL('engine/nba.js', root), 'utf8').replace(/^export /gm, '');
@@ -31,11 +33,11 @@ export async function buildNBA({ root, outDir, config, url, seoTags, escA, V, pr
     .replace('/*__CSS__*/', () => css)
     .replace('/*__ENGINE__*/', () => engine)
     .replace('/*__DATA__*/', () => JSON.stringify(data))
-    .replace('/*__CONFIG__*/', () => JSON.stringify({ siteUrl: config.siteUrl }))
-    .replace('/*__APP__*/', () => fs.readFileSync(new URL('web/nba.js', root), 'utf8'));
+    .replace('/*__CONFIG__*/', () => JSON.stringify(cfg))
+    .replace('/*__APP__*/', () => fs.readFileSync(new URL('web/nba.js', root), 'utf8').replace('/*__CHALLENGE__*/', () => fs.readFileSync(new URL('web/nba-challenge.js', root), 'utf8')));
   html = html.replace('href="/favicon.svg"', `href="/favicon.svg?v=${V.svg}"`).replace('href="/favicon-32.png"', `href="/favicon-32.png?v=${V.png}"`).replace('href="/apple-touch-icon.png"', `href="/apple-touch-icon.png?v=${V.touch}"`);
   if (config.analytics && url && !process.env.LOCAL_PREVIEW) html = html.replace('</head>', `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "${config.analytics}", "spa": true}'></script>\n</head>`);
-  const paths = await prerender({ html, config: { siteUrl: config.siteUrl }, url, outDir, seoTags, escA, label: 'NBA' });
+  const paths = await prerender({ html, config: cfg, url, outDir, seoTags, escA, label: 'NBA' });
   console.log(`built NBA ${season - 1}-${String(season).slice(2)}: ${games.length} games, ${games.filter((g) => g[7] === '1').length} final`);
   return paths;
 }

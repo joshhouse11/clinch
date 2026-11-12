@@ -49,6 +49,12 @@
 .lot tr.cutline td { border-bottom: 2px solid var(--line); }
 .notes { margin-top: 18px; padding: 16px 18px; } .notes h3 { margin: 0 0 8px; } .notes ul { margin: 0 0 8px; padding-left: 18px; display: grid; gap: 5px; font-size: 14px; }
 .pickline { margin: 12px 0 0; }
+.bcols.n4 { grid-template-columns: repeat(4, minmax(150px, 1fr)); min-width: 640px; }
+.bl .pil { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin-bottom: -4px; }
+.chh-pts.n5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.chhero .chh1 { font-family: var(--display); font-size: 34px; letter-spacing: -1px; line-height: 1.05; margin: 10px 0 8px; }
+@container (min-width: 1300px) { .bcols.n4 { min-width: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .chh-pts.n5 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .chhero .chh1 { font-size: 26px; } }
 @keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .npick { display: grid; gap: 18px; }
 @media (min-width: 1200px) { .npick { grid-template-columns: minmax(0, 1fr) 470px; align-items: start; } .npick .pside { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; } .npick .ngrid { grid-template-columns: 1fr; } .npick .nst th:nth-child(5), .npick .nst td:nth-child(5) { display: none; } .npick .games.two { grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); } }
@@ -72,7 +78,9 @@
       <a role="tab" data-tab="odds" href="/nba/playoff-odds/">Playoff odds</a>
       <a role="tab" data-tab="lottery" href="/nba/draft-lottery/">Draft lottery</a>
       <a role="tab" data-tab="team" href="/nba/teams/">My team</a>
+      <a role="tab" data-tab="challenge" href="/nba/bracket-challenge/" class="chtab"><span>🏆</span>&nbsp;<i class="lg">Bracket&nbsp;</i>Challenge</a>
     </nav>
+    <div class="hdr-actions"><button class="btn acct" id="acctBtn" data-act="account">Sign in</button></div>
   </div>
 </header>
 <main>
@@ -87,7 +95,7 @@
       <a class="brand" href="/" aria-label="Clinch home"><svg class="mark" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="mk2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#1fc9a6"/><stop offset="1" stop-color="#7ff5dd"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#mk2)"/><path d="M16 33 L24.5 41.5" stroke="#062a22" stroke-width="8" stroke-linecap="round"/><path d="M33 43 L48.5 22" stroke="#062a22" stroke-width="8" stroke-linecap="round"/></svg><span>clinch</span></a>
       <p>NBA standings, playoff and play-in odds, and a draft lottery simulator, updated every day.</p>
     </div>
-    <nav class="sf-col" aria-label="NBA"><b>NBA</b><a href="/nba/">Standings</a><a href="/nba/playoff-odds/">Playoff odds</a><a href="/nba/draft-lottery/">Draft lottery simulator</a></nav>
+    <nav class="sf-col" aria-label="NBA"><b>NBA</b><a href="/nba/">Standings</a><a href="/nba/playoff-odds/">Playoff odds</a><a href="/nba/draft-lottery/">Draft lottery simulator</a><a href="/nba/bracket-challenge/">Bracket Challenge</a></nav>
     <nav class="sf-col" aria-label="NFL"><b>NFL</b><a href="/nfl/playoff-scenarios/">Playoff scenarios</a><a href="/nfl/playoff-odds/">Playoff bracket &amp; odds</a><a href="/nfl/bracket-challenge/">Bracket Challenge</a></nav>
     <nav class="sf-col" aria-label="Company"><b>Clinch</b><a href="mailto:hello@clinchscenarios.com">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></nav>
   </div>
@@ -95,6 +103,7 @@
   <div class="sf-base"><span>© <span id="yr">2026</span> Clinch</span><span>Odds are simulations, not betting advice. Not affiliated with the NBA or any team.</span></div>
 </footer>
 <div class="toast" id="toast"></div>
+<div class="modal-bg" id="modalBg" hidden><div class="modal card" role="dialog" aria-modal="true" id="modal"></div></div>
 <script type="module">
 /*__ENGINE__*/
 

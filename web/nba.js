@@ -26,7 +26,7 @@ const store = { get(k, d) { try { const v = localStorage.getItem('clinch:nba:' +
 // ---- routes ----
 const slugOf = (t) => FULL[t].toLowerCase().replace(/[^a-z0-9]+/g, '-');
 const BY_SLUG = Object.fromEntries(T.map((t) => [slugOf(t), t]));
-const TAB_PATH = { standings: '/nba/', odds: '/nba/playoff-odds/', lottery: '/nba/draft-lottery/' };
+const TAB_PATH = { standings: '/nba/', odds: '/nba/playoff-odds/', lottery: '/nba/draft-lottery/', challenge: '/nba/bracket-challenge/' };
 const pathFor = (tab, team) => (tab === 'team' ? `/nba/teams/${slugOf(team)}/` : TAB_PATH[tab]);
 function routeOf(p) {
   const m = p.match(/^\/nba\/teams\/([a-z0-9-]+)\/?$/);
@@ -237,6 +237,10 @@ function pageMeta() {
     const sum = top.length ? `NBA title odds through ${through}: ${top.map((x) => `${NICK[x.t]} ${pct(x.title)}`).join(', ')}. Every team's chances to make the playoffs, finish top 6, reach the play-in and win the Finals.` : 'NBA playoff and title odds for every team.';
     return { title: `NBA Playoff Odds ${yr}: Title, Play-In & Top-6 Chances | Clinch`, h1: 'NBA playoff odds', desc: sum, sum, path: TAB_PATH.odds };
   }
+  if (state.tab === 'challenge') {
+    const sum = `Free ${RAW.season} NBA Playoff Bracket Challenge: pick the play-in and every series through the Finals, start a group with friends, and track dues. Points for every round, plus a bonus for calling upsets.`;
+    return { title: `NBA Playoff Bracket Challenge ${RAW.season}: Free Group Brackets | Clinch`, h1: `${RAW.season} NBA Playoff Bracket Challenge`, desc: sum, sum, path: TAB_PATH.challenge };
+  }
   if (state.tab === 'lottery') {
     const f = lotField(), nm = (x) => `${NICK[T[x.t]]} (${rec(x.t)})`;
     const three = f.filter((x) => x.balls === 3).slice(0, 3);
@@ -260,7 +264,7 @@ function render() {
   $('#teams').style.display = state.tab === 'team' ? '' : 'none';
   $('#teams').innerHTML = [...T].sort((a, b) => AB(a).localeCompare(AB(b))).map((t) => `<a class="chip" href="${pathFor('team', t)}" style="--c:${COLORS[t]};--ci:${ink(COLORS[t])}" aria-pressed="${t === state.team}" title="${FULL[t]} playoff chances">${AB(t)}</a>`).join('');
   $('#season').textContent = `NBA ${seasonLabel} season · through ${fmtDate(lastDate)} · ${played} games played`;
-  $('#view').innerHTML = state.tab === 'odds' ? renderOdds() : state.tab === 'lottery' ? renderLottery() : state.tab === 'team' ? renderTeam() : renderStandings();
+  $('#view').innerHTML = state.tab === 'odds' ? renderOdds() : state.tab === 'lottery' ? renderLottery() : state.tab === 'challenge' ? renderChallenge() : state.tab === 'team' ? renderTeam() : renderStandings();
   paintMeta();
 }
 function go(tab, team) {
@@ -305,8 +309,10 @@ function paintFooterTeams() {
   $('#sfTeams').innerHTML = '<b>Team playoff chances</b><div>' + NBA_DIV_NAMES.map((dn) => `<span><i>${dn}</i>${NBA_DIVS[dn].map((t) => `<a href="${pathFor('team', t)}">${FULL[t]}</a>`).join('')}</span>`).join('') + '</div>';
 }
 window.__clinch = { ready: () => !!odds, snap(path) { const r = routeOf(path); if (r.team) state.team = r.team; state.tab = r.tab; render(); const m = paintMeta(); m.path = path; return { m, view: $('#view').innerHTML, teams: $('#teams').innerHTML, foot: $('#sfTeams').innerHTML, tabs: document.querySelector('nav.tabs').innerHTML }; }, paths: () => [...Object.values(TAB_PATH), ...T.map((t) => pathFor('team', t))] };
+/*__CHALLENGE__*/
 $('#yr').textContent = new Date().getFullYear();
+if (nPicks()) ST = nbaStandings(ctx, outcomes());
 paintFooterTeams();
 render();
-if (nPicks()) ST = nbaStandings(ctx, outcomes());
+initAccounts();
 setTimeout(() => { odds = nbaSimulate(ctx, RATING, { sims: 5000, rules: RULES, picks }); render(); }, 30);

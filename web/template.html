@@ -1731,19 +1731,19 @@ async function chLoad(force) {
   if (!ACCOUNTS || !sb || ch.loading || (ch.loaded && !force)) return;
   ch.loading = true;
   try {
-    const st = await sb.from('challenge_settings').select('lock_at').eq('season', RAW.season).maybeSingle();
+    const st = await sb.from('challenge_settings').select('lock_at').eq('sport', 'nfl').eq('season', RAW.season).maybeSingle();
     ch.lockAt = st.data?.lock_at || null;
     if (user) {
       const [e, g] = await Promise.all([
-        sb.from('brackets').select('*').eq('season', RAW.season).eq('user_id', user.id).maybeSingle(),
-        sb.from('bgroups').select('id,name,code,owner,dues,dues_note').eq('season', RAW.season).order('created_at'),
+        sb.from('brackets').select('*').eq('sport', 'nfl').eq('season', RAW.season).eq('user_id', user.id).maybeSingle(),
+        sb.from('bgroups').select('id,name,code,owner,dues,dues_note').eq('sport', 'nfl').eq('season', RAW.season).order('created_at'),
       ]);
       ch.entry = e.data || null;
       if (ch.entry && !Object.keys(ch.picks).length) { ch.picks = ch.entry.picks; ch.tiebreak = ch.entry.tiebreak ?? ''; }
       ch.groups = g.data || [];
     } else { ch.entry = null; ch.groups = []; }
     if (chLocked()) {
-      const all = await sb.from('brackets').select('user_id,display_name,seeds,picks,tiebreak').eq('season', RAW.season).limit(5000);
+      const all = await sb.from('brackets').select('user_id,display_name,seeds,picks,tiebreak').eq('sport', 'nfl').eq('season', RAW.season).limit(5000);
       ch.board = (all.data || []).map((b) => ({ ...b, ...scoreBracket(b) })).sort((x, y) => y.pts - x.pts || x.display_name.localeCompare(y.display_name));
     }
     ch.loaded = true;
@@ -1868,6 +1868,7 @@ async function chJoinDialog(code) {
   const { data } = await sb.rpc('peek_group', { c: code });
   const g = data && data[0];
   if (!g) return toast('That invite code does not exist');
+  if (g.sport && g.sport !== 'nfl') { location.href = `/${g.sport}/bracket-challenge/?join=${encodeURIComponent(code)}`; return; }
   openModal(`<h3>Join ${esc(g.name)}?</h3><p>${esc(g.commissioner || 'A friend')} invited you to their Playoff Bracket Challenge. ${g.members} member${g.members === 1 ? '' : 's'} so far${g.dues ? ` · $${g.dues} dues, tracked by the commissioner` : ''}.</p>
     ${user ? `<label class="hint" for="cjName">Your name in this group</label><input type="text" id="cjName" maxlength="40" value="${esc(myName())}">` : ''}
     <div class="row-btns"><button class="btn" data-act="close">Not now</button><button class="btn primary" data-act="chdojoin" data-code="${esc(code)}">${user ? 'Join group' : 'Sign in to join'}</button></div>`);
@@ -1911,7 +1912,7 @@ document.addEventListener('click', async (e) => {
     const name = ($('#chName').value || '').trim() || myName();
     // keep only picks that are part of this bracket
     const keep = {}; playBracket(REAL_SEEDS, (r, hi, lo) => { const k = pairKey(r, hi, lo), w = chDecide(r, hi, lo); if (w != null) keep[k] = w; return w; });
-    const { data, error } = await sb.from('brackets').upsert({ season: RAW.season, display_name: name, seeds: REAL_SEEDS, picks: keep, tiebreak: tb }, { onConflict: 'user_id,season' }).select().single();
+    const { data, error } = await sb.from('brackets').upsert({ sport: 'nfl', season: RAW.season, display_name: name, seeds: REAL_SEEDS, picks: keep, tiebreak: tb }, { onConflict: 'user_id,sport,season' }).select().single();
     if (error) return toast('Could not save: ' + error.message);
     ch.entry = data; toast(`Bracket ${ch.entry.created_at === ch.entry.updated_at ? 'submitted' : 'updated'}. Good luck!`); render(); return;
   }
@@ -1922,7 +1923,7 @@ document.addEventListener('click', async (e) => {
     const rec = { name: $('#cgName').value.trim(), dues: Math.max(0, parseInt($('#cgDues').value || '0', 10) || 0), dues_note: $('#cgNote').value.trim() || null };
     if (!rec.name) return toast('Give your group a name');
     if (act === 'chcreate') {
-      const { data, error } = await sb.from('bgroups').insert({ ...rec, season: RAW.season }).select().single();
+      const { data, error } = await sb.from('bgroups').insert({ ...rec, sport: 'nfl', season: RAW.season }).select().single();
       if (error) return toast('Could not create: ' + error.message);
       closeModal(); ch.groups.push(data); toast('Group created. Send the invite link to your group chat'); return chOpenGroup(data.id);
     }
