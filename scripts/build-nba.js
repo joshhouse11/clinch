@@ -21,7 +21,9 @@ export async function buildNBA({ root, outDir, config, url, seoTags, escA, V, pr
   }
   const games = rows.filter((r) => r.type === '2' && !/championship/i.test(r.note || '')).map((r) => [r.id, r.when, r.date, r.home, r.away, r.final === '1' ? +r.hs : null, r.final === '1' ? +r.as : null, r.final]);
   const teams = JSON.parse(fs.readFileSync(new URL('teams.json', dir), 'utf8'));
-  const data = { season, built: new Date().toISOString(), games, prior, teams };
+  const pf = new URL(`picks_${season}.json`, dir);
+  const picks = fs.existsSync(pf) ? JSON.parse(fs.readFileSync(pf, 'utf8')) : null;
+  const data = { season, built: new Date().toISOString(), games, prior, teams, picks };
   const nflTpl = fs.readFileSync(new URL('web/template.html', root), 'utf8');
   const css = nflTpl.slice(nflTpl.indexOf('<style>') + 7, nflTpl.indexOf('</style>'));
   const engine = fs.readFileSync(new URL('engine/nba.js', root), 'utf8').replace(/^export /gm, '');

@@ -134,6 +134,82 @@ export function drawLottery(rand, odds = LOTTERY_ODDS) {
   return [...top, ...left.map((x) => x[0])]; // order of lottery slots by pick
 }
 
+// ---- 2027+ "3-2-1" lottery: 16 teams, 37 balls, all 16 picks drawn ----
+// Per conference: seeds 11-15 get 3 balls, seeds 9-10 get 2, the 7-v-8 play-in loser gets 1.
+// The three worst records overall are "draft relegated" to 2 balls and can pick no lower than 12th.
+// lot = [{ t, balls, rel }] ; bans = { teamIdx: Set(pickNumbers) }. Returns team indices in pick order (16 long).
+export function lottery321Field(R, seeds, sevenEightLosers) {
+  const by = (a, b) => R.pct[a] - R.pct[b] || a - b;
+  const field = [];
+  for (const c of [0, 1]) {
+    const s = seeds[c];
+    s.slice(10, 15).forEach((t) => field.push({ t, balls: 3, rel: false }));
+    s.slice(8, 10).forEach((t) => field.push({ t, balls: 2, rel: false }));
+    field.push({ t: sevenEightLosers[c], balls: 1, rel: false });
+  }
+  field.sort((a, b) => by(a.t, b.t));
+  field.slice(0, 3).forEach((x) => { if (x.balls === 3) { x.balls = 2; x.rel = true; } });
+  return field; // worst record first
+}
+export function drawLottery321(rand, field, bans = {}) {
+  const left = field.slice(), out = [];
+  for (let pick = 1; pick <= field.length; pick++) {
+    const relLeft = left.filter((x) => x.rel);
+    let pool = relLeft.length && relLeft.length >= 12 - pick + 1 ? relLeft : left;
+    const ok = pool.filter((x) => !(bans[x.t] && bans[x.t].has(pick)));
+    if (ok.length) pool = ok;
+    const tot = pool.reduce((s, x) => s + x.balls, 0);
+    let r = rand() * tot, j = 0;
+    while (j < pool.length - 1 && r >= pool[j].balls) { r -= pool[j].balls; j++; }
+    out.push(pool[j].t); left.splice(left.indexOf(pool[j]), 1);
+  }
+  return out;
+}
+// Full first round 1-30: drawn 16, then everyone else worst record first.
+export function draftOrder321(R, lotOrder) {
+  const inLot = new Set(lotOrder);
+  const by = (a, b) => R.pct[a] - R.pct[b] || a - b;
+  return [...lotOrder, ...NBA_TEAMS.map((_, i) => i).filter((t) => !inLot.has(t)).sort(by)];
+}
+// Pick bans from the rules file -> { teamIdx: Set }
+export function pickBans(rules) {
+  const b = {};
+  for (const x of (rules && rules.bans) || []) if (NBA_IDX[x.pick] !== undefined) b[NBA_IDX[x.pick]] = new Set(x.noPicks);
+  return b;
+}
+// Who owns each first-round pick. slot[teamIdx] = pick number (1-30) of that team's own pick.
+// Returns owner[teamIdx] = team index that ends up making that pick, plus a reason per pick.
+export function resolvePickOwners(rules, slot) {
+  const I = NBA_IDX, n = NBA_TEAMS.length;
+  const owner = Array.from({ length: n }, (_, i) => i), why = Array(n).fill('');
+  const give = (p, to, w) => { owner[p] = to; why[p] = w; };
+  for (const r of (rules && rules.rules) || []) {
+    if (r.type === 'convey') {
+      const p = I[r.pick], s = slot[p];
+      if (r.keepIf && s >= r.keepIf[0] && s <= r.keepIf[1]) { why[p] = `${r.deal}; landed in the protected range, so it stays`; continue; }
+      give(p, I[r.to], r.deal);
+    } else if (r.type === 'swap') {
+      const a = I[r.a], b = I[r.b];
+      if (slot[b] < slot[a]) { const oa = owner[a]; owner[a] = owner[b]; owner[b] = oa; why[a] = why[b] = r.deal + ' (swap made)'; }
+    } else if (r.type === 'rank') {
+      const ps = r.picks.map((t) => I[t]).sort((x, y) => slot[x] - slot[y]);
+      ps.forEach((p, k) => give(p, I[r.to[k]], r.deal));
+      const last = ps[ps.length - 1];
+      if (r.lastKeepIf && slot[last] >= r.lastKeepIf[0] && slot[last] <= r.lastKeepIf[1]) give(last, I[r.lastKeepTo], r.deal + '; protected, so it stays');
+    } else if (r.type === 'split') {
+      const p = I[r.pick];
+      for (const [lo, hi, to] of r.ranges) if (slot[p] >= lo && slot[p] <= hi) give(p, I[to], r.deal);
+    } else if (r.type === 'swapWorstOf' || r.type === 'swapIfHolding') {
+      const h = I[r.holder], w = I[r.with];
+      const held = r.among.map((t) => I[t]).filter((p) => owner[p] === h);
+      if (!held.length || owner[w] !== w) continue;
+      const worst = held.sort((x, y) => slot[y] - slot[x])[0];
+      if (slot[w] < slot[worst]) { owner[w] = h; owner[worst] = I[r.with]; why[w] = why[worst] = r.deal + ' (swap made)'; }
+    }
+  }
+  return { owner, why };
+}
+
 // Pre-lottery draft order: 14 non-playoff teams worst first, then playoff teams by record. playoff = Set of 16 teams.
 export function nbaDraftOrder(R, playoff) {
   const by = (a, b) => R.pct[a] - R.pct[b] || a - b;
@@ -176,26 +252,28 @@ export function playSeries(r, hi, lo, rand, noise) {
 
 // Monte Carlo season: odds to make the playoffs (top 6 or win the play-in), top 6, play-in, #1 seed, title,
 // and lottery pick distribution for non-playoff teams.
-export function nbaSimulate(ctx, ratings, { sims = 5000, seed = 7, picks = {} } = {}) {
+export function nbaSimulate(ctx, ratings, { sims = 5000, seed = 7, picks = {}, rules = null } = {}) {
+  const bans = pickBans(rules);
   let s = seed >>> 0;
   const rand = () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
   const gauss = () => Math.sqrt(-2 * Math.log(Math.max(rand(), 1e-12))) * Math.cos(2 * Math.PI * rand());
   const base = ctx.games.map((G, k) => (picks[k] !== undefined ? picks[k] : G.played ? (G.hs > G.as ? 1 : -1) : null));
   const free = base.map((o, k) => (o === null ? k : -1)).filter((k) => k >= 0);
-  const out = NBA_TEAMS.map(() => ({ playoffs: 0, top6: 0, playIn: 0, one: 0, conf: 0, finals: 0, title: 0, wins: 0, seedSum: 0, pick1: 0, top4: 0, pickSum: 0 }));
+  const out = NBA_TEAMS.map(() => ({ playoffs: 0, top6: 0, playIn: 0, one: 0, conf: 0, finals: 0, title: 0, wins: 0, seedSum: 0, pick1: 0, top4: 0, pickSum: 0, lottery: 0, picks: 0, own1: 0, ownTop4: 0, bestSum: 0, pickMap: {}, toOwner: {} }));
   const noise = new Float64Array(NT), o = base.slice();
   for (let n = 0; n < sims; n++) {
     for (let i = 0; i < NT; i++) noise[i] = gauss() * 2.5;
     for (const k of free) { const G = ctx.games[k]; o[k] = rand() < normCdfN((ratings[G.h] + noise[G.h] - ratings[G.a] - noise[G.a] + NBA_HCA) / NBA_SD) ? 1 : -1; }
     const st = nbaStandings(ctx, o);
     const playoff = new Set();
-    const champs = [];
+    const champs = [], losers78 = [];
     for (const c of [0, 1]) {
       const sd = st.seeds[c];
       sd.forEach((t, k) => { out[t].seedSum += k + 1; if (k < 6) out[t].top6++; else if (k < 10) out[t].playIn++; });
       out[sd[0]].one++;
       const decide = (h, a) => (rand() < normCdfN((ratings[h] + noise[h] - ratings[a] - noise[a] + NBA_HCA) / NBA_SD) ? h : a);
       const pi = playIn(sd, decide);
+      losers78.push(pi.games[0][2] === sd[6] ? sd[7] : sd[6]);
       const field = [...sd.slice(0, 6), pi.seven, pi.eight];
       field.forEach((t) => { playoff.add(t); out[t].playoffs++; });
       const pct = st.R.pct;
@@ -210,10 +288,23 @@ export function nbaSimulate(ctx, ratings, { sims = 5000, seed = 7, picks = {} } 
     const hi = pct[champs[0]] >= pct[champs[1]] ? champs[0] : champs[1];
     out[playSeries(ratings, hi, hi === champs[0] ? champs[1] : champs[0], rand, noise)].title++;
     for (let i = 0; i < NT; i++) out[i].wins += st.R.W[i];
-    const order = nbaDraftOrder(st.R, playoff);
-    const lot = drawLottery(rand);
-    lot.forEach((slot, pick) => { const t = order[slot]; out[t].pickSum += pick + 1; if (pick === 0) out[t].pick1++; if (pick < 4) out[t].top4++; });
-    order.slice(14).forEach((t, k) => { out[t].pickSum += 15 + k; });
+    if (rules) {
+      const field = lottery321Field(st.R, st.seeds, losers78);
+      const full = draftOrder321(st.R, drawLottery321(rand, field, bans));
+      const slot = Array(NT); full.forEach((t, k) => { slot[t] = k + 1; });
+      const { owner } = resolvePickOwners(rules, slot);
+      full.forEach((t, k) => {
+        out[t].pickSum += k + 1; if (k === 0) out[t].pick1++; if (k < 4) out[t].top4++; if (k < 16) out[t].lottery++;
+        const ow = out[owner[t]]; ow.picks++; if (k === 0) ow.own1++; if (k < 4) ow.ownTop4++;
+        out[t].pickMap[k] = (out[t].pickMap[k] || 0) + 1;
+        out[t].toOwner[owner[t]] = (out[t].toOwner[owner[t]] || 0) + 1;
+      });
+    } else {
+      const order = nbaDraftOrder(st.R, playoff);
+      const lot = drawLottery(rand);
+      lot.forEach((slot, pick) => { const t = order[slot]; out[t].pickSum += pick + 1; if (pick === 0) out[t].pick1++; if (pick < 4) out[t].top4++; });
+      order.slice(14).forEach((t, k) => { out[t].pickSum += 15 + k; });
+    }
   }
-  return out.map((x, i) => ({ team: NBA_TEAMS[i], playoffs: x.playoffs / sims, top6: x.top6 / sims, playIn: x.playIn / sims, one: x.one / sims, conf: x.conf / sims, finals: x.finals / sims, title: x.title / sims, avgWins: x.wins / sims, avgSeed: x.seedSum / sims, pick1: x.pick1 / sims, top4: x.top4 / sims, avgPick: x.pickSum / sims }));
+  return out.map((x, i) => ({ team: NBA_TEAMS[i], playoffs: x.playoffs / sims, top6: x.top6 / sims, playIn: x.playIn / sims, one: x.one / sims, conf: x.conf / sims, finals: x.finals / sims, title: x.title / sims, avgWins: x.wins / sims, avgSeed: x.seedSum / sims, pick1: x.pick1 / sims, top4: x.top4 / sims, avgPick: x.pickSum / sims, lottery: x.lottery / sims, ownPicks: x.picks / sims, own1: x.own1 / sims, ownTop4: x.ownTop4 / sims, pickDist: Object.fromEntries(Object.entries(x.pickMap).map(([k, v]) => [k, v / sims])), toOwner: Object.fromEntries(Object.entries(x.toOwner).map(([k, v]) => [NBA_TEAMS[k], v / sims])) }));
 }

@@ -81,27 +81,89 @@ function renderOdds() {
   return `${hero}<div class="section-head" style="margin-top:22px"><h2>Every team's chances</h2></div><div style="display:grid;gap:16px">${tbl(0)}${tbl(1)}</div>`;
 }
 
-// ---- draft lottery ----
-const LT = lotteryTable();
-function lotteryOrder() {
-  // If the season ended today: play-in losers also enter the lottery; use the 14 worst records (seeds 9-15 in each conference by default)
-  const lot = new Set([0, 1].flatMap((c) => ST.seeds[c].slice(8)));
-  return nbaDraftOrder(ST.R, new Set(T.map((_, i) => i).filter((i) => !lot.has(i)))).slice(0, 14);
+// ---- draft lottery (2027+: "3-2-1", 16 teams, all 16 picks drawn; traded picks resolved) ----
+const RULES = RAW.picks;
+const BANS = pickBans(RULES);
+const NEW_LOT = !!(RULES && RULES.format === '321');
+const asOf = RULES && RULES.asOf ? new Date(RULES.asOf + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+// If the season ended today: 8 seeds assumed to lose the 7-v-8 game.
+function lotField() { return lottery321Field(ST.R, ST.seeds, [ST.seeds[0][7], ST.seeds[1][7]]); }
+function lotteryOrder() { return lotField().map((x) => x.t); }
+function slotsFor(lot) { const full = draftOrder321(ST.R, lot), slot = Array(T.length); full.forEach((t, k) => { slot[t] = k + 1; }); return { full, slot }; }
+let lotMC = null, lotKey = '';
+function lotteryMC() {
+  const field = lotField(), key = field.map((x) => x.t + ':' + x.balls).join(',');
+  if (lotMC && lotKey === key) return lotMC;
+  let s = 99991;
+  const rand = () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+  const N = 60000, P = {}, own = {}, ownerHits = {};
+  field.forEach((x) => { P[x.t] = new Float64Array(16); own[x.t] = {}; });
+  for (let n = 0; n < N; n++) {
+    const lot = drawLottery321(rand, field, BANS), { slot } = slotsFor(lot);
+    const { owner } = resolvePickOwners(RULES, slot);
+    lot.forEach((t, k) => { P[t][k]++; own[t][owner[t]] = (own[t][owner[t]] || 0) + 1; if (k === 0) ownerHits[owner[t]] = (ownerHits[owner[t]] || 0) + 1; });
+  }
+  field.forEach((x) => { P[x.t] = Array.from(P[x.t], (v) => v / N); for (const o in own[x.t]) own[x.t][o] /= N; });
+  lotKey = key; lotMC = { field, P, own };
+  return lotMC;
+}
+const viaTxt = (orig, ow) => (orig === ow ? '' : `<span class="via">via ${AB(T[orig])}</span>`);
+function ownerCell(t, dist) {
+  const ent = Object.entries(dist || {}).map(([o, p]) => [+o, p]).sort((a, b) => b[1] - a[1]);
+  if (!ent.length || (ent.length === 1 && ent[0][0] === t)) return '<span class="hint">Own</span>';
+  if (ent[0][1] >= 0.995) return `${chip(T[ent[0][0]])}`;
+  return `<span class="owns">${ent.filter((e) => e[1] >= 0.005).slice(0, 3).map(([o, p]) => `${chip(T[o])}<small class="num">${pct(p)}</small>`).join('')}</span>`;
+}
+function ruleNotes() {
+  if (!RULES) return '';
+  const nm = (c) => NICK[c] || c;
+  const lines = RULES.rules.map((r) => {
+    if (r.type === 'convey') return `<b>${nm(r.pick)}</b> pick → ${nm(r.to)}${r.keepIf ? `, top-${r.keepIf[1]} protected` : ', unprotected'}`;
+    if (r.type === 'swap') return `<b>${nm(r.a)}</b> can swap its pick for ${nm(r.b)}'s`;
+    if (r.type === 'rank') return r.picks.length === 3 ? `<b>${r.picks.map(nm).join(', ')}</b> picks: best → ${nm(r.to[0])}, 2nd → ${nm(r.to[1])}, worst → ${nm(r.to[2])}` : `<b>${r.picks.map(nm).join(' / ')}</b> picks: better → ${nm(r.to[0])}, other → ${nm(r.to[1])}${r.lastKeepIf ? ` (top-${r.lastKeepIf[1]} protected; if it lands there, ${nm(r.lastKeepTo)} keeps both)` : ''}`;
+    if (r.type === 'split') return `<b>${nm(r.pick)}</b> pick → ${r.ranges.map(([lo, hi, to]) => `${nm(to)} if ${lo}-${hi}`).join(', ')}`;
+    if (r.type === 'swapWorstOf') return `<b>${nm(r.holder)}</b> can swap the worse of its ${r.among.map(nm).join('/')} picks for ${nm(r.with)}'s`;
+    if (r.type === 'swapIfHolding') return `<b>${nm(r.holder)}</b> can then swap that pick for ${nm(r.with)}'s`;
+    return '';
+  });
+  const bans = RULES.bans.map((b) => `<b>${nm(b.pick)}</b> pick can't land ${b.noPicks.length === 1 ? '#1' : 'top ' + b.noPicks.length}: ${esc(b.why.split(';')[1] ? b.why.split(';')[1].trim() : b.why)}`);
+  return `<section class="card notes"><h3>Traded picks &amp; protections</h3><ul>${[...lines, ...bans].map((l) => `<li>${l}</li>`).join('')}</ul><p class="hint">Pick ownership as of ${asOf}. Swaps go to whichever team holds the right, automatically taking the better pick.</p></section>`;
 }
 function renderLottery() {
-  const order = lotteryOrder();
+  const mc = lotteryMC(), field = mc.field, pre = Object.fromEntries(field.map((x, k) => [x.t, k + 1]));
   const d = state.draws;
-  const drawRow = d ? `<div class="draw">${d.slice(0, 4).map((slot, k) => { const t = T[order[slot]], jump = slot - k; return `<div class="drawc on" style="--tc:${COLORS[t]};animation-delay:${k * 0.15}s"><b>Pick ${k + 1}</b>${chip(t)}<span class="nm">${NICK[t]}</span><span class="jump">${jump > 0 ? `▲ jumped ${jump} spot${jump > 1 ? 's' : ''}` : jump < 0 ? `▼ ${-jump}` : 'held its spot'}</span></div>`; }).join('')}</div>` : `<div class="draw">${[1, 2, 3, 4].map((k) => `<div class="drawc"><b>Pick ${k}</b><span class="hint">?</span></div>`).join('')}</div>`;
-  const heat = (v) => `background:color-mix(in srgb, var(--accent) ${Math.round(Math.min(1, v * 2.2) * 70)}%, transparent)`;
-  const tbl = `<section class="card scroll lot"><table class="t"><thead><tr><th>Slot</th><th>Team</th><th>Record</th>${Array.from({ length: 14 }, (_, k) => `<th class="hm">#${k + 1}</th>`).join('')}</tr></thead><tbody>
-    ${order.map((i, k) => `<tr class="${T[i] === state.team ? 'me' : ''}" style="--tc:${COLORS[T[i]]}"><td class="num">${k + 1}</td><td><span class="tn">${chip(T[i])}<a href="${pathFor('team', T[i])}" style="color:inherit;text-decoration:none">${NICK[T[i]]}</a></span></td><td class="num">${rec(i)}</td>${Array.from(LT[k], (v) => `<td class="hm num" style="${v >= 0.0005 ? heat(v) : ''}">${v >= 0.0005 ? (v * 100).toFixed(1) : ''}</td>`).join('')}</tr>`).join('')}</tbody></table></section>`;
-  const proj = odds ? T.map((t, i) => ({ t, i, ...odds[i] })).sort((a, b) => b.pick1 - a.pick1).slice(0, 8) : [];
-  return `<div class="lotbtn"><button class="btn primary big" data-act="sim">${d ? 'Sim it again' : '🎲 Sim the lottery'}</button>${state.drawN ? `<span class="hint">${state.drawN} lotter${state.drawN === 1 ? 'y' : 'ies'} simmed</span>` : '<span class="hint">Draws the top 4 picks with the NBA\'s real odds, using today\'s standings</span>'}</div>
+  let drawRow;
+  if (d) {
+    const { slot } = slotsFor(d), { owner } = resolvePickOwners(RULES, slot);
+    const card = (t, k, big) => { const ow = owner[t], jump = pre[t] - (k + 1); return `<div class="drawc on${big ? '' : ' sm'}" style="--tc:${COLORS[T[ow]]};animation-delay:${Math.min(k, 8) * 0.12}s"><b>Pick ${k + 1}</b>${chip(T[ow])}<span class="nm">${NICK[T[ow]]}</span>${viaTxt(t, ow)}<span class="jump">${jump > 0 ? `▲ ${jump}` : jump < 0 ? `▼ ${-jump}` : '–'}</span></div>`; };
+    drawRow = `<div class="draw">${d.slice(0, 4).map((t, k) => card(t, k, true)).join('')}</div><div class="draw rest">${d.slice(4, 16).map((t, k) => card(t, k + 4, false)).join('')}</div>`;
+  } else drawRow = `<div class="draw">${[1, 2, 3, 4].map((k) => `<div class="drawc"><b>Pick ${k}</b><span class="hint">?</span></div>`).join('')}</div>`;
+  const heat = (v) => `background:color-mix(in srgb, var(--accent) ${Math.round(Math.min(1, v * 4) * 70)}%, transparent)`;
+  const tbl = `<section class="card scroll lot"><table class="t"><thead><tr><th>Slot</th><th>Pick</th><th>Owner</th><th>Record</th><th title="Lottery balls">Balls</th>${Array.from({ length: 16 }, (_, k) => `<th class="hm">#${k + 1}</th>`).join('')}</tr></thead><tbody>
+    ${field.map((x, k) => { const i = x.t; return `<tr class="${T[i] === state.team ? 'me' : ''}${k === 2 ? ' cutline' : ''}" style="--tc:${COLORS[T[i]]}"><td class="num">${k + 1}</td><td><span class="tn">${chip(T[i])}<a href="${pathFor('team', T[i])}" style="color:inherit;text-decoration:none">${NICK[T[i]]}</a></span></td><td class="own">${ownerCell(i, mc.own[i])}</td><td class="num">${rec(i)}</td><td class="num balls">${'●'.repeat(x.balls)}${x.rel ? '<small title="Draft relegated: can\'t fall below #12"> R</small>' : ''}</td>${mc.P[i].map((v) => `<td class="hm num" style="${v >= 0.0005 ? heat(v) : ''}">${v >= 0.0005 ? (v * 100).toFixed(1) : ''}</td>`).join('')}</tr>`; }).join('')}</tbody></table></section>`;
+  // projected odds by pick owner (season sim)
+  let proj = [];
+  if (odds) {
+    proj = T.map((t, i) => ({ t, i, own1: odds[i].own1, ownTop4: odds[i].ownTop4, via: T.map((u, j) => [u, (odds[j].toOwner || {})[t] || 0]).filter(([u, p]) => u !== t && p >= 0.2).map(([u]) => AB(u)) })).sort((a, b) => b.own1 - a.own1).slice(0, 6);
+  }
+  return `<div class="lotbtn"><button class="btn primary big" data-act="sim">${d ? 'Sim it again' : '🎲 Sim the lottery'}</button>${state.drawN ? `<span class="hint">${state.drawN} lotter${state.drawN === 1 ? 'y' : 'ies'} simmed</span>` : '<span class="hint">Draws all 16 lottery picks with the new 3-2-1 odds and today\'s standings, then hands each pick to the team that owns it</span>'}</div>
     ${drawRow}
-    <div class="section-head"><h2>If the season ended today</h2><span class="hint">Chance (%) of landing each pick. The worst three records share the best odds: 14% at #1.</span></div>${tbl}
-    ${proj.length ? `<div class="section-head" style="margin-top:22px"><h2>Projected #1 pick chances</h2><span class="hint">Simulating the rest of the season and the lottery</span></div>
-    <div class="hcards">${proj.slice(0, 6).map((x) => `<div class="hcard" style="--tc:${COLORS[x.t]}">${chip(x.t)}<span class="nm">${NICK[x.t]}</span><b class="big num">${pct(x.pick1)}</b><span class="sub num">Top 4: ${pct(x.top4)} · avg pick ${x.avgPick.toFixed(1)}</span></div>`).join('')}</div>` : ''}
-    <p class="hint" style="margin-top:14px">Shows the original team for each slot; traded picks and protections aren't applied yet.</p>`;
+    <div class="section-head"><h2>If the season ended today</h2><span class="hint">Chance (%) of landing each pick. 37 balls: 3 for teams outside the play-in, 2 for the three worst records and the 9-10 seeds, 1 for the 7-v-8 losers (8 seeds for now).</span></div>${tbl}
+    ${proj.length ? `<div class="section-head" style="margin-top:22px"><h2>Who lands the #1 pick</h2><span class="hint">By pick owner, simulating the rest of the season and the lottery</span></div>
+    <div class="hcards">${proj.map((x) => `<div class="hcard" style="--tc:${COLORS[x.t]}">${chip(x.t)}<span class="nm">${NICK[x.t]}</span><b class="big num">${pct(x.own1)}</b><span class="sub num">Top 4: ${pct(x.ownTop4)}${x.via.length ? ` · via ${x.via.join(', ')}` : ''}</span></div>`).join('')}</div>` : ''}
+    ${ruleNotes()}`;
+}
+// Plain-English line about a team's own 2027 first and the picks it holds from others.
+function pickLine(i) {
+  const o = odds && odds[i];
+  if (!o || !RULES) return '';
+  const own = o.toOwner || {}, keep = own[T[i]] || 0;
+  const away = Object.entries(own).filter(([u, p]) => u !== T[i] && p >= 0.01).sort((a, b) => b[1] - a[1]);
+  const holds = T.map((u, j) => [u, (odds[j].toOwner || {})[T[i]] || 0]).filter(([u, p]) => u !== T[i] && p >= 0.01);
+  const parts = [];
+  if (away.length) parts.push(`Their ${RAW.season} first goes to ${away.map(([u, p]) => `the ${NICK[u]}${p < 0.995 ? ` (${pct(p)})` : ''}`).join(' or ')}${keep >= 0.01 ? `; they keep it ${pct(keep)} of the time` : ''}.`);
+  if (holds.length) parts.push(`They also hold ${holds.map(([u, p]) => `the ${NICK[u]}' pick${p < 0.995 ? ` (${pct(p)})` : ''}`).join(', ')}.`);
+  return parts.length ? `<p class="hint pickline">${parts.join(' ')}</p>` : '';
 }
 
 // ---- team ----
@@ -114,7 +176,7 @@ function renderTeam() {
   const tank = o && o.playoffs < 0.25;
   return `<section class="card hero" style="--tc:${COLORS[t]}"><div class="hero-head">${chip(t)}<div><div class="hero-name">${FULL[t]}</div><div class="hint num">${rec(i)} · ${sd + 1}${['st', 'nd', 'rd'][sd] || 'th'} in the ${c ? 'West' : 'East'} · ${NBA_DIV_NAMES[NBA_DIV_OF[i]]} ${div.indexOf(i) + 1}${['st', 'nd', 'rd'][div.indexOf(i)] || 'th'}</div></div></div>
     <div class="stats">${tank ? stat('#1 pick', o ? pct(o.pick1) : '…', o ? `Top 4: ${pct(o.top4)}` : '') + stat('Avg draft pick', o ? o.avgPick.toFixed(1) : '…') + stat('Make playoffs', o ? pct(o.playoffs) : '…') + stat('Proj. wins', o ? o.avgWins.toFixed(1) : '…')
-      : stat('Make playoffs', o ? pct(o.playoffs) : '…', o ? `Play-in: ${pct(o.playIn)}` : '') + stat('Top 6', o ? pct(o.top6) : '…') + stat('Win title', o ? pct(o.title) : '…', o ? `Finals: ${pct(o.finals)}` : '') + stat('Proj. wins', o ? o.avgWins.toFixed(1) : '…')}</div></section>
+      : stat('Make playoffs', o ? pct(o.playoffs) : '…', o ? `Play-in: ${pct(o.playIn)}` : '') + stat('Top 6', o ? pct(o.top6) : '…') + stat('Win title', o ? pct(o.title) : '…', o ? `Finals: ${pct(o.finals)}` : '') + stat('Proj. wins', o ? o.avgWins.toFixed(1) : '…')}</div>${pickLine(i)}</section>
     <div class="grid" style="margin-top:16px"><div>
       <div class="section-head"><h2>Next 10 games</h2><span class="hint">Win chance for the ${NICK[t]}</span></div>
       <div class="ugames">${fut.map((g) => { const home = g.h === i, op = home ? g.a : g.h, p = home ? nbaWinProb(RATING, g.h, g.a) : 1 - nbaWinProb(RATING, g.h, g.a);
@@ -139,9 +201,10 @@ function pageMeta() {
     return { title: `NBA Playoff Odds ${yr}: Title, Play-In & Top-6 Chances | Clinch`, h1: 'NBA playoff odds', desc: sum, sum, path: TAB_PATH.odds };
   }
   if (state.tab === 'lottery') {
-    const o = lotteryOrder().slice(0, 3).map((i) => `${NICK[T[i]]} (${rec(i)})`);
-    const sum = `If the season ended today, the ${o[0]}, ${o[1]} and ${o[2]} would have the best lottery odds at 14% each for the #1 pick. Sim the ${RAW.season} NBA draft lottery and see every team's odds for every pick.`;
-    return { title: `NBA Draft Lottery Simulator ${RAW.season}: Odds for Every Pick | Clinch`, h1: `${RAW.season} NBA draft lottery simulator`, desc: sum, sum, path: TAB_PATH.lottery };
+    const f = lotField(), nm = (x) => `${NICK[T[x.t]]} (${rec(x.t)})`;
+    const three = f.filter((x) => x.balls === 3).slice(0, 3);
+    const sum = `${RAW.season} NBA draft lottery simulator with the new 3-2-1 odds, traded picks and protections. If the season ended today, the ${f.slice(0, 3).map(nm).join(', ')} would be draft relegated to 5.4% at #1, while the ${three.map(nm).join(', ')} lead a group at 8.1%. Sim all 16 lottery picks and see who owns each one.`;
+    return { title: `NBA Draft Lottery Simulator ${RAW.season}: 3-2-1 Odds & Traded Picks | Clinch`, h1: `${RAW.season} NBA draft lottery simulator`, desc: sum.slice(0, 300), sum, path: TAB_PATH.lottery };
   }
   const e = T[ST.seeds[0][0]], w = T[ST.seeds[1][0]];
   const sum = `NBA standings through ${through} with playoff and play-in odds for every team. The ${NICK[e]} (${rec(NBA_IDX[e])}) lead the East and the ${NICK[w]} (${rec(NBA_IDX[w])}) lead the West.`;
@@ -179,7 +242,7 @@ document.addEventListener('click', (e) => {
   if (b.dataset.act === 'sim') {
     let s = (Date.now() ^ (state.drawN * 2654435761)) >>> 0;
     const rand = () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
-    state.draws = drawLottery(rand); state.drawN++; render(); return;
+    state.draws = drawLottery321(rand, lotField(), BANS); state.drawN++; render(); return;
   }
   if (b.dataset.act === 'sportmenu') { const m = $('.sportmenu'); m.hidden = !m.hidden; return; }
 });
@@ -191,4 +254,4 @@ window.__clinch = { ready: () => !!odds, snap(path) { const r = routeOf(path); i
 $('#yr').textContent = new Date().getFullYear();
 paintFooterTeams();
 render();
-setTimeout(() => { odds = nbaSimulate(ctx, RATING, { sims: 5000 }); render(); }, 30);
+setTimeout(() => { odds = nbaSimulate(ctx, RATING, { sims: 5000, rules: RULES }); render(); }, 30);
