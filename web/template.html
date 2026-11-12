@@ -140,13 +140,17 @@ main { max-width: 1180px; margin: 0 auto; padding: 16px; }
 @media (min-width: 1360px) {
   main:has(.lg3) { max-width: 1480px; }
   .top-inner { max-width: 1480px; }
-  .grid.lg3 { grid-template-columns: 300px minmax(0, 1fr) 300px; grid-template-rows: auto 1fr; }
-  .grid.lg3 > :first-child { grid-column: 2; grid-row: 1; }
+  .grid.lg3 { grid-template-columns: 300px minmax(0, 1fr) 300px; grid-template-rows: auto auto 1fr; row-gap: 0; }
+  .grid.lg3 > .lmain { display: contents; }
+  .grid.lg3 > .lmain > * { grid-column: 2; grid-row: 2; }
+  .grid.lg3 > .lmain > .lhead { grid-row: 1; grid-column: 1 / -1; }
+  .grid.lg3 .weekbar { justify-content: space-between; }
+  .grid.lg3 .weekbar button { flex: 1; }
   .grid.lg3 > .side-col { display: contents; }
-  .grid.lg3 > .side-col > .stand { position: sticky; top: 76px; align-self: start; grid-row: 1 / span 2; max-height: calc(100vh - 92px); overflow-y: auto; }
+  .grid.lg3 > .side-col > .stand { position: sticky; top: 76px; align-self: start; grid-row: 2 / span 2; max-height: calc(100vh - 92px); overflow-y: auto; }
   .grid.lg3 > .side-col > .stand:first-child { grid-column: 1; }
   .grid.lg3 > .side-col > .stand:last-child { grid-column: 3; }
-  .grid.lg3 > .tb-slot { grid-column: 2; grid-row: 2; }
+  .grid.lg3 > .tb-slot { grid-column: 2; grid-row: 3; }
   .grid.lg3 .dtable .cf { display: none; }
   .grid.lg3 .stand { padding: 12px 10px; }
   .grid.lg3 .row { grid-template-columns: 16px 26px minmax(0, 1fr) auto 40px; gap: 6px; padding: 5px 4px; }
@@ -696,9 +700,9 @@ function renderLeague(cur) {
   const sidebar = `<div class="sticky side-col stack">${standingsCard(cur, 0, true)}${standingsCard(cur, 1, true)}</div>`;
   if (lv === 'grid') {
     const gc = state.gridConf ?? 'all';
-    return `<div class="grid has-tb lg3"><div>
+    return `<div class="grid has-tb lg3"><div class="lmain"><div class="lhead">
       <div class="section-head" style="margin-top:4px"><h2>Every remaining game</h2>${views}
-        <div class="seg"><button data-gconf="all" aria-pressed="${gc === 'all'}">All</button><button data-gconf="0" aria-pressed="${gc === 0}">AFC</button><button data-gconf="1" aria-pressed="${gc === 1}">NFC</button></div></div>
+        <div class="seg"><button data-gconf="all" aria-pressed="${gc === 'all'}">All</button><button data-gconf="0" aria-pressed="${gc === 0}">AFC</button><button data-gconf="1" aria-pressed="${gc === 1}">NFC</button></div></div></div>
       ${gridView(cur)}</div>${sidebar}<div class="tb-slot">${tiebreakSection(cur, gc === 'all' ? [0, 1] : [gc])}</div></div>`;
   }
   const past = wk <= lastFinalWeek && !weeks.includes(wk);
@@ -713,7 +717,7 @@ function renderLeague(cur) {
   const fmt = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const range = days.length ? (fmt(days[0]) === fmt(days[days.length - 1]) ? fmt(days[0]) : `${fmt(days[0])} – ${fmt(days[days.length - 1])}`) : '';
   const status = past ? 'Final' : `${picked} of ${open.length} picked`;
-  return `<div class="grid has-tb lg3"><div>
+  return `<div class="grid has-tb lg3"><div class="lmain"><div class="lhead">
     <div class="section-head" style="margin-top:4px">${views}</div>
     <div class="wkstep">
       <button class="arr" data-lweek="${ALL_WEEKS[wi - 1] ?? ''}" ${wi > 0 ? '' : 'disabled'} aria-label="Previous week">${ARR(0)}</button>
@@ -728,7 +732,7 @@ function renderLeague(cur) {
       <button class="btn" data-weekact="fav">Favorites win</button>
       <button class="btn" data-weekact="clear">Clear week</button>`}
       ${clearAllHtml()}
-    </div>
+    </div></div>
     <div class="games two">${list.map(gameCard).join('')}</div>
   </div>${sidebar}<div class="tb-slot">${tiebreakSection(cur, [0, 1])}</div></div>`;
 }
