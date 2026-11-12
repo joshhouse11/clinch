@@ -959,7 +959,7 @@ function renderDraft() {
 
 function render() {
   document.querySelectorAll('nav.tabs button').forEach((b) => b.setAttribute('aria-selected', b.dataset.tab === state.tab));
-  $('#teams').style.display = state.tab === 'league' ? 'none' : '';
+  $('#teams').style.display = state.tab === 'team' ? '' : 'none';
   renderTeams();
   const cur = evaluate(ctx, outcomes(), { explain: true });
   const banner = nFlips() ? `<div class="card whatif"><b>DO-OVER</b><span>${nFlips()} result${nFlips() > 1 ? 's' : ''} changed · standings, odds and draft use your version</span><button class="btn" data-act="resetflips">Back to real results</button></div>` : '';
