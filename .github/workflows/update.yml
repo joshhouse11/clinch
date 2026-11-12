@@ -47,6 +47,13 @@ jobs:
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
         run: node scripts/build.js
 
+      - name: Keep the accounts database awake (free Supabase projects pause after 7 idle days)
+        continue-on-error: true
+        run: |
+          URL=$(node -e "console.log(require('./data/site.json').SUPABASE_URL||'')")
+          KEY=$(node -e "console.log(require('./data/site.json').SUPABASE_ANON_KEY||'')")
+          if [ -n "$URL" ]; then curl -sS -o /dev/null -w "supabase ping %{http_code}\n" "$URL/rest/v1/scenarios?select=id&limit=1" -H "apikey: $KEY" -H "Authorization: Bearer $KEY"; fi
+
       - name: Save the refreshed data file to the repo
         run: |
           if ! git diff --quiet data/games.csv; then
