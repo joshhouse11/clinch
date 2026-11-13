@@ -8,29 +8,27 @@ Branch: `marketing` (never merged to main; nothing here deploys). Every agent re
 - Owner: Josh. He has under 10 minutes a week. He posts everything himself from his own accounts.
 
 ## Goal
-Real traffic from real fans: weekly users, Bracket Challenge groups created, links from other sites.
-Peak moments: NFL Weeks 12-18 (playoff races), NFL trade/clinch news, NBA Christmas, NBA trade deadline (early Feb), NBA lottery (May), Bracket Challenge opens (NFL: after Week 18; NBA: ~10 days before regular season ends).
+A little traffic from real fans, then word of mouth: weekly users, Bracket Challenge groups created, share images posted, links from other sites.
+Peak moments: NFL Weeks 12-18 (playoff races), clinch/elimination weekends, Thanksgiving, NBA Cup, NBA Christmas, NBA trade deadline (early Feb), NBA lottery (May), Bracket Challenge opens (NFL: after Week 18; NBA: ~10 days before regular season ends).
+
+## Strategy (decided 2026-11-13)
+1. Subreddit moderators first. Offer each team subreddit's mods a free weekly "Who should <team> fans root for in Week N" post or data for their own threads, delivered by a clearly labeled Reddit app (Devvit) that mods install and control. Reddit closed self-service API access in Nov 2025, so a Devvit app is the only bot route. Track everything in MODS.md.
+2. Word of mouth: share images, Bracket Challenge invite links, group chat, dues tracker. The product designer makes these easier every week.
+3. Search: per-team rooting guides and team pages. Watch rankings, don't chase them.
+No X/Bluesky accounts for now (Josh's call).
 
 ## Hard rules (non-negotiable)
-1. Nothing is posted, sent or published by an agent. Agents draft; Josh posts from his own accounts.
-2. Honest and disclosed: when Josh posts his own site on Reddit/forums he says he built it ("I made a free tool that..."). No fake accounts, no posing as a random fan, no asking for upvotes, no vote manipulation, no buying links.
-3. Respect each community's rules. Check the subreddit's rules/sidebar before suggesting a post there; many ban self-promotion or only allow it in weekly threads. Reddit's 9:1 spirit: most suggested Reddit activity should be genuinely useful comments that answer the question asked (with our numbers), not link drops.
-4. No more than 1 self-promotional Reddit post per subreddit per month. Prefer answering existing "what do the [team] need?" threads with real numbers and a link only when it helps.
-5. Numbers must come from the live site the day the pack is written. Never invent stats.
-6. Outreach emails go to people who'd plausibly care (team bloggers, beat writers, podcasts, newsletters). Personal, short, one ask. Josh sends them; max 3 per week.
+1. Agents never post, comment, message or publish anything. They draft; Josh sends from his own account as himself.
+2. No fake accounts, no posing as a fan, no undisclosed promotion, no vote manipulation, no buying links. When Josh links his own site he says he built it.
+3. Respect each community's rules; read the sidebar/rules before contacting. One follow-up per subreddit, ever. A "no" is final.
+4. Numbers come from the live site the day they're written. Never invent stats.
+5. Any Reddit app only posts where mods installed it and only answers when someone calls it.
 
 ## Josh's weekly time budget (10 min total)
-- Monday pack (marketing director): ~5 min.
-- Thursday pack (content producer): ~5 min.
-Each pack = a GitHub issue titled "Marketing pack: <date>" with numbered, copy-paste-ready items, each with exactly where to post it and an estimated time. Hard cap: 5 items per pack.
-
-## Channels (start here, director revises)
-- Reddit: team subreddits (r/DenverBroncos etc.), r/nfl (strict self-promo rules; comments in weekly threads), r/fantasyfootball (careful), r/nba, team NBA subs, r/nbadiscussion. Best format: a comment with the actual rooting-guide numbers for that team, link only if allowed.
-- X/Twitter: one post per pack with a share image; reply-guy strategy on beat writers' "playoff picture" posts.
-- Outreach: team bloggers (SB Nation, FanSided, On SI team sites), local TV/radio sports desks who cite "simulators" (they already cite NYT/PFSN), podcasts.
-- SEO: rooting guides and team pages; director notes which pages to promote.
+One GitHub issue each Monday, "Marketing: week of <date>": 3-5 modmails to paste (~1 min each), at most one optional organic item, and a 3-line status. Josh pastes mod replies back into the issue.
 
 ## Files
 - PLAYBOOK.md (this file): strategy and rules. Director owns; edits in place.
 - LOG.md: append-only. Every run adds a dated entry: what was produced, links, results Josh reported, what to change.
-- packs/YYYY-MM-DD-<role>.md: the full pack text (the GitHub issue mirrors it). Share images go in packs/img/.
+- MODS.md: subreddit outreach tracker (director owns).
+- packs/YYYY-MM-DD-<role>.md: the weekly issue text.
