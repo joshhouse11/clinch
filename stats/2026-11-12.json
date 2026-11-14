@@ -1,7 +1,278 @@
 {
   "day": "2026-11-12",
-  "generated": "2026-11-14T05:35:41.195Z",
-  "traffic": null,
+  "generated": "2026-11-14T05:39:52.021Z",
+  "traffic": {
+    "yesterday": {
+      "pageviews": 80,
+      "visits": 35,
+      "topPages": [
+        {
+          "path": "/",
+          "views": 32,
+          "visits": 27
+        },
+        {
+          "path": "/nfl/bracket-challenge/",
+          "views": 9,
+          "visits": 2
+        },
+        {
+          "path": "/nfl/playoff-scenarios/",
+          "views": 4,
+          "visits": 0
+        },
+        {
+          "path": "/nba/",
+          "views": 4,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/washington-commanders/",
+          "views": 4,
+          "visits": 1
+        },
+        {
+          "path": "/nba/draft-lottery/",
+          "views": 4,
+          "visits": 0
+        },
+        {
+          "path": "/nba/playoff-odds/",
+          "views": 3,
+          "visits": 0
+        },
+        {
+          "path": "/nba/bracket-challenge/",
+          "views": 3,
+          "visits": 1
+        },
+        {
+          "path": "/nfl/teams/denver-broncos/",
+          "views": 3,
+          "visits": 1
+        },
+        {
+          "path": "/nfl/playoff-odds/",
+          "views": 2,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/washington-commanders/rooting-guide/",
+          "views": 2,
+          "visits": 0
+        },
+        {
+          "path": "/nba/teams/dallas-mavericks/",
+          "views": 2,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/buffalo-bills/rooting-guide/",
+          "views": 1,
+          "visits": 1
+        },
+        {
+          "path": "/nfl/teams/cincinnati-bengals/",
+          "views": 1,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/carolina-panthers/",
+          "views": 1,
+          "visits": 0
+        }
+      ],
+      "referrers": [
+        {
+          "host": "(direct)",
+          "visits": 33
+        },
+        {
+          "host": "www.google.com",
+          "visits": 2
+        },
+        {
+          "host": "clinchscenarios.com",
+          "visits": 0
+        }
+      ],
+      "countries": [
+        {
+          "country": "US",
+          "visits": 14
+        },
+        {
+          "country": "PL",
+          "visits": 5
+        },
+        {
+          "country": "NL",
+          "visits": 4
+        },
+        {
+          "country": "CA",
+          "visits": 3
+        },
+        {
+          "country": "DE",
+          "visits": 3
+        },
+        {
+          "country": "KR",
+          "visits": 2
+        }
+      ],
+      "devices": [
+        {
+          "type": "desktop",
+          "visits": 25
+        },
+        {
+          "type": "mobile",
+          "visits": 10
+        }
+      ]
+    },
+    "last7": {
+      "pageviews": 225,
+      "visits": 38,
+      "topPages": [
+        {
+          "path": "/",
+          "views": 54,
+          "visits": 28
+        },
+        {
+          "path": "/nba/",
+          "views": 41,
+          "visits": 0
+        },
+        {
+          "path": "/nba/draft-lottery/",
+          "views": 17,
+          "visits": 0
+        },
+        {
+          "path": "/nba/playoff-odds/",
+          "views": 16,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/bracket-challenge/",
+          "views": 13,
+          "visits": 2
+        },
+        {
+          "path": "/nba/bracket-challenge/",
+          "views": 9,
+          "visits": 2
+        },
+        {
+          "path": "/nfl/playoff-scenarios/",
+          "views": 7,
+          "visits": 0
+        },
+        {
+          "path": "/nba/teams/dallas-mavericks/",
+          "views": 6,
+          "visits": 0
+        },
+        {
+          "path": "/nba/teams/detroit-pistons/",
+          "views": 5,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/playoff-odds/",
+          "views": 5,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/washington-commanders/",
+          "views": 4,
+          "visits": 1
+        },
+        {
+          "path": "/nba/teams/los-angeles-lakers/",
+          "views": 4,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/houston-texans/",
+          "views": 3,
+          "visits": 0
+        },
+        {
+          "path": "/nba/teams/cleveland-cavaliers/",
+          "views": 3,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/draft-order/",
+          "views": 3,
+          "visits": 0
+        }
+      ],
+      "referrers": [
+        {
+          "host": "(direct)",
+          "visits": 36
+        },
+        {
+          "host": "www.google.com",
+          "visits": 2
+        },
+        {
+          "host": "clinchscenarios.com",
+          "visits": 0
+        }
+      ],
+      "countries": [
+        {
+          "country": "US",
+          "visits": 16
+        },
+        {
+          "country": "PL",
+          "visits": 5
+        },
+        {
+          "country": "DE",
+          "visits": 4
+        },
+        {
+          "country": "NL",
+          "visits": 4
+        },
+        {
+          "country": "CA",
+          "visits": 3
+        },
+        {
+          "country": "KR",
+          "visits": 2
+        }
+      ],
+      "devices": [
+        {
+          "type": "desktop",
+          "visits": 28
+        },
+        {
+          "type": "mobile",
+          "visits": 10
+        }
+      ]
+    },
+    "prior7": {
+      "pageviews": 0,
+      "visits": 0,
+      "topPages": [],
+      "referrers": [],
+      "countries": [],
+      "devices": []
+    }
+  },
   "product": {
     "users": {
       "total": 1,
@@ -44,7 +315,5 @@
       "yesterday": 0
     }
   },
-  "notes": [
-    "No CF_API_TOKEN: traffic skipped."
-  ]
+  "notes": []
 }
