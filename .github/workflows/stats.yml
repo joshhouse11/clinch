@@ -1,0 +1,39 @@
+name: Daily stats
+
+# Collects yesterday's traffic (Cloudflare Web Analytics) and product activity (Supabase) for the daily debrief.
+# Results go to the "stats" branch (stats/YYYY-MM-DD.json + stats/history.csv), never to main, so nothing redeploys.
+on:
+  schedule:
+    - cron: '7 11 * * *'   # 5:07am Central (6:07 during daylight time)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency: { group: stats, cancel-in-progress: false }
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Get the stats branch history
+        run: |
+          git fetch origin stats || true
+          mkdir -p stats
+          if git rev-parse --verify origin/stats >/dev/null 2>&1; then git checkout origin/stats -- stats/ || true; fi
+      - name: Collect yesterday's numbers
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/stats.js
+      - name: Save to the stats branch
+        run: |
+          cp -r stats /tmp/stats
+          git config user.name "clinch-bot"; git config user.email "actions@users.noreply.github.com"
+          if git rev-parse --verify origin/stats >/dev/null 2>&1; then git checkout -B stats origin/stats; else git checkout --orphan stats && git rm -rf . -q; fi
+          rm -rf stats && cp -r /tmp/stats stats
+          git add stats && git commit -m "Stats $(date -u +%F) [skip ci]" || echo "no change"
+          git push origin stats
