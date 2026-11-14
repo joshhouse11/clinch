@@ -1,6 +1,6 @@
 {
   "day": "2026-11-12",
-  "generated": "2026-11-14T05:39:52.021Z",
+  "generated": "2026-11-14T05:49:22.077Z",
   "traffic": {
     "yesterday": {
       "pageviews": 80,
@@ -262,6 +262,98 @@
           "type": "mobile",
           "visits": 10
         }
+      ],
+      "referrerPages": [
+        {
+          "url": "www.google.com/",
+          "visits": 2
+        }
+      ],
+      "browsers": [
+        {
+          "name": "Chrome",
+          "visits": 21
+        },
+        {
+          "name": "ChromeMobile",
+          "visits": 6
+        },
+        {
+          "name": "ChromeDerivative",
+          "visits": 3
+        },
+        {
+          "name": "Unknown",
+          "visits": 3
+        },
+        {
+          "name": "MobileSafari",
+          "visits": 3
+        },
+        {
+          "name": "Firefox",
+          "visits": 2
+        }
+      ],
+      "os": [
+        {
+          "name": "Windows",
+          "visits": 14
+        },
+        {
+          "name": "Linux",
+          "visits": 11
+        },
+        {
+          "name": "iOS",
+          "visits": 6
+        },
+        {
+          "name": "Unknown",
+          "visits": 3
+        },
+        {
+          "name": "Android",
+          "visits": 3
+        },
+        {
+          "name": "MacOSX",
+          "visits": 1
+        }
+      ],
+      "landingPages": [
+        {
+          "path": "/",
+          "visits": 28
+        },
+        {
+          "path": "/nfl/bracket-challenge/",
+          "visits": 2
+        },
+        {
+          "path": "/nba/bracket-challenge/",
+          "visits": 2
+        },
+        {
+          "path": "/nfl/teams/miami-dolphins/rooting-guide/",
+          "visits": 1
+        },
+        {
+          "path": "/nfl/teams/new-england-patriots/",
+          "visits": 1
+        },
+        {
+          "path": "/nfl/teams/washington-commanders/",
+          "visits": 1
+        },
+        {
+          "path": "/nfl/teams/buffalo-bills/rooting-guide/",
+          "visits": 1
+        },
+        {
+          "path": "/nfl/teams/chicago-bears/",
+          "visits": 1
+        }
       ]
     },
     "prior7": {
@@ -307,13 +399,25 @@
       "yesterday": 0
     },
     "chatMessages": {
-      "total": 1,
-      "yesterday": 1
+      "total": 0,
+      "yesterday": 0
     },
     "emailsSent": {
       "total": 0,
       "yesterday": 0
     }
   },
-  "notes": []
+  "notes": [],
+  "series": [
+    {
+      "day": "2026-11-11",
+      "visits": 0,
+      "pageviews": 130
+    },
+    {
+      "day": "2026-11-12",
+      "visits": 20,
+      "pageviews": 70
+    }
+  ]
 }
