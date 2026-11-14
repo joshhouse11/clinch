@@ -48,6 +48,31 @@ if (CF) {
   try {
     out.traffic = { yesterday: await traffic(0, 0), last7: await traffic(6, 0), prior7: await traffic(13, 7) };
   } catch (e) { out.notes.push(`Cloudflare: ${e.message}`); }
+  // Extras for the chart: a daily series (up to 30 days), referrer pages, browsers, OS. Optional: failures only add a note.
+  for (const days of [30, 14, 7]) {
+    try {
+      const f = { AND: [{ datetime_geq: startOf(day, days - 1).toISOString(), datetime_lt: startOf(today).toISOString() }, { requestHost: HOST }, { bot: 0 }] };
+      const a = await cf(`query($a: String!, $f: AccountRumPageloadEventsAdaptiveGroupsFilter_InputObject) { viewer { accounts(filter: { accountTag: $a }) {
+        s: rumPageloadEventsAdaptiveGroups(limit: 5000, filter: $f) { count sum { visits } dimensions { datetimeHour } } } } }`, { a: ACCOUNT, f });
+      const by = {};
+      for (const x of a.s) { const d = fmt(new Date(x.dimensions.datetimeHour)); (by[d] = by[d] || { day: d, visits: 0, pageviews: 0 }); by[d].visits += x.sum.visits; by[d].pageviews += x.count; }
+      out.series = Object.values(by).filter((x) => x.day <= day).sort((p, q) => p.day.localeCompare(q.day));
+      break;
+    } catch (e) { if (days === 7) out.notes.push(`Cloudflare series: ${e.message}`); }
+  }
+  try {
+    const f = { AND: [{ datetime_geq: startOf(day, 6).toISOString(), datetime_lt: startOf(today).toISOString() }, { requestHost: HOST }, { bot: 0 }] };
+    const a = await cf(`query($a: String!, $f: AccountRumPageloadEventsAdaptiveGroupsFilter_InputObject) { viewer { accounts(filter: { accountTag: $a }) {
+      refPages: rumPageloadEventsAdaptiveGroups(limit: 10, filter: $f, orderBy: [sum_visits_DESC]) { sum { visits } dimensions { refererHost refererPath } }
+      browsers: rumPageloadEventsAdaptiveGroups(limit: 6, filter: $f, orderBy: [sum_visits_DESC]) { sum { visits } dimensions { userAgentBrowser } }
+      os: rumPageloadEventsAdaptiveGroups(limit: 6, filter: $f, orderBy: [sum_visits_DESC]) { sum { visits } dimensions { userAgentOS } }
+      landing: rumPageloadEventsAdaptiveGroups(limit: 8, filter: $f, orderBy: [sum_visits_DESC]) { sum { visits } dimensions { requestPath } }
+    } } }`, { a: ACCOUNT, f });
+    out.traffic.last7.referrerPages = a.refPages.filter((x) => x.dimensions.refererHost && x.sum.visits).map((x) => ({ url: x.dimensions.refererHost + (x.dimensions.refererPath || ''), visits: x.sum.visits }));
+    out.traffic.last7.browsers = a.browsers.map((x) => ({ name: x.dimensions.userAgentBrowser, visits: x.sum.visits }));
+    out.traffic.last7.os = a.os.map((x) => ({ name: x.dimensions.userAgentOS, visits: x.sum.visits }));
+    out.traffic.last7.landingPages = a.landing.filter((x) => x.sum.visits).map((x) => ({ path: x.dimensions.requestPath, visits: x.sum.visits }));
+  } catch (e) { out.notes.push(`Cloudflare extras: ${e.message}`); }
 } else out.notes.push('No CF_API_TOKEN: traffic skipped.');
 
 if (KEY && site.SUPABASE_URL) {

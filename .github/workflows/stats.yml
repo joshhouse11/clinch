@@ -29,6 +29,10 @@ jobs:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/stats.js
+      - name: Draw the dashboard image
+        run: |
+          npm install --no-save --no-package-lock @resvg/resvg-js@2
+          node scripts/stats-chart.js stats
       - name: Save to the stats branch
         run: |
           cp -r stats /tmp/stats
