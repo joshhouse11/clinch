@@ -1,0 +1,50 @@
+{
+  "day": "2026-11-12",
+  "generated": "2026-11-14T05:31:56.033Z",
+  "traffic": null,
+  "product": {
+    "users": {
+      "total": 1,
+      "yesterday": 0
+    },
+    "groups": {
+      "nfl": {
+        "total": 1,
+        "yesterday": 0
+      },
+      "nba": {
+        "total": 1,
+        "yesterday": 1
+      }
+    },
+    "groupMembers": {
+      "total": 2,
+      "yesterday": 1
+    },
+    "brackets": {
+      "nfl": {
+        "total": 0,
+        "yesterday": 0
+      },
+      "nba": {
+        "total": 0,
+        "yesterday": 0
+      }
+    },
+    "savedScenarios": {
+      "total": 1,
+      "yesterday": 0
+    },
+    "chatMessages": {
+      "total": 1,
+      "yesterday": 1
+    },
+    "emailsSent": {
+      "total": 0,
+      "yesterday": 0
+    }
+  },
+  "notes": [
+    "No CF_API_TOKEN: traffic skipped."
+  ]
+}
