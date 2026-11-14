@@ -110,7 +110,7 @@ pair(
   ['By source', Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([label, v]) => ({ label, v }))],
   ['Top referrers', (W.referrers || []).filter((r) => r.visits && r.host !== '(direct)' && !self.test(r.host)).slice(0, 6).map((r) => ({ label: r.host.replace(/^www\./, ''), v: r.visits }))],
 );
-const refPages = (W.referrerPages || []).filter((r) => !self.test(r.url.split('/')[0])).slice(0, 5);
+const refPages = (W.referrerPages || []).filter((r) => !self.test(r.url.split('/')[0]) && /\/[^/]/.test(r.url)).slice(0, 5);
 if (refPages.length) { y += 16; y += barList(PAD, y, IN, 'Links people clicked to get here', refPages.map((r) => ({ label: r.url.replace(/^www\./, ''), v: r.visits }))); }
 
 // Pages
@@ -127,7 +127,9 @@ pair(
   ['Countries', (W.countries || []).slice(0, 6).map((c) => ({ label: country(c.country), v: c.visits }))],
   ['Devices', (W.devices || []).map((d) => ({ label: d.type[0].toUpperCase() + d.type.slice(1), v: d.visits }))],
 );
-if (W.browsers || W.os) pair(['Browsers', (W.browsers || []).slice(0, 5).map((b) => ({ label: b.name, v: b.visits }))], ['Operating systems', (W.os || []).slice(0, 5).map((b) => ({ label: b.name, v: b.visits }))]);
+const UA = { ChromeMobile: 'Chrome (phone)', MobileSafari: 'Safari (phone)', ChromeDerivative: 'Chrome-based', MacOSX: 'macOS', FirefoxMobile: 'Firefox (phone)', SamsungBrowser: 'Samsung Internet', EdgeMobile: 'Edge (phone)' };
+const ua = (x) => UA[x] || x;
+if (W.browsers || W.os) pair(['Browsers', (W.browsers || []).slice(0, 5).map((b) => ({ label: ua(b.name), v: b.visits }))], ['Operating systems', (W.os || []).slice(0, 5).map((b) => ({ label: ua(b.name), v: b.visits }))]);
 
 // Product
 section('Product', 'all-time total · new yesterday');
