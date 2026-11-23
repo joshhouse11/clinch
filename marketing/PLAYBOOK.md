@@ -26,6 +26,7 @@ No X/Bluesky accounts for now (Josh's call).
 
 ## Josh's weekly time budget (10 min total)
 One GitHub issue each Monday, "Marketing: week of <date>": 3-5 modmails to paste (~1 min each), at most one optional organic item, and a 3-line status. Josh pastes mod replies back into the issue.
+If last week's modmails weren't sent, don't stack a new batch on top: redraft the same subs with fresh numbers (stale odds can't go out) and close the old issue once they're sent. The weekly ask never grows past 5.
 
 ## Files
 - PLAYBOOK.md (this file): strategy and rules. Director owns; edits in place.
