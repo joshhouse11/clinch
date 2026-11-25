@@ -476,6 +476,8 @@ nav.tabs i.lg, nav.tabs i.sm { font-style: normal; } nav.tabs i.sm { display: no
 .cmsg:hover .cdel { display: grid; place-items: center; }
 @media (hover: none) { .cdel { display: grid; place-items: center; } }
 .chatform { display: flex; gap: 8px; } .chatform input { flex: 1; min-width: 0; }
+.rgroup { display: flex; gap: 12px; align-items: center; padding: 12px 16px; margin: 0 0 12px; text-decoration: none; color: inherit; border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.rgroup > span:first-child { font-size: 22px; } .rgroup b { display: block; color: var(--accent); } .rgroup small { display: block; color: var(--muted); margin-top: 2px; line-height: 1.4; } .rgroup:hover b { text-decoration: underline; }
 .rstory { padding: 16px 18px; margin: 4px 0 12px; } .rstory h2 { font-family: var(--display); font-size: 18px; margin: 0 0 8px; } .rstory p { margin: 0 0 8px; line-height: 1.5; } .rstory .hint a { color: var(--accent); }
 .chnote { margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); color: var(--muted); font-size: 13px; }
 .chnote.warn { color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--surface-2)); }
@@ -1319,7 +1321,7 @@ function rootingStory() {
   if (own) { const g = own.g, opp = TEAMS[g.h === i0 ? g.a : g.h]; lines.push(tank ? `Their own game against the ${TEAM_NAMES[opp]}${when(g)} matters most for the pick: a loss helps the draft slot.` : `Their own game against the ${TEAM_NAMES[opp]}${when(g)} matters most, of course.`); }
   top.forEach((x, k) => {
     const lead = k === 0 ? `The biggest outside game for ${nm} fans: root for ${vsTxt(x.g, x.rootHome)}${when(x.g)}` : `${['Next', 'Also', 'And'][Math.min(k - 1, 2)]}, root for ${vsTxt(x.g, x.rootHome)}${when(x.g)}`;
-    lines.push(`${lead}${x.detail ? `, worth about ${x.detail}` : x.logic ? ` (${x.logic.toLowerCase()})` : ''}.`);
+    lines.push(`${lead}${x.detail ? `, worth about ${x.detail}` : x.logic ? ` (${/^[A-Z][a-z]/.test(x.logic) ? x.logic.charAt(0).toLowerCase() + x.logic.slice(1) : x.logic})` : ''}.`);
   });
   if (!top.length) lines.push(`No other Week ${wk} game moves the needle much for the ${nm}.`);
   return `<section class="card rstory"><h2>Who should ${nm} fans root for in Week ${wk}?</h2>${lines.map((l) => `<p>${l}</p>`).join('')}<p class="hint">Updated after every game. Odds use the real standings, not your picks. <a href="${pathFor('team', t)}">See all ${nm} playoff scenarios</a>.</p></section>`;
@@ -1355,6 +1357,7 @@ function rootingView() {
   return `${weekSeg}
     <div class="section-head" style="margin:12px 0 4px">${modeSeg}<span style="margin-left:auto">${shareBtn('root', `Share ${t} rooting guide`, true)}</span></div>
     ${rootingStory()}
+    <a class="card rgroup" href="${TAB_PATH.challenge}?start=${t}"><span>🏆</span><span><b>Start a Bracket Challenge group for your ${TEAM_NAMES[t]} group chat</b><small>Free. Set it up now and everyone gets an email when brackets open after Week 18.</small></span></a>
     <p class="hint">${intro} Based on the real standings, not your picks. Gold marks the side to root for.</p>
     <div class="games">${own ? card(own) : ''}${order.map(card).join('')}</div>`;
 }
@@ -1571,6 +1574,12 @@ async function openLinkFromUrl() {
     if (sb) chJoinDialog(code);
     return;
   }
+  if (q.get('start')) { // "Start a group" links from rooting guides: /nfl/bracket-challenge/?start=DET
+    const team = q.get('start').toUpperCase().replace(/[^A-Z]/g, '');
+    clean(); goTab('challenge');
+    if (sb) { if (user) chGroupForm(null, team); else { store.set('pending', 'chnew:' + team); signInDialog('challenge'); } }
+    return;
+  }
   if (q.get('p')) {
     const [season, team, data, po] = q.get('p').split('.');
     clean();
@@ -1711,7 +1720,7 @@ async function initAccounts() {
         store.set('pending', null);
         if (pending === 'save') saveDialog();
         else if (pending.startsWith('join:')) { goTab('challenge'); chJoinDialog(pending.slice(5)); }
-        else if (pending.startsWith('ch')) { goTab('challenge'); if (pending === 'chnew') chGroupForm(null); if (pending === 'chjoin') chJoinDialog(''); }
+        else if (pending.startsWith('ch')) { goTab('challenge'); if (pending === 'chnew' || pending.startsWith('chnew:')) chGroupForm(null, pending.slice(6)); if (pending === 'chjoin') chJoinDialog(''); }
       }
       if (state.tab === 'challenge') chLoad(true);
     } catch (err) { console.warn(err); }
@@ -1960,9 +1969,10 @@ function chGroupView() {
   <p class="hint chlegal">Clinch doesn't collect or hold money. The commissioner marks who's paid.</p>`;
 }
 
-function chGroupForm(g) {
+function chGroupForm(g, team) {
+  const fans = !g && TEAM_NAMES[team] ? `${TEAM_NAMES[team]} Fans Bracket Challenge` : null;
   openModal(`<h3>${g ? 'Group settings' : 'Start a group'}</h3>
-    <label class="hint" for="cgName">Group name</label><input type="text" id="cgName" maxlength="60" value="${esc(g ? g.name : `${(myName().split(' ')[0])}'s Bracket Challenge`)}">
+    <label class="hint" for="cgName">Group name</label><input type="text" id="cgName" maxlength="60" value="${esc(g ? g.name : fans || `${(myName().split(' ')[0])}'s Bracket Challenge`)}">
     <label class="hint" for="cgDues">Dues per person (optional, tracking only)</label><input type="number" id="cgDues" min="0" max="10000" inputmode="numeric" value="${g ? g.dues || '' : ''}" placeholder="0">
     <label class="hint" for="cgNote">How to pay (optional)</label><input type="text" id="cgNote" maxlength="200" value="${esc(g?.dues_note || '')}" placeholder="e.g. Venmo @josh-house">
     <p class="hint">Clinch only tracks who's paid. Money goes directly between members.</p>
@@ -2311,9 +2321,16 @@ async function makeCard(kind) {
   return cardPicture(cur);
 }
 let cardKind = null, cardBlob = null;
+// Link that goes with the share card: exact picks if there are any, otherwise the page the card is about
+// (a rooting-guide card links to that team's rooting guide, not the home page).
+function shareLink() {
+  if (hasPicks()) return `${siteBase()}/?p=${RAW.season}.${state.team}.${packScenario()}${nPo() ? '.' + packPo(state.po) : ''}`;
+  const path = { root: weeks.length ? pathFor('root', state.team) : pathFor('team', state.team), team: pathFor('team', state.team), draft: TAB_PATH.draft, bracket: state.tab === 'challenge' ? TAB_PATH.challenge : TAB_PATH.odds, picture: TAB_PATH.league }[cardKind];
+  return (CONFIG.siteUrl || location.origin) + (path || '/');
+}
 async function share(kind) {
   cardKind = kind || defaultCard();
-  const url = hasPicks() ? `${siteBase()}/?p=${RAW.season}.${state.team}.${packScenario()}${nPo() ? '.' + packPo(state.po) : ''}` : siteBase() + '/';
+  const url = shareLink();
   openModal(`<h3>Share</h3>
     <div class="seg cardseg">${CARD_KINDS.map((c) => `<button data-card="${c.k}" aria-pressed="${c.k === cardKind}">${c.label}</button>`).join('')}</div>
     <div class="cardprev"><img id="cardImg" alt="Share image preview"></div>
@@ -2329,11 +2346,11 @@ async function drawPreview() {
   cardBlob = await new Promise((r) => c.toBlob(r, 'image/png'));
   const img = $('#cardImg'); if (img) img.src = URL.createObjectURL(cardBlob);
 }
-const shareText = () => ({ picture: 'My NFL playoff picture 👀', root: `Week ${state.week}: who ${TEAM_NAMES[state.team]} fans should root for 🙏`, team: `My ${TEAM_NAMES[state.team]} scenario 👀`, bracket: 'My NFL playoff bracket 🏆', draft: 'Tank watch: the NFL draft order 📉' })[cardKind] + ' Make yours at clinchscenarios.com';
+const shareText = () => ({ picture: 'My NFL playoff picture 👀', root: `Week ${state.week}: who ${TEAM_NAMES[state.team]} fans should root for 🙏`, team: `My ${TEAM_NAMES[state.team]} scenario 👀`, bracket: 'My NFL playoff bracket 🏆', draft: 'Tank watch: the NFL draft order 📉' })[cardKind] + ' ' + shareLink();
 document.addEventListener('click', async (e) => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.act === 'sharecard') return share(b.dataset.card);
-  if (b.dataset.card) { cardKind = b.dataset.card; document.querySelectorAll('.cardseg button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.card === cardKind))); return drawPreview(); }
+  if (b.dataset.card) { cardKind = b.dataset.card; document.querySelectorAll('.cardseg button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.card === cardKind))); const u = $('#shareUrl'); if (u) u.value = shareLink(); return drawPreview(); }
   if (b.dataset.act === 'carddl' && cardBlob) { const a = document.createElement('a'); a.href = URL.createObjectURL(cardBlob); a.download = `clinch-${cardKind}.png`; a.click(); return; }
   if (b.dataset.act === 'cardshare' && cardBlob) {
     const file = new File([cardBlob], `clinch-${cardKind}.png`, { type: 'image/png' });
