@@ -85,7 +85,7 @@ function gameCard(g, focus) {
   const pk = g.played ? (g.hs > g.as ? 1 : -1) : picks[g.k], p = nbaWinProb(RATING, g.h, g.a);
   const st = (side) => (pk === undefined ? '' : (pk === 1) === (side === 'h') ? 'win' : 'loss');
   const side = (t, s, q) => `<button class="side${s === 'h' ? ' home' : ''}" ${g.played ? 'disabled' : `data-g="${g.k}" data-pick="${s === 'h' ? 1 : -1}"`} data-state="${st(s)}" aria-label="${FULL[T[t]]} win">${chip(T[t])}<span><div class="nm">${NICK[T[t]]}</div><div class="pr num">${g.played ? (s === 'h' ? g.hs : g.as) : `${pct(q)} · ${rec(t)}`}</div></span></button>`;
-  const tm = g.when ? new Date(g.when).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }) : '';
+  const tm = g.when ? `${new Date(g.when).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })} ET` : '';
   const day = new Date(g.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   const mine = focus !== undefined && (g.h === focus || g.a === focus);
   return `<div class="card game${g.played ? ' past' : ''}${mine ? ' mine' : ''}" style="--tc:${COLORS[T[focus ?? g.h]]}"><div class="gmeta"><span>${day}${tm && !g.played ? ' ' + tm : ''}</span><span>${g.played ? 'Final' : pk === undefined ? '' : 'Your pick'}</span></div>
