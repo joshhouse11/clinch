@@ -1,0 +1,688 @@
+{
+  "day": "2026-11-26",
+  "generated": "2026-11-27T11:59:14.058Z",
+  "traffic": {
+    "yesterday": {
+      "pageviews": 102,
+      "visits": 64,
+      "topPages": [
+        {
+          "path": "/",
+          "views": 23,
+          "visits": 23
+        },
+        {
+          "path": "/nfl/teams/buffalo-bills/rooting-guide/",
+          "views": 18,
+          "visits": 17
+        },
+        {
+          "path": "/nfl/playoff-scenarios/",
+          "views": 13,
+          "visits": 10
+        },
+        {
+          "path": "/nfl/teams/buffalo-bills/",
+          "views": 11,
+          "visits": 5
+        },
+        {
+          "path": "/nfl/teams/cleveland-browns/rooting-guide/",
+          "views": 7,
+          "visits": 3
+        },
+        {
+          "path": "/nfl/teams/cleveland-browns/",
+          "views": 4,
+          "visits": 0
+        },
+        {
+          "path": "/nba/teams/detroit-pistons/",
+          "views": 3,
+          "visits": 2
+        },
+        {
+          "path": "/nfl/teams/new-england-patriots/",
+          "views": 2,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/playoff-odds/",
+          "views": 2,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/philadelphia-eagles/",
+          "views": 2,
+          "visits": 2
+        },
+        {
+          "path": "/nfl/teams/las-vegas-raiders/",
+          "views": 1,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/cincinnati-bengals/rooting-guide/",
+          "views": 1,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/bracket-challenge/",
+          "views": 1,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/san-francisco-49ers/",
+          "views": 1,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/los-angeles-chargers/",
+          "views": 1,
+          "visits": 0
+        }
+      ],
+      "referrers": [
+        {
+          "host": "(direct)",
+          "visits": 47
+        },
+        {
+          "host": "www.google.com",
+          "visits": 10
+        },
+        {
+          "host": "www.bing.com",
+          "visits": 4
+        },
+        {
+          "host": "search.yahoo.com",
+          "visits": 1
+        },
+        {
+          "host": "webmailab.juno.com",
+          "visits": 1
+        },
+        {
+          "host": "duckduckgo.com",
+          "visits": 1
+        },
+        {
+          "host": "clinchscenarios.com",
+          "visits": 0
+        }
+      ],
+      "countries": [
+        {
+          "country": "US",
+          "visits": 62
+        },
+        {
+          "country": "TH",
+          "visits": 1
+        },
+        {
+          "country": "DE",
+          "visits": 1
+        }
+      ],
+      "devices": [
+        {
+          "type": "desktop",
+          "visits": 40
+        },
+        {
+          "type": "mobile",
+          "visits": 22
+        },
+        {
+          "type": "tablet",
+          "visits": 2
+        }
+      ]
+    },
+    "last7": {
+      "pageviews": 795,
+      "visits": 494,
+      "topPages": [
+        {
+          "path": "/nfl/playoff-scenarios/",
+          "views": 286,
+          "visits": 275
+        },
+        {
+          "path": "/",
+          "views": 82,
+          "visits": 82
+        },
+        {
+          "path": "/nfl/teams/buffalo-bills/rooting-guide/",
+          "views": 46,
+          "visits": 43
+        },
+        {
+          "path": "/nfl/teams/buffalo-bills/",
+          "views": 41,
+          "visits": 10
+        },
+        {
+          "path": "/nfl/teams/new-england-patriots/",
+          "views": 24,
+          "visits": 1
+        },
+        {
+          "path": "/nfl/teams/denver-broncos/",
+          "views": 20,
+          "visits": 3
+        },
+        {
+          "path": "/nfl/teams/kansas-city-chiefs/",
+          "views": 19,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/seattle-seahawks/rooting-guide/",
+          "views": 16,
+          "visits": 16
+        },
+        {
+          "path": "/nfl/teams/cincinnati-bengals/",
+          "views": 16,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/pittsburgh-steelers/",
+          "views": 14,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/san-francisco-49ers/",
+          "views": 13,
+          "visits": 6
+        },
+        {
+          "path": "/nfl/teams/chicago-bears/",
+          "views": 12,
+          "visits": 5
+        },
+        {
+          "path": "/nfl/teams/cincinnati-bengals/rooting-guide/",
+          "views": 12,
+          "visits": 8
+        },
+        {
+          "path": "/nfl/teams/cleveland-browns/",
+          "views": 12,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/jacksonville-jaguars/",
+          "views": 11,
+          "visits": 0
+        }
+      ],
+      "referrers": [
+        {
+          "host": "(direct)",
+          "visits": 452
+        },
+        {
+          "host": "www.google.com",
+          "visits": 14
+        },
+        {
+          "host": "bing.com",
+          "visits": 11
+        },
+        {
+          "host": "www.bing.com",
+          "visits": 8
+        },
+        {
+          "host": "duckduckgo.com",
+          "visits": 5
+        },
+        {
+          "host": "search.yahoo.com",
+          "visits": 2
+        },
+        {
+          "host": "com.google.android.gm",
+          "visits": 1
+        },
+        {
+          "host": "webmailab.juno.com",
+          "visits": 1
+        },
+        {
+          "host": "clinchscenarios.com",
+          "visits": 0
+        }
+      ],
+      "countries": [
+        {
+          "country": "US",
+          "visits": 477
+        },
+        {
+          "country": "GB",
+          "visits": 5
+        },
+        {
+          "country": "IN",
+          "visits": 3
+        },
+        {
+          "country": "TH",
+          "visits": 1
+        },
+        {
+          "country": "CL",
+          "visits": 1
+        },
+        {
+          "country": "BO",
+          "visits": 1
+        }
+      ],
+      "devices": [
+        {
+          "type": "desktop",
+          "visits": 393
+        },
+        {
+          "type": "mobile",
+          "visits": 94
+        },
+        {
+          "type": "tablet",
+          "visits": 7
+        }
+      ],
+      "referrerPages": [
+        {
+          "url": "www.google.com/",
+          "visits": 14
+        },
+        {
+          "url": "bing.com/",
+          "visits": 11
+        },
+        {
+          "url": "www.bing.com/",
+          "visits": 8
+        },
+        {
+          "url": "duckduckgo.com/",
+          "visits": 5
+        },
+        {
+          "url": "search.yahoo.com/",
+          "visits": 2
+        },
+        {
+          "url": "webmailab.juno.com/",
+          "visits": 1
+        },
+        {
+          "url": "com.google.android.gm/",
+          "visits": 1
+        }
+      ],
+      "browsers": [
+        {
+          "name": "Unknown",
+          "visits": 336
+        },
+        {
+          "name": "MobileSafari",
+          "visits": 70
+        },
+        {
+          "name": "Chrome",
+          "visits": 44
+        },
+        {
+          "name": "ChromeMobile",
+          "visits": 19
+        },
+        {
+          "name": "Edge",
+          "visits": 13
+        },
+        {
+          "name": "Firefox",
+          "visits": 7
+        }
+      ],
+      "os": [
+        {
+          "name": "Unknown",
+          "visits": 336
+        },
+        {
+          "name": "iOS",
+          "visits": 78
+        },
+        {
+          "name": "Windows",
+          "visits": 41
+        },
+        {
+          "name": "Android",
+          "visits": 19
+        },
+        {
+          "name": "MacOSX",
+          "visits": 11
+        },
+        {
+          "name": "Linux",
+          "visits": 9
+        }
+      ],
+      "landingPages": [
+        {
+          "path": "/nfl/playoff-scenarios/",
+          "visits": 275
+        },
+        {
+          "path": "/",
+          "visits": 82
+        },
+        {
+          "path": "/nfl/teams/buffalo-bills/rooting-guide/",
+          "visits": 43
+        },
+        {
+          "path": "/nfl/teams/seattle-seahawks/rooting-guide/",
+          "visits": 16
+        },
+        {
+          "path": "/nfl/teams/buffalo-bills/",
+          "visits": 10
+        },
+        {
+          "path": "/nfl/teams/minnesota-vikings/rooting-guide/",
+          "visits": 9
+        },
+        {
+          "path": "/nfl/teams/cincinnati-bengals/rooting-guide/",
+          "visits": 8
+        },
+        {
+          "path": "/nfl/teams/detroit-lions/rooting-guide/",
+          "visits": 7
+        }
+      ]
+    },
+    "prior7": {
+      "pageviews": 400,
+      "visits": 200,
+      "topPages": [
+        {
+          "path": "/",
+          "views": 80,
+          "visits": 80
+        },
+        {
+          "path": "/nfl/teams/buffalo-bills/rooting-guide/",
+          "views": 40,
+          "visits": 20
+        },
+        {
+          "path": "/nfl/playoff-odds/",
+          "views": 40,
+          "visits": 10
+        },
+        {
+          "path": "/nfl/teams/buffalo-bills/",
+          "views": 30,
+          "visits": 10
+        },
+        {
+          "path": "/nfl/teams/green-bay-packers/rooting-guide/",
+          "views": 20,
+          "visits": 20
+        },
+        {
+          "path": "/nfl/teams/minnesota-vikings/rooting-guide/",
+          "views": 20,
+          "visits": 20
+        },
+        {
+          "path": "/nfl/teams/detroit-lions/rooting-guide/",
+          "views": 20,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/playoff-scenarios/",
+          "views": 20,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/dallas-cowboys/",
+          "views": 10,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/san-francisco-49ers/",
+          "views": 10,
+          "visits": 10
+        },
+        {
+          "path": "/nfl/teams/denver-broncos/rooting-guide/",
+          "views": 10,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/new-york-jets/",
+          "views": 10,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/teams/new-england-patriots/rooting-guide/",
+          "views": 10,
+          "visits": 0
+        },
+        {
+          "path": "/nfl/bracket-challenge/",
+          "views": 10,
+          "visits": 10
+        },
+        {
+          "path": "/nfl/teams/new-england-patriots/",
+          "views": 10,
+          "visits": 10
+        }
+      ],
+      "referrers": [
+        {
+          "host": "(direct)",
+          "visits": 160
+        },
+        {
+          "host": "www.google.com",
+          "visits": 20
+        },
+        {
+          "host": "www.bing.com",
+          "visits": 10
+        },
+        {
+          "host": "bing.com",
+          "visits": 10
+        },
+        {
+          "host": "clinchscenarios.com",
+          "visits": 0
+        }
+      ],
+      "countries": [
+        {
+          "country": "US",
+          "visits": 150
+        },
+        {
+          "country": "CA",
+          "visits": 20
+        },
+        {
+          "country": "MX",
+          "visits": 10
+        },
+        {
+          "country": "PL",
+          "visits": 10
+        },
+        {
+          "country": "NL",
+          "visits": 10
+        },
+        {
+          "country": "DE",
+          "visits": 0
+        }
+      ],
+      "devices": [
+        {
+          "type": "desktop",
+          "visits": 140
+        },
+        {
+          "type": "mobile",
+          "visits": 60
+        },
+        {
+          "type": "tablet",
+          "visits": 0
+        }
+      ]
+    }
+  },
+  "product": {
+    "users": {
+      "total": 1,
+      "yesterday": 0
+    },
+    "groups": {
+      "nfl": {
+        "total": 1,
+        "yesterday": 0
+      },
+      "nba": {
+        "total": 1,
+        "yesterday": 0
+      }
+    },
+    "groupMembers": {
+      "total": 2,
+      "yesterday": 0
+    },
+    "brackets": {
+      "nfl": {
+        "total": 0,
+        "yesterday": 0
+      },
+      "nba": {
+        "total": 0,
+        "yesterday": 0
+      }
+    },
+    "savedScenarios": {
+      "total": 1,
+      "yesterday": 0
+    },
+    "chatMessages": {
+      "total": 0,
+      "yesterday": 0
+    },
+    "emailsSent": {
+      "total": 0,
+      "yesterday": 0
+    }
+  },
+  "notes": [],
+  "series": [
+    {
+      "day": "2026-11-11",
+      "visits": 0,
+      "pageviews": 130
+    },
+    {
+      "day": "2026-11-12",
+      "visits": 20,
+      "pageviews": 70
+    },
+    {
+      "day": "2026-11-13",
+      "visits": 10,
+      "pageviews": 60
+    },
+    {
+      "day": "2026-11-14",
+      "visits": 20,
+      "pageviews": 20
+    },
+    {
+      "day": "2026-11-15",
+      "visits": 10,
+      "pageviews": 50
+    },
+    {
+      "day": "2026-11-16",
+      "visits": 50,
+      "pageviews": 110
+    },
+    {
+      "day": "2026-11-17",
+      "visits": 30,
+      "pageviews": 40
+    },
+    {
+      "day": "2026-11-18",
+      "visits": 20,
+      "pageviews": 40
+    },
+    {
+      "day": "2026-11-19",
+      "visits": 60,
+      "pageviews": 80
+    },
+    {
+      "day": "2026-11-20",
+      "visits": 50,
+      "pageviews": 160
+    },
+    {
+      "day": "2026-11-21",
+      "visits": 130,
+      "pageviews": 130
+    },
+    {
+      "day": "2026-11-22",
+      "visits": 140,
+      "pageviews": 160
+    },
+    {
+      "day": "2026-11-23",
+      "visits": 70,
+      "pageviews": 110
+    },
+    {
+      "day": "2026-11-24",
+      "visits": 20,
+      "pageviews": 90
+    },
+    {
+      "day": "2026-11-25",
+      "visits": 60,
+      "pageviews": 140
+    },
+    {
+      "day": "2026-11-26",
+      "visits": 40,
+      "pageviews": 70
+    }
+  ]
+}
